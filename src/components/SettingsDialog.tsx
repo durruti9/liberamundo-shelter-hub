@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, Pencil, AlertTriangle, BedDouble, Building2 } from 'lucide-react';
+import { Plus, Trash2, Pencil, AlertTriangle, BedDouble, Building2, Download, Upload, Database } from 'lucide-react';
 import { Room, Albergue } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
+import { toast } from 'sonner';
 
 interface Props {
   open: boolean;
@@ -144,12 +145,15 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
         </DialogHeader>
 
         <Tabs defaultValue="rooms" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="rooms" className="flex items-center gap-2">
-              <BedDouble className="w-4 h-4" /> {t.roomConfiguration}
+              <BedDouble className="w-4 h-4" /> <span className="hidden sm:inline">{t.roomConfiguration}</span><span className="sm:hidden">{t.rooms}</span>
             </TabsTrigger>
             <TabsTrigger value="albergues" className="flex items-center gap-2">
-              <Building2 className="w-4 h-4" /> {t.shelterManagement}
+              <Building2 className="w-4 h-4" /> <span className="hidden sm:inline">{t.shelterManagement}</span><span className="sm:hidden">Albergues</span>
+            </TabsTrigger>
+            <TabsTrigger value="backup" className="flex items-center gap-2">
+              <Database className="w-4 h-4" /> <span className="hidden sm:inline">{t.backupRestore}</span><span className="sm:hidden">Backup</span>
             </TabsTrigger>
           </TabsList>
 
@@ -361,6 +365,10 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="backup">
+            <BackupSection t={t} />
+          </TabsContent>
         </Tabs>
       </DialogContent>
 
@@ -393,5 +401,106 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
         </DialogContent>
       </Dialog>
     </Dialog>
+  );
+}
+
+function BackupSection({ t }: { t: import('@/i18n/translations').Translations }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const BACKUP_KEYS = ['albergues', 'users', '_migrated_v2'];
+
+  const exportData = useCallback(() => {
+    const data: Record<string, unknown> = {};
+    // Collect all localStorage keys
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || key === 'auth' || key === 'authRole' || key === 'currentAlbergueId' || key === 'userAlbergueIds' || key === 'app_language') continue;
+      try {
+        data[key] = JSON.parse(localStorage.getItem(key)!);
+      } catch {
+        data[key] = localStorage.getItem(key);
+      }
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_albergue_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(t.exportSuccess);
+  }, [t]);
+
+  const importData = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target?.result as string);
+        if (typeof data !== 'object' || data === null) throw new Error('Invalid');
+        
+        // Clear relevant keys
+        const keysToKeep = ['auth', 'authRole', 'currentAlbergueId', 'userAlbergueIds', 'app_language'];
+        const allKeys: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && !keysToKeep.includes(k)) allKeys.push(k);
+        }
+        allKeys.forEach(k => localStorage.removeItem(k));
+
+        // Restore
+        Object.entries(data).forEach(([key, value]) => {
+          localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+        });
+        toast.success(t.importSuccess);
+        setTimeout(() => window.location.reload(), 1500);
+      } catch {
+        toast.error(t.importError);
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, [t]);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Database className="w-4 h-4" /> {t.backupRestore}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Export */}
+        <div className="p-4 border rounded-lg space-y-3">
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <Download className="w-4 h-4" /> {t.exportAllData}
+          </h3>
+          <p className="text-xs text-muted-foreground">{t.exportDescription}</p>
+          <Button size="sm" onClick={exportData}>
+            <Download className="w-4 h-4 mr-2" /> {t.downloadBackup}
+          </Button>
+        </div>
+
+        {/* Import */}
+        <div className="p-4 border rounded-lg border-destructive/30 space-y-3">
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <Upload className="w-4 h-4" /> {t.importData}
+          </h3>
+          <p className="text-xs text-muted-foreground">{t.importDescription}</p>
+          <p className="text-xs text-destructive font-medium">{t.importWarning}</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            onChange={importData}
+            className="hidden"
+          />
+          <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()}>
+            <Upload className="w-4 h-4 mr-2" /> {t.selectFile}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

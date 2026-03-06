@@ -188,6 +188,37 @@ export interface Translations {
   noRooms: string;
   assignedShelters: string;
   allShelters: string;
+
+  // Dashboard
+  dashboard: string;
+  occupancyOverview: string;
+  occupancyRate: string;
+  totalBeds: string;
+  occupiedBeds: string;
+  freeBeds: string;
+  avgStay: string;
+  avgStayDays: string;
+  upcomingCheckouts: string;
+  noUpcomingCheckouts: string;
+  daysLeft: string;
+  dietDistribution: string;
+  monthlyOccupancy: string;
+  guestsOverTime: string;
+  activeIncidents: string;
+  month: string;
+
+  // Backup
+  backupRestore: string;
+  exportAllData: string;
+  exportDescription: string;
+  importData: string;
+  importDescription: string;
+  importWarning: string;
+  exportSuccess: string;
+  importSuccess: string;
+  importError: string;
+  downloadBackup: string;
+  selectFile: string;
 }
 
 const es: Translations = {
@@ -355,6 +386,33 @@ const es: Translations = {
   noRooms: 'No hay habitaciones configuradas',
   assignedShelters: 'Albergues asignados',
   allShelters: 'Todos los albergues',
+  dashboard: 'Panel',
+  occupancyOverview: 'Resumen de Ocupación',
+  occupancyRate: 'Tasa de ocupación',
+  totalBeds: 'Camas totales',
+  occupiedBeds: 'Camas ocupadas',
+  freeBeds: 'Camas libres',
+  avgStay: 'Estancia media',
+  avgStayDays: 'días de media',
+  upcomingCheckouts: 'Próximas salidas',
+  noUpcomingCheckouts: 'Sin salidas próximas',
+  daysLeft: 'días restantes',
+  dietDistribution: 'Distribución de dietas',
+  monthlyOccupancy: 'Ocupación mensual',
+  guestsOverTime: 'Huéspedes en el tiempo',
+  activeIncidents: 'Incidencias activas',
+  month: 'Mes',
+  backupRestore: 'Backup y Restauración',
+  exportAllData: 'Exportar todos los datos',
+  exportDescription: 'Descarga un archivo JSON con todos los datos de todos los albergues, huéspedes, comedor, llegadas, incidencias y usuarios.',
+  importData: 'Importar datos',
+  importDescription: 'Restaura datos desde un archivo de backup previamente exportado.',
+  importWarning: '⚠️ Esto reemplazará TODOS los datos actuales. Esta acción no se puede deshacer.',
+  exportSuccess: 'Backup exportado correctamente',
+  importSuccess: 'Datos restaurados correctamente. Recargando...',
+  importError: 'Error al importar. Archivo inválido.',
+  downloadBackup: 'Descargar backup',
+  selectFile: 'Seleccionar archivo',
 };
 
 const fr: Translations = {
@@ -522,6 +580,33 @@ const fr: Translations = {
   noRooms: 'Aucune chambre configurée',
   assignedShelters: 'Hébergements assignés',
   allShelters: 'Tous les hébergements',
+  dashboard: 'Tableau de bord',
+  occupancyOverview: 'Aperçu de l\'occupation',
+  occupancyRate: 'Taux d\'occupation',
+  totalBeds: 'Lits totaux',
+  occupiedBeds: 'Lits occupés',
+  freeBeds: 'Lits libres',
+  avgStay: 'Séjour moyen',
+  avgStayDays: 'jours en moyenne',
+  upcomingCheckouts: 'Départs prochains',
+  noUpcomingCheckouts: 'Aucun départ prochain',
+  daysLeft: 'jours restants',
+  dietDistribution: 'Répartition des régimes',
+  monthlyOccupancy: 'Occupation mensuelle',
+  guestsOverTime: 'Résidents au fil du temps',
+  activeIncidents: 'Incidents actifs',
+  month: 'Mois',
+  backupRestore: 'Sauvegarde et Restauration',
+  exportAllData: 'Exporter toutes les données',
+  exportDescription: 'Téléchargez un fichier JSON avec toutes les données.',
+  importData: 'Importer des données',
+  importDescription: 'Restaurez les données depuis un fichier de sauvegarde.',
+  importWarning: '⚠️ Cela remplacera TOUTES les données actuelles.',
+  exportSuccess: 'Sauvegarde exportée avec succès',
+  importSuccess: 'Données restaurées. Rechargement...',
+  importError: 'Erreur d\'importation. Fichier invalide.',
+  downloadBackup: 'Télécharger la sauvegarde',
+  selectFile: 'Sélectionner un fichier',
 };
 
 const ar: Translations = {
@@ -689,6 +774,33 @@ const ar: Translations = {
   noRooms: 'لا توجد غرف مُعدّة',
   assignedShelters: 'الملاجئ المعيّنة',
   allShelters: 'جميع الملاجئ',
+  dashboard: 'لوحة التحكم',
+  occupancyOverview: 'نظرة عامة على الإشغال',
+  occupancyRate: 'معدل الإشغال',
+  totalBeds: 'إجمالي الأسرة',
+  occupiedBeds: 'أسرة مشغولة',
+  freeBeds: 'أسرة حرة',
+  avgStay: 'متوسط الإقامة',
+  avgStayDays: 'أيام في المتوسط',
+  upcomingCheckouts: 'المغادرات القادمة',
+  noUpcomingCheckouts: 'لا مغادرات قادمة',
+  daysLeft: 'أيام متبقية',
+  dietDistribution: 'توزيع الأنظمة الغذائية',
+  monthlyOccupancy: 'الإشغال الشهري',
+  guestsOverTime: 'النزلاء عبر الزمن',
+  activeIncidents: 'حوادث نشطة',
+  month: 'شهر',
+  backupRestore: 'النسخ الاحتياطي والاستعادة',
+  exportAllData: 'تصدير جميع البيانات',
+  exportDescription: 'تحميل ملف JSON بجميع البيانات.',
+  importData: 'استيراد البيانات',
+  importDescription: 'استعادة البيانات من ملف نسخة احتياطية.',
+  importWarning: '⚠️ سيتم استبدال جميع البيانات الحالية.',
+  exportSuccess: 'تم تصدير النسخة الاحتياطية بنجاح',
+  importSuccess: 'تمت استعادة البيانات. جارٍ إعادة التحميل...',
+  importError: 'خطأ في الاستيراد. ملف غير صالح.',
+  downloadBackup: 'تحميل النسخة الاحتياطية',
+  selectFile: 'اختر ملفاً',
 };
 
 const en: Translations = {
@@ -856,6 +968,33 @@ const en: Translations = {
   noRooms: 'No rooms configured',
   assignedShelters: 'Assigned shelters',
   allShelters: 'All shelters',
+  dashboard: 'Dashboard',
+  occupancyOverview: 'Occupancy Overview',
+  occupancyRate: 'Occupancy rate',
+  totalBeds: 'Total beds',
+  occupiedBeds: 'Occupied beds',
+  freeBeds: 'Free beds',
+  avgStay: 'Average stay',
+  avgStayDays: 'days on average',
+  upcomingCheckouts: 'Upcoming checkouts',
+  noUpcomingCheckouts: 'No upcoming checkouts',
+  daysLeft: 'days left',
+  dietDistribution: 'Diet distribution',
+  monthlyOccupancy: 'Monthly occupancy',
+  guestsOverTime: 'Guests over time',
+  activeIncidents: 'Active incidents',
+  month: 'Month',
+  backupRestore: 'Backup & Restore',
+  exportAllData: 'Export all data',
+  exportDescription: 'Download a JSON file with all data from all shelters, guests, dining, arrivals, incidents and users.',
+  importData: 'Import data',
+  importDescription: 'Restore data from a previously exported backup file.',
+  importWarning: '⚠️ This will replace ALL current data. This action cannot be undone.',
+  exportSuccess: 'Backup exported successfully',
+  importSuccess: 'Data restored successfully. Reloading...',
+  importError: 'Import error. Invalid file.',
+  downloadBackup: 'Download backup',
+  selectFile: 'Select file',
 };
 
 export const translations: Record<Language, Translations> = { es, fr, ar, en };

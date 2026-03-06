@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown } from 'lucide-react';
+import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,7 @@ import LlegadasTab from './tabs/LlegadasTab';
 import ComedorTab from './tabs/ComedorTab';
 import IncidenciasTab from './tabs/IncidenciasTab';
 import SettingsDialog from './SettingsDialog';
+import DashboardTab from './tabs/DashboardTab';
 import { useAlbergueStore } from '@/hooks/useAlbergueStore';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
@@ -34,7 +35,7 @@ const LANG_FLAGS: Record<Language, string> = { es: '🇪🇸', fr: '🇫🇷', a
 export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue }: Props) {
   const store = useAlbergueStore(albergueId);
   const { t, lang, setLang } = useI18n();
-  const [tab, setTab] = useState('habitaciones');
+  const [tab, setTab] = useState('dashboard');
   const [showUsers, setShowUsers] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [newUser, setNewUser] = useState({ email: '', password: '', nombre: '', role: 'personal_albergue' as UserRole, albergueIds: [albergueId] });
@@ -58,7 +59,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
     personal_albergue: t.shelterStaff,
   };
 
-  const tabCount = role === 'personal_albergue' ? 4 : 5;
+  const tabCount = role === 'personal_albergue' ? 5 : 7;
 
   const handleAlbergueDeleted = (deletedId: string) => {
     if (deletedId === albergueId && store.albergues.length > 0) {
@@ -141,6 +142,12 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
       <main className="container mx-auto px-4 py-6">
         <Tabs value={tab} onValueChange={setTab} className="space-y-6">
           <TabsList className="grid w-full h-auto" style={{ gridTemplateColumns: `repeat(${tabCount}, minmax(0, 1fr))` }}>
+            {(role === 'admin' || role === 'gestor') && (
+              <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
+                <LayoutDashboard className="w-4 h-4" />
+                <span className="hidden sm:inline">{t.dashboard}</span>
+              </TabsTrigger>
+            )}
             <TabsTrigger value="habitaciones" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
               <BedDouble className="w-4 h-4" />
               <span className="hidden sm:inline">{t.rooms}</span>
@@ -165,6 +172,11 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             </TabsTrigger>
           </TabsList>
 
+          {(role === 'admin' || role === 'gestor') && (
+            <TabsContent value="dashboard">
+              <DashboardTab store={store} />
+            </TabsContent>
+          )}
           <TabsContent value="habitaciones">
             <HabitacionesTab store={store} role={role} />
           </TabsContent>
