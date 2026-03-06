@@ -5,12 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { ROOMS, TOTAL_CAMAS, Dieta, UserRole } from '@/types';
+import { ROOMS, TOTAL_CAMAS, UserRole } from '@/types';
 import CheckInModal from '@/components/CheckInModal';
-import { BedDouble, MoreVertical, CalendarIcon } from 'lucide-react';
+import { BedDouble, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -50,6 +48,7 @@ export default function HabitacionesTab({ store, role }: Props) {
   }, [huespedActivos]);
 
   const editingHuesped = editTarget ? huespedActivos.find(h => h.id === editTarget) : null;
+  const checkoutHuesped = checkoutTarget ? huespedActivos.find(h => h.id === checkoutTarget) : null;
 
   const dietColors: Record<string, string> = {
     'Omnívora estándar': 'bg-secondary text-secondary-foreground',
@@ -69,6 +68,8 @@ export default function HabitacionesTab({ store, role }: Props) {
     setCheckoutTarget(null);
     setCheckoutDate(new Date());
   };
+
+  const today = new Date().toISOString().split('T')[0];
 
   return (
     <div className="space-y-6">
@@ -133,11 +134,15 @@ export default function HabitacionesTab({ store, role }: Props) {
                 {Array.from({ length: room.camas }, (_, i) => i + 1).map(cama => {
                   const occupant = getOccupant(room.id, cama);
                   if (occupant) {
+                    const hasFutureCheckout = occupant.fechaCheckout && occupant.fechaCheckout > today;
                     if (!canManage) {
                       return (
                         <div key={cama} className="bed-occupied rounded-lg p-3 text-left text-xs w-full">
                           <div className="font-medium truncate">{occupant.nombre}</div>
                           <div className="opacity-70 mt-0.5">Cama {cama}</div>
+                          {hasFutureCheckout && (
+                            <div className="text-[10px] opacity-60 mt-0.5">Sale: {occupant.fechaCheckout}</div>
+                          )}
                         </div>
                       );
                     }
@@ -147,6 +152,9 @@ export default function HabitacionesTab({ store, role }: Props) {
                           <button className="bed-occupied rounded-lg p-3 text-left text-xs w-full relative group">
                             <div className="font-medium truncate pr-4">{occupant.nombre}</div>
                             <div className="opacity-70 mt-0.5">Cama {cama}</div>
+                            {hasFutureCheckout && (
+                              <div className="text-[10px] opacity-60 mt-0.5">Sale: {occupant.fechaCheckout}</div>
+                            )}
                             <MoreVertical className="w-3 h-3 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </button>
                         </DropdownMenuTrigger>
@@ -236,10 +244,17 @@ export default function HabitacionesTab({ store, role }: Props) {
       {/* Checkout date dialog */}
       <Dialog open={!!checkoutTarget} onOpenChange={() => setCheckoutTarget(null)}>
         <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle>Fecha de Check-out</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Fecha de Check-out</DialogTitle>
+          </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Selecciona la fecha de salida</Label>
+              {checkoutHuesped && (
+                <p className="text-sm text-muted-foreground">
+                  Si seleccionas una fecha futura, {checkoutHuesped.nombre} permanecerá en la habitación hasta ese día.
+                </p>
+              )}
               <div className="flex justify-center">
                 <Calendar
                   mode="single"
@@ -251,6 +266,11 @@ export default function HabitacionesTab({ store, role }: Props) {
               {checkoutDate && (
                 <p className="text-sm text-center text-muted-foreground">
                   Fecha seleccionada: <strong>{format(checkoutDate, 'dd/MM/yyyy')}</strong>
+                  {format(checkoutDate, 'yyyy-MM-dd') > today && (
+                    <span className="block text-xs text-primary mt-1">
+                      El huésped permanecerá hasta esta fecha
+                    </span>
+                  )}
                 </p>
               )}
             </div>
