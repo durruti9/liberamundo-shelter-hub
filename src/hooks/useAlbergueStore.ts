@@ -50,6 +50,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
   const [comedor, setComedor] = useState<ComedorEntry[]>(() => loadFromStorage(`${prefix}_comedor`, []));
   const [llegadas, setLlegadas] = useState<ProximaLlegada[]>(() => loadFromStorage(`${prefix}_llegadas`, []));
   const [incidencias, setIncidencias] = useState<Incidencia[]>(() => loadFromStorage(`${prefix}_incidencias`, []));
+  const [boardMessages, setBoardMessages] = useState<BoardMessage[]>(() => loadFromStorage(`${prefix}_board`, []));
 
   // Global: users
   const [users, setUsers] = useState<UserAccount[]>(() => {
