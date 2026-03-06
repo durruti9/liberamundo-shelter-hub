@@ -36,8 +36,26 @@ export default function LoginPage({ onLogin }: Props) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    
+    // Try API first
+    const apiAvailable = await isApiAvailable();
+    if (apiAvailable) {
+      try {
+        const result = await api.login(email, password);
+        localStorage.setItem('auth', 'true');
+        localStorage.setItem('authRole', result.role);
+        onLogin(result.role as UserRole, result.albergueIds);
+        return;
+      } catch {
+        setError(t.wrongCredentials);
+        return;
+      }
+    }
+    
+    // Fallback to localStorage
     const users = loadUsers();
     const user = users.find(u => u.email === email && u.password === password);
     if (user) {
