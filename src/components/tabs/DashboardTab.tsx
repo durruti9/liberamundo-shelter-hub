@@ -1,13 +1,16 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BedDouble, Users, Clock, AlertTriangle, TrendingUp } from 'lucide-react';
+import { BedDouble, Users, Clock, AlertTriangle, TrendingUp, CalendarPlus } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { useI18n } from '@/i18n/I18nContext';
 import { formatDateES } from '@/lib/dateFormat';
+import BoardPanel from '@/components/BoardPanel';
+import { UserRole } from '@/types';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
+  role?: UserRole;
 }
 
 const COLORS = [
@@ -16,15 +19,14 @@ const COLORS = [
   'hsl(25, 80%, 55%)', 'hsl(0, 72%, 55%)',
 ];
 
-export default function DashboardTab({ store }: Props) {
-  const { huespedActivos, huespedes, totalCamas, incidencias } = store;
+export default function DashboardTab({ store, role = 'personal_albergue' }: Props) {
+  const { huespedActivos, huespedes, totalCamas, incidencias, llegadas, boardMessages, addBoardMessage, addBoardReply, resolveBoardMessage, deleteBoardMessage } = store;
   const { t } = useI18n();
 
   const ocupadas = huespedActivos.length;
   const libres = totalCamas - ocupadas;
   const porcentaje = totalCamas > 0 ? Math.round((ocupadas / totalCamas) * 100) : 0;
 
-  // Average stay (active guests)
   const avgStay = useMemo(() => {
     if (huespedActivos.length === 0) return 0;
     const today = new Date();
@@ -36,20 +38,28 @@ export default function DashboardTab({ store }: Props) {
     return Math.round(total / huespedActivos.length);
   }, [huespedActivos]);
 
-  // Upcoming checkouts (sorted, next 14 days)
   const upcomingCheckouts = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
     const twoWeeks = new Date();
     twoWeeks.setDate(twoWeeks.getDate() + 14);
     const limit = twoWeeks.toISOString().split('T')[0];
-
     return huespedActivos
       .filter(h => h.fechaCheckout && h.fechaCheckout >= today && h.fechaCheckout <= limit)
       .sort((a, b) => (a.fechaCheckout || '').localeCompare(b.fechaCheckout || ''))
       .slice(0, 8);
   }, [huespedActivos]);
 
-  // Diet distribution for pie chart
+  const upcomingArrivals = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const twoWeeks = new Date();
+    twoWeeks.setDate(twoWeeks.getDate() + 14);
+    const limit = twoWeeks.toISOString().split('T')[0];
+    return llegadas
+      .filter(l => l.fechaLlegada >= today && l.fechaLlegada <= limit)
+      .sort((a, b) => a.fechaLlegada.localeCompare(b.fechaLlegada))
+      .slice(0, 8);
+  }, [llegadas]);
+
   const dietData = useMemo(() => {
     const counts: Record<string, number> = {};
     huespedActivos.forEach(h => { counts[h.dieta] = (counts[h.dieta] || 0) + 1; });
@@ -58,7 +68,6 @@ export default function DashboardTab({ store }: Props) {
       .sort((a, b) => b.value - a.value);
   }, [huespedActivos]);
 
-  // Monthly guest count (last 6 months based on entry dates)
   const monthlyData = useMemo(() => {
     const months: { month: string; count: number }[] = [];
     const now = new Date();
@@ -72,10 +81,7 @@ export default function DashboardTab({ store }: Props) {
     return months;
   }, [huespedes]);
 
-  // Active incidents
-  const activeIncidentCount = useMemo(() => 
-    incidencias.filter(i => !i.resuelta).length
-  , [incidencias]);
+  const activeIncidentCount = useMemo(() => incidencias.filter(i => !i.resuelta).length, [incidencias]);
 
   const daysUntil = (date: string) => {
     const today = new Date();
@@ -131,9 +137,32 @@ export default function DashboardTab({ store }: Props) {
         </Card>
       </div>
 
+      {/* Board Panels - Instructions & Requests */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <BoardPanel
+          title={t.instructions}
+          tipo="instrucciones"
+          messages={boardMessages}
+          role={role}
+          onAdd={addBoardMessage}
+          onReply={addBoardReply}
+          onResolve={resolveBoardMessage}
+          onDelete={deleteBoardMessage}
+        />
+        <BoardPanel
+          title={t.requests}
+          tipo="peticiones"
+          messages={boardMessages}
+          role={role}
+          onAdd={addBoardMessage}
+          onReply={addBoardReply}
+          onResolve={resolveBoardMessage}
+          onDelete={deleteBoardMessage}
+        />
+      </div>
+
       {/* Charts row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Diet distribution */}
         <Card>
           <CardHeader>
             <CardTitle className="text-sm">{t.dietDistribution}</CardTitle>
@@ -167,7 +196,6 @@ export default function DashboardTab({ store }: Props) {
           </CardContent>
         </Card>
 
-        {/* Monthly entries */}
         <Card>
           <CardHeader>
             <CardTitle className="text-sm">{t.guestsOverTime}</CardTitle>
@@ -186,37 +214,76 @@ export default function DashboardTab({ store }: Props) {
         </Card>
       </div>
 
-      {/* Upcoming checkouts */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Users className="w-4 h-4" /> {t.upcomingCheckouts}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {upcomingCheckouts.length === 0 ? (
-            <p className="text-center text-muted-foreground py-4 text-sm">{t.noUpcomingCheckouts}</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-              {upcomingCheckouts.map(h => {
-                const days = daysUntil(h.fechaCheckout!);
-                return (
-                  <div key={h.id} className="p-3 rounded-lg border bg-card">
-                    <p className="font-medium text-sm truncate">{h.nombre}</p>
-                    <p className="text-xs text-muted-foreground">Hab {h.habitacion} - Cama {h.cama}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-xs text-muted-foreground">{formatDateES(h.fechaCheckout!)}</span>
-                      <Badge variant={days <= 1 ? 'destructive' : days <= 3 ? 'secondary' : 'outline'} className="text-xs">
-                        {days === 0 ? 'Hoy' : `${days} ${t.daysLeft}`}
-                      </Badge>
+      {/* Upcoming checkouts & arrivals */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Users className="w-4 h-4" /> {t.upcomingCheckouts}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {upcomingCheckouts.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4 text-sm">{t.noUpcomingCheckouts}</p>
+            ) : (
+              <div className="space-y-2">
+                {upcomingCheckouts.map(h => {
+                  const days = daysUntil(h.fechaCheckout!);
+                  return (
+                    <div key={h.id} className="p-3 rounded-lg border bg-card flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm truncate">{h.nombre}</p>
+                        <p className="text-xs text-muted-foreground">Hab {h.habitacion} - Cama {h.cama}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs text-muted-foreground">{formatDateES(h.fechaCheckout!)}</span>
+                        <Badge variant={days <= 1 ? 'destructive' : days <= 3 ? 'secondary' : 'outline'} className="text-xs ml-2">
+                          {days === 0 ? 'Hoy' : `${days}d`}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <CalendarPlus className="w-4 h-4" /> {t.upcomingArrivalsBoard}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {upcomingArrivals.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4 text-sm">{t.noArrivals}</p>
+            ) : (
+              <div className="space-y-2">
+                {upcomingArrivals.map(l => {
+                  const days = daysUntil(l.fechaLlegada);
+                  return (
+                    <div key={l.id} className="p-3 rounded-lg border bg-card flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm truncate">{l.nombre}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {l.habitacionAsignada ? `Hab ${l.habitacionAsignada} - Cama ${l.camaAsignada}` : t.unassigned}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs text-muted-foreground">{formatDateES(l.fechaLlegada)}</span>
+                        <Badge variant={days <= 1 ? 'destructive' : days <= 3 ? 'secondary' : 'outline'} className="text-xs ml-2">
+                          {days === 0 ? 'Hoy' : `${days}d`}
+                        </Badge>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
