@@ -54,6 +54,19 @@ export interface ProximaLlegada {
   camaAsignada?: number;
 }
 
+export type IncidentType = 'behavioral' | 'medical' | 'administrative' | 'social' | 'other';
+
+export interface Incidencia {
+  id: string;
+  huespedId: string;
+  huespedNombre: string;
+  tipo: IncidentType;
+  descripcion: string;
+  fecha: string;
+  resuelta: boolean;
+  creadoPor: string;
+}
+
 export interface Room {
   id: string;
   nombre: string;
