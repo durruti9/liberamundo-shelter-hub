@@ -13,13 +13,24 @@ export interface Huesped {
   activo: boolean;
 }
 
-export type Dieta = 'Sin restricciones' | 'Sin cerdo' | 'Situación especial' | 'Halal' | 'Vegano';
+export type Dieta =
+  | 'Omnívora estándar'
+  | 'Halal'
+  | 'Kosher'
+  | 'Vegetariana'
+  | 'Vegana'
+  | 'Hindú / sin vacuno'
+  | 'Jain / estricto vegetariano'
+  | 'Sin cerdo (no halal)'
+  | 'Sin vacuno / sin ternera'
+  | 'Situación especial'
+  | 'Alergias e intolerancias';
 
 export interface ComedorEntry {
   huespedId: string;
   semana: string;
-  separarComidas: string[];
-  dias: string;
+  separarComidas: string;
+  diasSeparar: string;
   motivoAusencia: string;
   observaciones: string;
   particularidades: string;
@@ -53,6 +64,18 @@ export const ROOMS: Room[] = [
   { id: '2.3', nombre: 'Habitación 2.3', camas: 4 },
 ];
 
-export const DIETAS: Dieta[] = ['Sin restricciones', 'Sin cerdo', 'Situación especial', 'Halal', 'Vegano'];
+export const DIETAS: Dieta[] = [
+  'Omnívora estándar',
+  'Halal',
+  'Kosher',
+  'Vegetariana',
+  'Vegana',
+  'Hindú / sin vacuno',
+  'Jain / estricto vegetariano',
+  'Sin cerdo (no halal)',
+  'Sin vacuno / sin ternera',
+  'Situación especial',
+  'Alergias e intolerancias',
+];
 
 export const TOTAL_CAMAS = ROOMS.reduce((acc, r) => acc + r.camas, 0);

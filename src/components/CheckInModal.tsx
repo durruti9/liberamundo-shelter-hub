@@ -22,7 +22,7 @@ interface Props {
 export default function CheckInModal({ open, onClose, onSubmit, title = 'Check-in', submitLabel = 'Registrar', defaultDate }: Props) {
   const [form, setForm] = useState({
     nombre: '', nie: '', nacionalidad: '', idioma: '',
-    dieta: 'Sin restricciones' as Dieta,
+    dieta: 'Omnívora estándar' as Dieta,
     fechaEntrada: defaultDate || new Date().toISOString().split('T')[0],
     notas: '',
   });
@@ -33,7 +33,7 @@ export default function CheckInModal({ open, onClose, onSubmit, title = 'Check-i
     e.preventDefault();
     if (!form.nombre.trim()) return;
     onSubmit(form);
-    setForm({ nombre: '', nie: '', nacionalidad: '', idioma: '', dieta: 'Sin restricciones', fechaEntrada: new Date().toISOString().split('T')[0], notas: '' });
+    setForm({ nombre: '', nie: '', nacionalidad: '', idioma: '', dieta: 'Omnívora estándar', fechaEntrada: new Date().toISOString().split('T')[0], notas: '' });
     onClose();
   };
 
@@ -61,7 +61,7 @@ export default function CheckInModal({ open, onClose, onSubmit, title = 'Check-i
               <Label>Idioma</Label>
               <Input value={form.idioma} onChange={e => update('idioma', e.target.value)} />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 col-span-1 sm:col-span-2">
               <Label>Dieta</Label>
               <Select value={form.dieta} onValueChange={v => update('dieta', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
