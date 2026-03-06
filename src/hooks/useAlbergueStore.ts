@@ -55,6 +55,7 @@ export function useAlbergueStore() {
     setHuespedes(prev => [...prev, newHuesped]);
     setComedor(prev => [...prev, {
       huespedId: newHuesped.id,
+      estado: 'Activo' as const,
       separarComidas: ['Todas'],
       diasSeparar: ['Todos los días'],
       motivoAusencia: '',
@@ -98,6 +99,7 @@ export function useAlbergueStore() {
     ));
     setComedor(prev => [...prev, {
       huespedId: id,
+      estado: 'Activo' as const,
       separarComidas: ['Todas'],
       diasSeparar: ['Todos los días'],
       motivoAusencia: '',
@@ -148,6 +150,7 @@ export function useAlbergueStore() {
       }
       return [...prev, {
         huespedId,
+        estado: 'Activo' as const,
         separarComidas: ['Todas'],
         diasSeparar: ['Todos los días'],
         motivoAusencia: '',

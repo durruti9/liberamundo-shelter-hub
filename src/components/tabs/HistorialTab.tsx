@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Download, History, Pencil, Trash2, UserPlus, AlertTriangle } from 'lucide-react';
 import { DIETAS, ROOMS, Dieta, UserRole } from '@/types';
+import { formatDateES } from '@/lib/dateFormat';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
@@ -108,8 +109,8 @@ export default function HistorialTab({ store, role }: Props) {
                       <TableCell>
                         <Badge variant="outline">Hab {h.habitacion} - C{h.cama}</Badge>
                       </TableCell>
-                      <TableCell>{h.fechaEntrada}</TableCell>
-                      <TableCell>{h.fechaCheckout || '-'}</TableCell>
+                      <TableCell>{formatDateES(h.fechaEntrada)}</TableCell>
+                      <TableCell>{formatDateES(h.fechaCheckout)}</TableCell>
                       <TableCell className="text-xs">{h.dieta}</TableCell>
                       <TableCell>
                         <Badge variant={h.activo ? 'default' : 'secondary'}>

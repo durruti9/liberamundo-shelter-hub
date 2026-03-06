@@ -20,6 +20,7 @@ interface Props {
 const SEPARAR_OPTIONS = ['Todas', 'Desayuno', 'Comida', 'Cena'];
 const DIAS_OPTIONS = ['Todos los días', 'Laborables', 'Fines de semana', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const MOTIVO_OPTIONS = ['Accem', 'Empleo', 'Formación', 'Médico', 'Otros'];
+const ESTADO_OPTIONS = ['Activo', 'Pausado'] as const;
 
 const ROOM_COLORS: Record<string, string> = {
   '1.1': 'bg-[hsl(212,72%,90%)] text-[hsl(212,72%,35%)] border-[hsl(212,72%,75%)]',
@@ -97,6 +98,7 @@ export default function ComedorTab({ store, role }: Props) {
           huesped: h,
           comedor: entry || {
             huespedId: h.id,
+            estado: 'Activo' as const,
             separarComidas: ['Todas'],
             diasSeparar: ['Todos los días'],
             motivoAusencia: '',
@@ -137,7 +139,7 @@ export default function ComedorTab({ store, role }: Props) {
                     <TableHead className="w-10">#</TableHead>
                     <TableHead>Nombre Completo</TableHead>
                     <TableHead className="w-16">Hab.</TableHead>
-                    <TableHead className="w-20">Estado</TableHead>
+                    <TableHead className="w-24">Estado</TableHead>
                     <TableHead>Tipo de Dieta</TableHead>
                     <TableHead>Particularidades Alimentarias</TableHead>
                     <TableHead>Separar Comidas</TableHead>
@@ -151,6 +153,7 @@ export default function ComedorTab({ store, role }: Props) {
                   {entries.map(({ num, huesped, comedor: c }) => {
                     const separarArr = Array.isArray(c.separarComidas) ? c.separarComidas : [c.separarComidas || 'Todas'];
                     const diasArr = Array.isArray(c.diasSeparar) ? c.diasSeparar : [c.diasSeparar || 'Todos los días'];
+                    const estado = c.estado || 'Activo';
                     const lastMod = c.ultimaModificacion
                       ? formatDistanceToNow(new Date(c.ultimaModificacion), { addSuffix: true, locale: es })
                       : '—';
@@ -165,7 +168,29 @@ export default function ComedorTab({ store, role }: Props) {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge className="bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)] text-xs">Activo</Badge>
+                          {canEdit ? (
+                            <Select value={estado} onValueChange={v => handleUpdate(huesped.id, 'estado', v)}>
+                              <SelectTrigger className="h-8 text-xs w-24 p-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {ESTADO_OPTIONS.map(o => (
+                                  <SelectItem key={o} value={o}>
+                                    <span className={o === 'Pausado' ? 'text-destructive font-medium' : 'text-[hsl(142,60%,30%)] font-medium'}>
+                                      {o}
+                                    </span>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Badge className={estado === 'Pausado'
+                              ? 'bg-[hsl(0,72%,92%)] text-destructive text-xs'
+                              : 'bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)] text-xs'
+                            }>
+                              {estado}
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Badge className={`text-xs ${DIET_COLORS[huesped.dieta] || 'bg-secondary text-secondary-foreground'}`} variant="secondary">

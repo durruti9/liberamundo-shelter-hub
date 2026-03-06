@@ -11,6 +11,7 @@ import CheckInModal from '@/components/CheckInModal';
 import { BedDouble, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { stayDuration, formatDateES } from '@/lib/dateFormat';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
@@ -135,13 +136,15 @@ export default function HabitacionesTab({ store, role }: Props) {
                   const occupant = getOccupant(room.id, cama);
                   if (occupant) {
                     const hasFutureCheckout = occupant.fechaCheckout && occupant.fechaCheckout > today;
+                    const duration = stayDuration(occupant.fechaEntrada);
                     if (!canManage) {
                       return (
                         <div key={cama} className="bed-occupied rounded-lg p-3 text-left text-xs w-full">
                           <div className="font-medium truncate">{occupant.nombre}</div>
                           <div className="opacity-70 mt-0.5">Cama {cama}</div>
+                          <div className="opacity-60 mt-0.5 text-[10px]">⏱ {duration}</div>
                           {hasFutureCheckout && (
-                            <div className="text-[10px] opacity-60 mt-0.5">Sale: {occupant.fechaCheckout}</div>
+                            <div className="text-[10px] opacity-60 mt-0.5">Sale: {formatDateES(occupant.fechaCheckout)}</div>
                           )}
                         </div>
                       );
@@ -152,8 +155,9 @@ export default function HabitacionesTab({ store, role }: Props) {
                           <button className="bed-occupied rounded-lg p-3 text-left text-xs w-full relative group">
                             <div className="font-medium truncate pr-4">{occupant.nombre}</div>
                             <div className="opacity-70 mt-0.5">Cama {cama}</div>
+                            <div className="opacity-60 mt-0.5 text-[10px]">⏱ {duration}</div>
                             {hasFutureCheckout && (
-                              <div className="text-[10px] opacity-60 mt-0.5">Sale: {occupant.fechaCheckout}</div>
+                              <div className="text-[10px] opacity-60 mt-0.5">Sale: {formatDateES(occupant.fechaCheckout)}</div>
                             )}
                             <MoreVertical className="w-3 h-3 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </button>
@@ -265,7 +269,7 @@ export default function HabitacionesTab({ store, role }: Props) {
               </div>
               {checkoutDate && (
                 <p className="text-sm text-center text-muted-foreground">
-                  Fecha seleccionada: <strong>{format(checkoutDate, 'dd/MM/yyyy')}</strong>
+                  Fecha seleccionada: <strong>{format(checkoutDate, 'dd-MM-yyyy')}</strong>
                   {format(checkoutDate, 'yyyy-MM-dd') > today && (
                     <span className="block text-xs text-primary mt-1">
                       El huésped permanecerá hasta esta fecha
