@@ -38,7 +38,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
   // Global: albergues list
   const [albergues, setAlbergues] = useState<Albergue[]>(() => loadFromStorage('albergues', [DEFAULT_ALBERGUE]));
   const currentAlbergue = useMemo(() => albergues.find(a => a.id === albergueId) || albergues[0], [albergues, albergueId]);
-  const rooms: Room[] = currentAlbergue?.rooms || [];
+  const rooms: Room[] = currentAlbergue?.rooms ?? [];
   const totalCamas = useMemo(() => rooms.reduce((acc, r) => acc + r.camas, 0), [rooms]);
 
   // Per-albergue data
