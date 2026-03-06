@@ -188,6 +188,37 @@ export interface Translations {
   noRooms: string;
   assignedShelters: string;
   allShelters: string;
+
+  // Dashboard
+  dashboard: string;
+  occupancyOverview: string;
+  occupancyRate: string;
+  totalBeds: string;
+  occupiedBeds: string;
+  freeBeds: string;
+  avgStay: string;
+  avgStayDays: string;
+  upcomingCheckouts: string;
+  noUpcomingCheckouts: string;
+  daysLeft: string;
+  dietDistribution: string;
+  monthlyOccupancy: string;
+  guestsOverTime: string;
+  activeIncidents: string;
+  month: string;
+
+  // Backup
+  backupRestore: string;
+  exportAllData: string;
+  exportDescription: string;
+  importData: string;
+  importDescription: string;
+  importWarning: string;
+  exportSuccess: string;
+  importSuccess: string;
+  importError: string;
+  downloadBackup: string;
+  selectFile: string;
 }
 
 const es: Translations = {
