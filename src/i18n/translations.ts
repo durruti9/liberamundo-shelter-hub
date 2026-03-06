@@ -123,6 +123,8 @@ export interface Translations {
   paused: string;
   foodPlaceholder: string;
   observationsPlaceholder: string;
+  downloadWeeklyPdf: string;
+  weekOf: string;
 
   // Comedor options
   all: string;
