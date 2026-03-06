@@ -291,6 +291,33 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Change password dialog */}
+      <Dialog open={!!changingPasswordFor} onOpenChange={() => setChangingPasswordFor(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><KeyRound className="w-5 h-5" /> {t.changePassword}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{changingPasswordFor}</p>
+            <div className="space-y-2">
+              <Label>{t.newPassword}</Label>
+              <Input type="password" value={newPasswordValue} onChange={e => setNewPasswordValue(e.target.value)} placeholder="••••••" autoFocus />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setChangingPasswordFor(null)}>{t.cancel}</Button>
+              <Button disabled={newPasswordValue.length < 4} onClick={async () => {
+                try {
+                  await store.changePassword(changingPasswordFor!, newPasswordValue);
+                  const { toast } = await import('sonner');
+                  toast.success(t.passwordChanged);
+                  setChangingPasswordFor(null);
+                } catch { /* error handled by api */ }
+              }}>{t.save}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
