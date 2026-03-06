@@ -69,8 +69,8 @@ export default function LoginPage({ onLogin }: Props) {
       </div>
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center space-y-3">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-primary flex items-center justify-center">
-            <Building2 className="w-8 h-8 text-primary-foreground" />
+          <div className="mx-auto">
+            <img src={logo} alt="Libera Mundo" className="h-20 mx-auto" />
           </div>
           <CardTitle className="text-2xl font-bold">{t.appName}</CardTitle>
           <p className="text-muted-foreground text-sm">{t.managementSystem}</p>
