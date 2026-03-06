@@ -145,12 +145,15 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
         </DialogHeader>
 
         <Tabs defaultValue="rooms" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="rooms" className="flex items-center gap-2">
-              <BedDouble className="w-4 h-4" /> {t.roomConfiguration}
+              <BedDouble className="w-4 h-4" /> <span className="hidden sm:inline">{t.roomConfiguration}</span><span className="sm:hidden">{t.rooms}</span>
             </TabsTrigger>
             <TabsTrigger value="albergues" className="flex items-center gap-2">
-              <Building2 className="w-4 h-4" /> {t.shelterManagement}
+              <Building2 className="w-4 h-4" /> <span className="hidden sm:inline">{t.shelterManagement}</span><span className="sm:hidden">Albergues</span>
+            </TabsTrigger>
+            <TabsTrigger value="backup" className="flex items-center gap-2">
+              <Database className="w-4 h-4" /> <span className="hidden sm:inline">{t.backupRestore}</span><span className="sm:hidden">Backup</span>
             </TabsTrigger>
           </TabsList>
 
