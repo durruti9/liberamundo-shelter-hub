@@ -448,7 +448,7 @@ const es: Translations = {
   message: 'Mensaje',
   visibility: 'Visibilidad',
   visibilityAll: 'Todos',
-  visibilityManager: 'Gestor',
+  visibilityManager: 'Personal Gestor',
   visibilityStaff: 'Personal Albergue',
   markResolved: 'Marcar como resuelta',
   resolvedBy: 'Resuelta por',
