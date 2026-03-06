@@ -35,8 +35,18 @@ export default function BoardPanel({ title, icon, tipo, messages, role, onAdd, o
   const [resolveId, setResolveId] = useState<string | null>(null);
   const [resolveData, setResolveData] = useState({ autor: '', descripcion: '' });
 
+  // Role-based visibility: only show messages the user's role can see
+  const canSee = (msg: BoardMessage) => {
+    if (role === 'admin') return true;
+    if (msg.visibilidad === 'todos') return true;
+    if (msg.visibilidad === 'gestor' && role === 'gestor') return true;
+    if (msg.visibilidad === 'personal_albergue' && role === 'personal_albergue') return true;
+    return false;
+  };
+
   const filtered = messages
     .filter(m => m.tipo === tipo)
+    .filter(canSee)
     .filter(m => filter === 'all' ? true : m.visibilidad === filter)
     .sort((a, b) => {
       if (a.resuelta !== b.resuelta) return a.resuelta ? 1 : -1;
