@@ -1,0 +1,296 @@
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Trash2, Pencil, AlertTriangle, BedDouble, Building2 } from 'lucide-react';
+import { Room, Albergue } from '@/types';
+import { useI18n } from '@/i18n/I18nContext';
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
+  albergueId: string;
+  onAlbergueDeleted?: (id: string) => void;
+}
+
+export default function SettingsDialog({ open, onClose, store, albergueId, onAlbergueDeleted }: Props) {
+  const { t } = useI18n();
+  const { rooms, albergues, updateRooms, addAlbergue, editAlbergueName, deleteAlbergue, huespedActivos } = store;
+
+  // Room editing
+  const [editingRooms, setEditingRooms] = useState<Room[]>([]);
+  const [roomsDirty, setRoomsDirty] = useState(false);
+  const [newRoomName, setNewRoomName] = useState('');
+  const [newRoomBeds, setNewRoomBeds] = useState(2);
+
+  // Albergue management
+  const [newAlbergueName, setNewAlbergueName] = useState('');
+  const [editingAlbergueId, setEditingAlbergueId] = useState<string | null>(null);
+  const [editingAlbergueName, setEditingAlbergueName] = useState('');
+  const [deleteAlbergueTarget, setDeleteAlbergueTarget] = useState<string | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+
+  // Init rooms when dialog opens
+  const currentRooms = roomsDirty ? editingRooms : rooms;
+
+  const startEditingRooms = () => {
+    if (!roomsDirty) {
+      setEditingRooms([...rooms]);
+    }
+  };
+
+  const updateRoom = (id: string, field: keyof Room, value: string | number) => {
+    startEditingRooms();
+    setEditingRooms(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
+    setRoomsDirty(true);
+  };
+
+  const addRoom = () => {
+    if (!newRoomName.trim()) return;
+    startEditingRooms();
+    const newRoom: Room = {
+      id: crypto.randomUUID().split('-')[0],
+      nombre: newRoomName,
+      camas: newRoomBeds,
+    };
+    setEditingRooms(prev => [...prev, newRoom]);
+    setRoomsDirty(true);
+    setNewRoomName('');
+    setNewRoomBeds(2);
+  };
+
+  const removeRoom = (id: string) => {
+    const hasGuests = huespedActivos.some(h => h.habitacion === id);
+    if (hasGuests) return; // Prevent deletion if guests are in the room
+    startEditingRooms();
+    setEditingRooms(prev => prev.filter(r => r.id !== id));
+    setRoomsDirty(true);
+  };
+
+  const saveRooms = () => {
+    updateRooms(editingRooms);
+    setRoomsDirty(false);
+  };
+
+  const handleAddAlbergue = () => {
+    if (!newAlbergueName.trim()) return;
+    addAlbergue(newAlbergueName);
+    setNewAlbergueName('');
+  };
+
+  const handleSaveAlbergueName = () => {
+    if (editingAlbergueId && editingAlbergueName.trim()) {
+      editAlbergueName(editingAlbergueId, editingAlbergueName);
+      setEditingAlbergueId(null);
+    }
+  };
+
+  const handleDeleteAlbergue = () => {
+    if (!deleteAlbergueTarget || deleteConfirmText.toUpperCase() !== 'ELIMINAR') return;
+    deleteAlbergue(deleteAlbergueTarget);
+    onAlbergueDeleted?.(deleteAlbergueTarget);
+    setDeleteAlbergueTarget(null);
+    setDeleteConfirmText('');
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">⚙️ {t.settings}</DialogTitle>
+        </DialogHeader>
+
+        <Tabs defaultValue="rooms" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="rooms" className="flex items-center gap-2">
+              <BedDouble className="w-4 h-4" /> {t.roomConfiguration}
+            </TabsTrigger>
+            <TabsTrigger value="albergues" className="flex items-center gap-2">
+              <Building2 className="w-4 h-4" /> {t.shelterManagement}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="rooms">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{t.roomConfiguration}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {currentRooms.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4">{t.noRooms}</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>{t.roomName}</TableHead>
+                        <TableHead className="w-24">{t.numberOfBeds}</TableHead>
+                        <TableHead className="w-16"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {currentRooms.map(room => {
+                        const hasGuests = huespedActivos.some(h => h.habitacion === room.id);
+                        return (
+                          <TableRow key={room.id}>
+                            <TableCell className="text-xs text-muted-foreground font-mono">{room.id}</TableCell>
+                            <TableCell>
+                              <Input
+                                value={roomsDirty ? (editingRooms.find(r => r.id === room.id)?.nombre || room.nombre) : room.nombre}
+                                onChange={e => updateRoom(room.id, 'nombre', e.target.value)}
+                                className="h-8 text-sm"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                type="number"
+                                min={1}
+                                max={20}
+                                value={roomsDirty ? (editingRooms.find(r => r.id === room.id)?.camas || room.camas) : room.camas}
+                                onChange={e => updateRoom(room.id, 'camas', parseInt(e.target.value) || 1)}
+                                className="h-8 text-sm w-20"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => removeRoom(room.id)}
+                                disabled={hasGuests}
+                                title={hasGuests ? 'No se puede eliminar con huéspedes' : t.deleteRoom}
+                              >
+                                <Trash2 className="w-4 h-4 text-destructive" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                )}
+
+                <div className="flex items-end gap-3 p-3 border rounded-lg bg-muted/50">
+                  <div className="flex-1 space-y-1">
+                    <Label className="text-xs">{t.roomName}</Label>
+                    <Input value={newRoomName} onChange={e => setNewRoomName(e.target.value)} placeholder="Ej: Habitación 3.1" className="h-8 text-sm" />
+                  </div>
+                  <div className="w-24 space-y-1">
+                    <Label className="text-xs">{t.numberOfBeds}</Label>
+                    <Input type="number" min={1} max={20} value={newRoomBeds} onChange={e => setNewRoomBeds(parseInt(e.target.value) || 1)} className="h-8 text-sm" />
+                  </div>
+                  <Button size="sm" onClick={addRoom} disabled={!newRoomName.trim()}>
+                    <Plus className="w-4 h-4 mr-1" /> {t.addRoom}
+                  </Button>
+                </div>
+
+                {roomsDirty && (
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={() => { setRoomsDirty(false); setEditingRooms([]); }}>{t.cancel}</Button>
+                    <Button size="sm" onClick={saveRooms}>{t.save}</Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="albergues">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{t.shelterManagement}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t.shelterName}</TableHead>
+                      <TableHead className="w-20">{t.rooms}</TableHead>
+                      <TableHead className="w-32 text-right">{t.actions}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {albergues.map(a => (
+                      <TableRow key={a.id} className={a.id === albergueId ? 'bg-primary/5' : ''}>
+                        <TableCell>
+                          {editingAlbergueId === a.id ? (
+                            <div className="flex gap-2">
+                              <Input
+                                value={editingAlbergueName}
+                                onChange={e => setEditingAlbergueName(e.target.value)}
+                                className="h-8 text-sm"
+                                autoFocus
+                              />
+                              <Button size="sm" onClick={handleSaveAlbergueName}>{t.save}</Button>
+                              <Button size="sm" variant="outline" onClick={() => setEditingAlbergueId(null)}>{t.cancel}</Button>
+                            </div>
+                          ) : (
+                            <span className="font-medium">
+                              {a.nombre}
+                              {a.id === albergueId && <span className="text-xs text-primary ml-2">({t.currentShelter})</span>}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">{a.rooms.length}</TableCell>
+                        <TableCell className="text-right space-x-1">
+                          <Button size="icon" variant="ghost" onClick={() => { setEditingAlbergueId(a.id); setEditingAlbergueName(a.nombre); }}>
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          {albergues.length > 1 && (
+                            <Button size="icon" variant="ghost" onClick={() => { setDeleteAlbergueTarget(a.id); setDeleteConfirmText(''); }}>
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                <div className="flex items-end gap-3 p-3 border rounded-lg bg-muted/50">
+                  <div className="flex-1 space-y-1">
+                    <Label className="text-xs">{t.shelterName}</Label>
+                    <Input value={newAlbergueName} onChange={e => setNewAlbergueName(e.target.value)} placeholder="Ej: Albergue Norte" className="h-8 text-sm" />
+                  </div>
+                  <Button size="sm" onClick={handleAddAlbergue} disabled={!newAlbergueName.trim()}>
+                    <Plus className="w-4 h-4 mr-1" /> {t.createShelter}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+
+      {/* Delete albergue confirmation */}
+      <Dialog open={!!deleteAlbergueTarget} onOpenChange={() => { setDeleteAlbergueTarget(null); setDeleteConfirmText(''); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" /> {t.deleteShelter}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{t.deleteShelterWarning}</p>
+            <p className="text-sm text-muted-foreground">{t.deleteShelterConfirm}</p>
+            <Input
+              value={deleteConfirmText}
+              onChange={e => setDeleteConfirmText(e.target.value)}
+              placeholder="ELIMINAR"
+              className="border-destructive"
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => { setDeleteAlbergueTarget(null); setDeleteConfirmText(''); }}>{t.cancel}</Button>
+              <Button variant="destructive" disabled={deleteConfirmText.toUpperCase() !== 'ELIMINAR'} onClick={handleDeleteAlbergue}>
+                {t.delete}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Dialog>
+  );
+}

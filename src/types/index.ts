@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'gestor' | 'invitado';
+export type UserRole = 'admin' | 'gestor' | 'personal_albergue';
 
 export interface Huesped {
   id: string;
@@ -73,7 +73,13 @@ export interface Room {
   camas: number;
 }
 
-export const ROOMS: Room[] = [
+export interface Albergue {
+  id: string;
+  nombre: string;
+  rooms: Room[];
+}
+
+export const DEFAULT_ROOMS: Room[] = [
   { id: '1.1', nombre: 'Habitación 1.1', camas: 2 },
   { id: '1.2', nombre: 'Habitación 1.2', camas: 2 },
   { id: '1.3', nombre: 'Habitación 1.3', camas: 4 },
@@ -81,6 +87,12 @@ export const ROOMS: Room[] = [
   { id: '2.2', nombre: 'Habitación 2.2', camas: 4 },
   { id: '2.3', nombre: 'Habitación 2.3', camas: 4 },
 ];
+
+export const DEFAULT_ALBERGUE: Albergue = {
+  id: 'default',
+  nombre: 'Albergue LiberaMundo',
+  rooms: DEFAULT_ROOMS,
+};
 
 export const DIETAS: Dieta[] = [
   'Omnívora estándar',
@@ -96,11 +108,10 @@ export const DIETAS: Dieta[] = [
   'Alergias e intolerancias',
 ];
 
-export const TOTAL_CAMAS = ROOMS.reduce((acc, r) => acc + r.camas, 0);
-
 export interface UserAccount {
   email: string;
   password: string;
   role: UserRole;
   nombre: string;
+  albergueIds: string[];
 }

@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { ROOMS, TOTAL_CAMAS, UserRole } from '@/types';
+import { UserRole } from '@/types';
 import CheckInModal from '@/components/CheckInModal';
 import { BedDouble, MoreVertical, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -21,13 +21,12 @@ interface Props {
 }
 
 export default function HabitacionesTab({ store, role }: Props) {
-  const { huespedActivos, checkIn, checkOut, cambiarCama, editHuesped, deleteHuesped, getOccupant } = store;
+  const { huespedActivos, rooms, totalCamas, checkIn, checkOut, cambiarCama, editHuesped, deleteHuesped, getOccupant } = store;
   const { t } = useI18n();
   const [checkInTarget, setCheckInTarget] = useState<{ habitacion: string; cama: number } | null>(null);
   const [editTarget, setEditTarget] = useState<string | null>(null);
   const [checkoutTarget, setCheckoutTarget] = useState<string | null>(null);
   const [checkoutDate, setCheckoutDate] = useState<Date | undefined>(new Date());
-  // Delete without record: two-step confirmation
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleteStep, setDeleteStep] = useState<1 | 2>(1);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -35,8 +34,8 @@ export default function HabitacionesTab({ store, role }: Props) {
   const canManage = role === 'admin' || role === 'gestor';
 
   const ocupadas = huespedActivos.length;
-  const libres = TOTAL_CAMAS - ocupadas;
-  const porcentaje = Math.round((ocupadas / TOTAL_CAMAS) * 100);
+  const libres = totalCamas - ocupadas;
+  const porcentaje = totalCamas > 0 ? Math.round((ocupadas / totalCamas) * 100) : 0;
 
   const dietStats = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -47,13 +46,13 @@ export default function HabitacionesTab({ store, role }: Props) {
   const freeBeds = useMemo(() => {
     const occupied = new Set(huespedActivos.map(h => `${h.habitacion}-${h.cama}`));
     const free: { habitacion: string; cama: number }[] = [];
-    for (const room of ROOMS) {
+    for (const room of rooms) {
       for (let i = 1; i <= room.camas; i++) {
         if (!occupied.has(`${room.id}-${i}`)) free.push({ habitacion: room.id, cama: i });
       }
     }
     return free;
-  }, [huespedActivos]);
+  }, [huespedActivos, rooms]);
 
   const editingHuesped = editTarget ? huespedActivos.find(h => h.id === editTarget) : null;
   const checkoutHuesped = checkoutTarget ? huespedActivos.find(h => h.id === checkoutTarget) : null;
@@ -93,6 +92,15 @@ export default function HabitacionesTab({ store, role }: Props) {
   };
 
   const today = new Date().toISOString().split('T')[0];
+
+  if (rooms.length === 0) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <BedDouble className="w-12 h-12 mx-auto mb-4 opacity-50" />
+        <p>{t.noRooms || 'No hay habitaciones configuradas. Accede a Configuración para añadirlas.'}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -141,7 +149,7 @@ export default function HabitacionesTab({ store, role }: Props) {
 
       {/* Rooms grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {ROOMS.map(room => (
+        {rooms.map(room => (
           <Card key={room.id}>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center justify-between">
@@ -235,7 +243,6 @@ export default function HabitacionesTab({ store, role }: Props) {
         ))}
       </div>
 
-      {/* Check-in Modal */}
       {checkInTarget && (
         <CheckInModal
           open={!!checkInTarget}
@@ -248,7 +255,6 @@ export default function HabitacionesTab({ store, role }: Props) {
         />
       )}
 
-      {/* Edit Modal */}
       {editingHuesped && (
         <CheckInModal
           open={!!editTarget}
@@ -267,7 +273,6 @@ export default function HabitacionesTab({ store, role }: Props) {
         />
       )}
 
-      {/* Checkout date dialog */}
       <Dialog open={!!checkoutTarget} onOpenChange={() => setCheckoutTarget(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -304,7 +309,6 @@ export default function HabitacionesTab({ store, role }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* Delete without record - Double confirmation dialog */}
       <Dialog open={!!deleteTarget} onOpenChange={() => { setDeleteTarget(null); setDeleteStep(1); setDeleteConfirmText(''); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
