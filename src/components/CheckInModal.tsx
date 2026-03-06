@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,25 +7,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { DIETAS, Dieta } from '@/types';
 
+interface FormData {
+  nombre: string; nie: string; nacionalidad: string;
+  idioma: string; dieta: Dieta; fechaEntrada: string; notas: string;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: {
-    nombre: string; nie: string; nacionalidad: string;
-    idioma: string; dieta: Dieta; fechaEntrada: string; notas: string;
-  }) => void;
+  onSubmit: (data: FormData) => void;
   title?: string;
   submitLabel?: string;
   defaultDate?: string;
+  initialValues?: Partial<FormData>;
 }
 
-export default function CheckInModal({ open, onClose, onSubmit, title = 'Check-in', submitLabel = 'Registrar', defaultDate }: Props) {
-  const [form, setForm] = useState({
-    nombre: '', nie: '', nacionalidad: '', idioma: '',
-    dieta: 'Omnívora estándar' as Dieta,
-    fechaEntrada: defaultDate || new Date().toISOString().split('T')[0],
-    notas: '',
-  });
+const emptyForm = (defaultDate?: string): FormData => ({
+  nombre: '', nie: '', nacionalidad: '', idioma: '',
+  dieta: 'Omnívora estándar',
+  fechaEntrada: defaultDate || new Date().toISOString().split('T')[0],
+  notas: '',
+});
+
+export default function CheckInModal({ open, onClose, onSubmit, title = 'Check-in', submitLabel = 'Registrar', defaultDate, initialValues }: Props) {
+  const [form, setForm] = useState<FormData>(() => ({ ...emptyForm(defaultDate), ...initialValues }));
+
+  useEffect(() => {
+    if (open) {
+      setForm({ ...emptyForm(defaultDate), ...initialValues });
+    }
+  }, [open, initialValues, defaultDate]);
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
 
@@ -33,7 +44,6 @@ export default function CheckInModal({ open, onClose, onSubmit, title = 'Check-i
     e.preventDefault();
     if (!form.nombre.trim()) return;
     onSubmit(form);
-    setForm({ nombre: '', nie: '', nacionalidad: '', idioma: '', dieta: 'Omnívora estándar', fechaEntrada: new Date().toISOString().split('T')[0], notas: '' });
     onClose();
   };
 
