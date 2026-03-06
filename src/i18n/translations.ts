@@ -123,6 +123,8 @@ export interface Translations {
   paused: string;
   foodPlaceholder: string;
   observationsPlaceholder: string;
+  downloadWeeklyPdf: string;
+  weekOf: string;
 
   // Comedor options
   all: string;
@@ -296,6 +298,8 @@ const es: Translations = {
   paused: 'Pausado',
   foodPlaceholder: 'Alimentación preferiblemente...',
   observationsPlaceholder: 'Ramadán, etc.',
+  downloadWeeklyPdf: 'Descargar PDF semanal',
+  weekOf: 'Semana del',
   all: 'Todas',
   breakfast: 'Desayuno',
   lunch: 'Comida',
@@ -461,6 +465,8 @@ const fr: Translations = {
   paused: 'En pause',
   foodPlaceholder: 'Alimentation préférable...',
   observationsPlaceholder: 'Ramadan, etc.',
+  downloadWeeklyPdf: 'Télécharger PDF hebdomadaire',
+  weekOf: 'Semaine du',
   all: 'Tous',
   breakfast: 'Petit-déjeuner',
   lunch: 'Déjeuner',
@@ -626,6 +632,8 @@ const ar: Translations = {
   paused: 'متوقف',
   foodPlaceholder: 'تغذية مفضلة...',
   observationsPlaceholder: 'رمضان، إلخ.',
+  downloadWeeklyPdf: 'تحميل PDF أسبوعي',
+  weekOf: 'أسبوع',
   all: 'الكل',
   breakfast: 'فطور',
   lunch: 'غداء',
@@ -791,6 +799,8 @@ const en: Translations = {
   paused: 'Paused',
   foodPlaceholder: 'Preferably...',
   observationsPlaceholder: 'Ramadan, etc.',
+  downloadWeeklyPdf: 'Download weekly PDF',
+  weekOf: 'Week of',
   all: 'All',
   breakfast: 'Breakfast',
   lunch: 'Lunch',

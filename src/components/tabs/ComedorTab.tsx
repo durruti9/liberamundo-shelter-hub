@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -7,11 +7,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { UtensilsCrossed, Clock } from 'lucide-react';
+import { UtensilsCrossed, Clock, Download } from 'lucide-react';
 import { UserRole } from '@/types';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, startOfWeek, endOfWeek, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useI18n } from '@/i18n/I18nContext';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
@@ -76,10 +78,9 @@ function MultiCheckbox({ options, selected, onChange, label }: { options: string
 }
 
 export default function ComedorTab({ store, role }: Props) {
-  const { huespedActivos, comedor, updateComedor } = store;
+  const { huespedActivos, comedor, updateComedor, currentAlbergue } = store;
   const { t } = useI18n();
 
-  // All roles can edit comedor
   const canEdit = true;
 
   const entries = useMemo(() => {
@@ -107,6 +108,75 @@ export default function ComedorTab({ store, role }: Props) {
     updateComedor(huespedId, { [field]: value } as Partial<import('@/types').ComedorEntry>);
   };
 
+  const downloadWeeklyPdf = useCallback(() => {
+    const now = new Date();
+    const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+    const weekLabel = `${format(weekStart, 'dd/MM/yyyy')} - ${format(weekEnd, 'dd/MM/yyyy')}`;
+
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    // Title
+    doc.setFontSize(16);
+    doc.text(`${currentAlbergue?.nombre || 'Albergue'} — ${t.diningOrganization}`, 14, 15);
+    doc.setFontSize(11);
+    doc.text(`${t.weekOf} ${weekLabel}`, 14, 22);
+    doc.setFontSize(9);
+    doc.text(`${entries.length} ${t.diners}`, 14, 27);
+
+    const headers = ['#', t.fullName, t.roomShort, t.status, t.dietType, t.foodParticularities, t.separateMeals, t.daysToSeparate, t.absenceReason, t.observations];
+
+    const body = entries.map(({ num, huesped, comedor: c }) => {
+      const separarArr = Array.isArray(c.separarComidas) ? c.separarComidas : [c.separarComidas || 'Todas'];
+      const diasArr = Array.isArray(c.diasSeparar) ? c.diasSeparar : [c.diasSeparar || 'Todos los días'];
+      const estado = c.estado || 'Activo';
+      return [
+        num.toString(),
+        huesped.nombre.toUpperCase(),
+        `Hab ${huesped.habitacion}`,
+        estado === 'Activo' ? t.active : t.paused,
+        huesped.dieta,
+        c.particularidades || '—',
+        separarArr.join(', '),
+        diasArr.join(', '),
+        c.motivoAusencia || '—',
+        c.observaciones || '—',
+      ];
+    });
+
+    autoTable(doc, {
+      startY: 31,
+      head: [headers],
+      body,
+      styles: { fontSize: 7, cellPadding: 2 },
+      headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: 'bold', fontSize: 7 },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      columnStyles: {
+        0: { cellWidth: 8 },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 15 },
+        3: { cellWidth: 16 },
+        4: { cellWidth: 28 },
+        5: { cellWidth: 35 },
+        6: { cellWidth: 30 },
+        7: { cellWidth: 35 },
+        8: { cellWidth: 22 },
+        9: { cellWidth: 40 },
+      },
+    });
+
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7);
+      doc.setTextColor(150);
+      doc.text(`${format(now, 'dd/MM/yyyy HH:mm')} — ${i}/${pageCount}`, doc.internal.pageSize.getWidth() - 14, doc.internal.pageSize.getHeight() - 5, { align: 'right' });
+    }
+
+    doc.save(`comedor_${format(weekStart, 'yyyy-MM-dd')}.pdf`);
+  }, [entries, t, currentAlbergue]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -118,6 +188,9 @@ export default function ComedorTab({ store, role }: Props) {
             <Badge variant="outline" className="text-xs">{entries.length} {t.diners}</Badge>
           </div>
         </div>
+        <Button variant="outline" size="sm" onClick={downloadWeeklyPdf} disabled={entries.length === 0} className="flex items-center gap-2">
+          <Download className="w-4 h-4" /> {t.downloadWeeklyPdf}
+        </Button>
       </div>
 
       <Card>
