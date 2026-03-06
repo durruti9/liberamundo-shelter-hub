@@ -35,7 +35,7 @@ const LANG_FLAGS: Record<Language, string> = { es: '🇪🇸', fr: '🇫🇷', a
 export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue }: Props) {
   const store = useAlbergueStore(albergueId);
   const { t, lang, setLang } = useI18n();
-  const [tab, setTab] = useState('habitaciones');
+  const [tab, setTab] = useState('dashboard');
   const [showUsers, setShowUsers] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [newUser, setNewUser] = useState({ email: '', password: '', nombre: '', role: 'personal_albergue' as UserRole, albergueIds: [albergueId] });
