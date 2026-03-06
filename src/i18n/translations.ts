@@ -166,6 +166,9 @@ export interface Translations {
   inviteNewUser: string;
   createUser: string;
   role: string;
+  changePassword: string;
+  newPassword: string;
+  passwordChanged: string;
 
   // Settings & multi-albergue
   settings: string;

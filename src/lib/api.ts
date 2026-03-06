@@ -84,6 +84,8 @@ export const api = {
   getUsers: () => request<any[]>('/users'),
   addUser: (data: any) => request<any>('/users', { method: 'POST', body: JSON.stringify(data) }),
   removeUser: (email: string) => request<any>(`/users/${encodeURIComponent(email)}`, { method: 'DELETE' }),
+  changePassword: (email: string, newPassword: string) =>
+    request<any>(`/users/${encodeURIComponent(email)}/password`, { method: 'PUT', body: JSON.stringify({ password: newPassword }) }),
 };
 
 // Check if API is available
