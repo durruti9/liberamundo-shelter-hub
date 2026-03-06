@@ -6,6 +6,7 @@ import { I18nProvider } from '@/i18n/I18nContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Building2 } from 'lucide-react';
+import logo from '@/assets/Logo2Liberamundo.png';
 
 function loadAlbergues(): Albergue[] {
   try {
@@ -70,8 +71,8 @@ const Index = () => {
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
           <Card className="w-full max-w-md shadow-xl">
             <CardHeader className="text-center space-y-3">
-              <div className="mx-auto w-16 h-16 rounded-2xl bg-primary flex items-center justify-center">
-                <Building2 className="w-8 h-8 text-primary-foreground" />
+              <div className="mx-auto">
+                <img src={logo} alt="Libera Mundo" className="h-16 mx-auto" />
               </div>
               <CardTitle className="text-xl">Selecciona un albergue</CardTitle>
             </CardHeader>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard } from 'lucide-react';
+import logo from '@/assets/Logo2Liberamundo.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -73,9 +74,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
       <header className="border-b bg-card sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <img src={logo} alt="Libera Mundo" className="h-9" />
             <div className="hidden sm:block">
               <h1 className="text-lg font-bold leading-tight">{store.currentAlbergue?.nombre || t.appName}</h1>
               {role === 'admin' && store.albergues.length > 1 && (
