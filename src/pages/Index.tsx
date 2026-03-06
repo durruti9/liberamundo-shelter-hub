@@ -2,6 +2,7 @@ import { useState } from 'react';
 import LoginPage from '@/components/LoginPage';
 import AppLayout from '@/components/AppLayout';
 import { UserRole } from '@/types';
+import { I18nProvider } from '@/i18n/I18nContext';
 
 const Index = () => {
   const [authed, setAuthed] = useState(() => localStorage.getItem('auth') === 'true');
@@ -12,8 +13,14 @@ const Index = () => {
     setRole(userRole);
   };
 
-  if (!authed) return <LoginPage onLogin={handleLogin} />;
-  return <AppLayout onLogout={() => setAuthed(false)} role={role} />;
+  return (
+    <I18nProvider>
+      {!authed
+        ? <LoginPage onLogin={handleLogin} />
+        : <AppLayout onLogout={() => setAuthed(false)} role={role} />
+      }
+    </I18nProvider>
+  );
 };
 
 export default Index;
