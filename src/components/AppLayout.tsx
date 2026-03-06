@@ -16,6 +16,7 @@ import LlegadasTab from './tabs/LlegadasTab';
 import ComedorTab from './tabs/ComedorTab';
 import IncidenciasTab from './tabs/IncidenciasTab';
 import SettingsDialog from './SettingsDialog';
+import DashboardTab from './tabs/DashboardTab';
 import { useAlbergueStore } from '@/hooks/useAlbergueStore';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
