@@ -29,6 +29,23 @@ export function useAlbergueStore() {
   useEffect(() => saveToStorage('llegadas', llegadas), [llegadas]);
   useEffect(() => saveToStorage('users', users), [users]);
 
+  // Auto-process: checkout guests with past checkout dates, auto-confirm llegadas with past entry dates
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Auto checkout guests whose fechaCheckout has passed
+    setHuespedes(prev => {
+      const updated = prev.map(h => {
+        if (h.activo && h.fechaCheckout && h.fechaCheckout <= today) {
+          return { ...h, activo: false };
+        }
+        return h;
+      });
+      if (JSON.stringify(updated) !== JSON.stringify(prev)) return updated;
+      return prev;
+    });
+  }, []);
+
   const checkIn = useCallback((huesped: Omit<Huesped, 'id' | 'activo'>) => {
     const newHuesped: Huesped = {
       ...huesped,
@@ -36,24 +53,34 @@ export function useAlbergueStore() {
       activo: true,
     };
     setHuespedes(prev => [...prev, newHuesped]);
-    const semana = getCurrentWeek();
     setComedor(prev => [...prev, {
       huespedId: newHuesped.id,
-      semana,
       separarComidas: ['Todas'],
       diasSeparar: ['Todos los días'],
       motivoAusencia: '',
       observaciones: '',
       particularidades: '',
+      ultimaModificacion: new Date().toISOString(),
     }]);
     return newHuesped;
   }, []);
 
   const checkOut = useCallback((id: string, fecha?: string) => {
-    setHuespedes(prev => prev.map(h =>
-      h.id === id ? { ...h, activo: false, fechaCheckout: fecha || new Date().toISOString().split('T')[0] } : h
-    ));
-    setComedor(prev => prev.filter(c => c.huespedId !== id));
+    const checkoutDate = fecha || new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (checkoutDate > today) {
+      // Future date: keep active but set checkout date, will auto-deactivate
+      setHuespedes(prev => prev.map(h =>
+        h.id === id ? { ...h, fechaCheckout: checkoutDate } : h
+      ));
+    } else {
+      // Today or past: immediate checkout
+      setHuespedes(prev => prev.map(h =>
+        h.id === id ? { ...h, activo: false, fechaCheckout: checkoutDate } : h
+      ));
+      setComedor(prev => prev.filter(c => c.huespedId !== id));
+    }
   }, []);
 
   const deleteHuesped = useCallback((id: string) => {
@@ -69,15 +96,14 @@ export function useAlbergueStore() {
     setHuespedes(prev => prev.map(h =>
       h.id === id ? { ...h, activo: true, habitacion, cama, fechaCheckout: undefined, fechaEntrada: new Date().toISOString().split('T')[0] } : h
     ));
-    const semana = getCurrentWeek();
     setComedor(prev => [...prev, {
       huespedId: id,
-      semana,
       separarComidas: ['Todas'],
       diasSeparar: ['Todos los días'],
       motivoAusencia: '',
       observaciones: '',
       particularidades: '',
+      ultimaModificacion: new Date().toISOString(),
     }]);
   }, []);
 
@@ -91,9 +117,13 @@ export function useAlbergueStore() {
     setLlegadas(prev => [...prev, { ...llegada, id: crypto.randomUUID() }]);
   }, []);
 
-  const confirmarLlegada = useCallback((llegadaId: string, habitacion: string, cama: number) => {
+  const editLlegada = useCallback((id: string, data: Partial<ProximaLlegada>) => {
+    setLlegadas(prev => prev.map(l => l.id === id ? { ...l, ...data } : l));
+  }, []);
+
+  const confirmarLlegada = useCallback((llegadaId: string) => {
     const llegada = llegadas.find(l => l.id === llegadaId);
-    if (!llegada) return;
+    if (!llegada || !llegada.habitacionAsignada || !llegada.camaAsignada) return;
     checkIn({
       nombre: llegada.nombre,
       nie: llegada.nie,
@@ -102,41 +132,32 @@ export function useAlbergueStore() {
       dieta: llegada.dieta,
       fechaEntrada: llegada.fechaLlegada,
       notas: llegada.notas,
-      habitacion,
-      cama,
+      habitacion: llegada.habitacionAsignada,
+      cama: llegada.camaAsignada,
     });
     setLlegadas(prev => prev.filter(l => l.id !== llegadaId));
   }, [llegadas, checkIn]);
 
-  const updateComedor = useCallback((huespedId: string, semana: string, data: Partial<ComedorEntry>) => {
+  const updateComedor = useCallback((huespedId: string, data: Partial<ComedorEntry>) => {
     setComedor(prev => {
-      const idx = prev.findIndex(c => c.huespedId === huespedId && c.semana === semana);
+      const idx = prev.findIndex(c => c.huespedId === huespedId);
       if (idx >= 0) {
         const updated = [...prev];
-        updated[idx] = { ...updated[idx], ...data };
+        updated[idx] = { ...updated[idx], ...data, ultimaModificacion: new Date().toISOString() };
         return updated;
       }
-      return [...prev, { huespedId, semana, separarComidas: ['Todas'], diasSeparar: ['Todos los días'], motivoAusencia: '', observaciones: '', particularidades: '', ...data }];
-    });
-  }, []);
-
-  const nuevaSemana = useCallback(() => {
-    const semana = getCurrentWeek();
-    const activos = huespedes.filter(h => h.activo);
-    const newEntries: ComedorEntry[] = activos.map(h => {
-      const existing = comedor.find(c => c.huespedId === h.id);
-      return {
-        huespedId: h.id,
-        semana,
-        separarComidas: existing?.separarComidas || ['Todas'],
-        diasSeparar: existing?.diasSeparar || ['Todos los días'],
+      return [...prev, {
+        huespedId,
+        separarComidas: ['Todas'],
+        diasSeparar: ['Todos los días'],
         motivoAusencia: '',
         observaciones: '',
-        particularidades: existing?.particularidades || '',
-      };
+        particularidades: '',
+        ...data,
+        ultimaModificacion: new Date().toISOString(),
+      }];
     });
-    setComedor(prev => [...prev.filter(c => c.semana !== semana), ...newEntries]);
-  }, [huespedes, comedor]);
+  }, []);
 
   const deleteLlegada = useCallback((id: string) => {
     setLlegadas(prev => prev.filter(l => l.id !== id));
@@ -177,21 +198,9 @@ export function useAlbergueStore() {
   return {
     huespedes, huespedActivos, comedor, llegadas, users,
     checkIn, checkOut, cambiarCama, deleteHuesped, editHuesped, reincorporar,
-    addLlegada, confirmarLlegada, deleteLlegada,
-    updateComedor, nuevaSemana,
+    addLlegada, editLlegada, confirmarLlegada, deleteLlegada,
+    updateComedor,
     getOccupant, getFreeBeds,
     addUser, removeUser, authenticate,
   };
 }
-
-function getCurrentWeek() {
-  const now = new Date();
-  const start = new Date(now);
-  start.setDate(now.getDate() - now.getDay() + 1);
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6);
-  const fmt = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-  return `${fmt(start)} a ${fmt(end)}`;
-}
-
-export { getCurrentWeek };

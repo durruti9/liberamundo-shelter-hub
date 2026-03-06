@@ -1,19 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { UtensilsCrossed, RefreshCw, Copy, CalendarDays } from 'lucide-react';
-import { getCurrentWeek } from '@/hooks/useAlbergueStore';
-import { format, startOfWeek, endOfWeek } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { UtensilsCrossed, Clock } from 'lucide-react';
 import { UserRole } from '@/types';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
@@ -43,13 +40,6 @@ const DIET_COLORS: Record<string, string> = {
   'Situación especial': 'bg-[hsl(38,92%,90%)] text-[hsl(38,92%,30%)]',
   'Alergias e intolerancias': 'bg-[hsl(0,72%,92%)] text-destructive',
 };
-
-function formatWeekFromDate(date: Date): string {
-  const start = startOfWeek(date, { weekStartsOn: 1 });
-  const end = endOfWeek(date, { weekStartsOn: 1 });
-  const fmt = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-  return `${fmt(start)} a ${fmt(end)}`;
-}
 
 function MultiCheckbox({ options, selected, onChange, label }: { options: string[]; selected: string[]; onChange: (val: string[]) => void; label: string }) {
   const toggleOption = (opt: string) => {
@@ -90,9 +80,7 @@ function MultiCheckbox({ options, selected, onChange, label }: { options: string
 }
 
 export default function ComedorTab({ store, role }: Props) {
-  const { huespedActivos, comedor, updateComedor, nuevaSemana } = store;
-  const [selectedWeekDate, setSelectedWeekDate] = useState<Date>(new Date());
-  const semana = formatWeekFromDate(selectedWeekDate);
+  const { huespedActivos, comedor, updateComedor } = store;
 
   const canEdit = role === 'admin' || role === 'gestor' || role === 'invitado';
 
@@ -103,20 +91,25 @@ export default function ComedorTab({ store, role }: Props) {
         return roomCmp !== 0 ? roomCmp : a.cama - b.cama;
       })
       .map((h, idx) => {
-        const entry = comedor.find(c => c.huespedId === h.id && c.semana === semana);
+        const entry = comedor.find(c => c.huespedId === h.id);
         return {
           num: idx + 1,
           huesped: h,
           comedor: entry || {
-            huespedId: h.id, semana, separarComidas: ['Todas'],
-            diasSeparar: ['Todos los días'], motivoAusencia: '', observaciones: '', particularidades: '',
+            huespedId: h.id,
+            separarComidas: ['Todas'],
+            diasSeparar: ['Todos los días'],
+            motivoAusencia: '',
+            observaciones: '',
+            particularidades: '',
+            ultimaModificacion: new Date().toISOString(),
           },
         };
       });
-  }, [huespedActivos, comedor, semana]);
+  }, [huespedActivos, comedor]);
 
   const handleUpdate = (huespedId: string, field: string, value: unknown) => {
-    updateComedor(huespedId, semana, { [field]: value } as Partial<import('@/types').ComedorEntry>);
+    updateComedor(huespedId, { [field]: value } as Partial<import('@/types').ComedorEntry>);
   };
 
   return (
@@ -127,36 +120,9 @@ export default function ComedorTab({ store, role }: Props) {
             <UtensilsCrossed className="w-5 h-5 text-primary" /> Comedor — Organización de Comidas
           </h2>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <CalendarDays className="w-4 h-4 text-muted-foreground" />
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="text-xs h-7 gap-1">
-                  <CalendarDays className="w-3 h-3" />
-                  Semana: {semana}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedWeekDate}
-                  onSelect={d => d && setSelectedWeekDate(d)}
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
             <Badge variant="outline" className="text-xs">{entries.length} comensales</Badge>
           </div>
         </div>
-        {(role === 'admin' || role === 'gestor') && (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={nuevaSemana}>
-              <RefreshCw className="w-4 h-4 mr-2" /> Nueva semana
-            </Button>
-            <Button variant="outline" size="sm" onClick={nuevaSemana}>
-              <Copy className="w-4 h-4 mr-2" /> Copiar anterior
-            </Button>
-          </div>
-        )}
       </div>
 
       <Card>
@@ -177,14 +143,17 @@ export default function ComedorTab({ store, role }: Props) {
                     <TableHead>Separar Comidas</TableHead>
                     <TableHead>Días a Separar</TableHead>
                     <TableHead>Motivo Ausencia</TableHead>
-                    <TableHead>Semana</TableHead>
-                    <TableHead>Observaciones de la semana</TableHead>
+                    <TableHead>Última Modificación</TableHead>
+                    <TableHead>Observaciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {entries.map(({ num, huesped, comedor: c }) => {
                     const separarArr = Array.isArray(c.separarComidas) ? c.separarComidas : [c.separarComidas || 'Todas'];
                     const diasArr = Array.isArray(c.diasSeparar) ? c.diasSeparar : [c.diasSeparar || 'Todos los días'];
+                    const lastMod = c.ultimaModificacion
+                      ? formatDistanceToNow(new Date(c.ultimaModificacion), { addSuffix: true, locale: es })
+                      : '—';
 
                     return (
                       <TableRow key={huesped.id}>
@@ -237,7 +206,11 @@ export default function ComedorTab({ store, role }: Props) {
                             </SelectContent>
                           </Select>
                         </TableCell>
-                        <TableCell className="text-xs whitespace-nowrap text-muted-foreground">{semana.split(' a ')[0]}</TableCell>
+                        <TableCell>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> {lastMod}
+                          </span>
+                        </TableCell>
                         <TableCell>
                           <Input
                             className="min-w-[140px] h-8 text-xs"

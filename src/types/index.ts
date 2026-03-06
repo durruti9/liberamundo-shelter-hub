@@ -30,12 +30,12 @@ export type Dieta =
 
 export interface ComedorEntry {
   huespedId: string;
-  semana: string;
   separarComidas: string[];
   diasSeparar: string[];
   motivoAusencia: string;
   observaciones: string;
   particularidades: string;
+  ultimaModificacion: string;
 }
 
 export interface ProximaLlegada {
