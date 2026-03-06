@@ -62,6 +62,11 @@ export interface Translations {
   deleteWithoutRecordFinal: string;
   stayDuration: string;
   exitDate: string;
+  day: string;
+  days: string;
+  remaining: string;
+  checkoutToday: string;
+  checkoutPassed: string;
 
   // Llegadas
   upcomingArrivals: string;
