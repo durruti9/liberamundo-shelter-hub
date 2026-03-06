@@ -265,7 +265,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                   <TableHead>{t.name}</TableHead>
                   <TableHead>{t.email}</TableHead>
                   <TableHead>{t.role}</TableHead>
-                  <TableHead className="w-10"></TableHead>
+                  <TableHead className="w-24"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -274,7 +274,10 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                     <TableCell className="text-sm">{u.nombre}</TableCell>
                     <TableCell className="text-sm">{u.email}</TableCell>
                     <TableCell><Badge variant="outline" className="text-xs">{roleLabel[u.role]}</Badge></TableCell>
-                    <TableCell>
+                    <TableCell className="space-x-1">
+                      <Button size="icon" variant="ghost" title={t.changePassword} onClick={() => { setChangingPasswordFor(u.email); setNewPasswordValue(''); }}>
+                        <KeyRound className="w-4 h-4" />
+                      </Button>
                       {u.role !== 'admin' && (
                         <Button size="icon" variant="ghost" onClick={() => store.removeUser(u.email)}>
                           <Trash2 className="w-4 h-4 text-destructive" />
