@@ -465,6 +465,8 @@ const fr: Translations = {
   paused: 'En pause',
   foodPlaceholder: 'Alimentation préférable...',
   observationsPlaceholder: 'Ramadan, etc.',
+  downloadWeeklyPdf: 'Télécharger PDF hebdomadaire',
+  weekOf: 'Semaine du',
   all: 'Tous',
   breakfast: 'Petit-déjeuner',
   lunch: 'Déjeuner',
