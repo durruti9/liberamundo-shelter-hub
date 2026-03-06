@@ -261,13 +261,19 @@ export default function HabitacionesTab({ store, role }: Props) {
           onClose={() => setEditTarget(null)}
           title={`${t.edit}: ${editingHuesped.nombre}`}
           submitLabel={t.saveChanges}
+          showCheckout
           initialValues={{
             nombre: editingHuesped.nombre, nie: editingHuesped.nie,
             nacionalidad: editingHuesped.nacionalidad, idioma: editingHuesped.idioma,
             dieta: editingHuesped.dieta, fechaEntrada: editingHuesped.fechaEntrada, notas: editingHuesped.notas,
+            fechaCheckout: editingHuesped.fechaCheckout || '',
           }}
           onSubmit={data => {
-            editHuesped(editTarget!, data);
+            const { fechaCheckout, ...rest } = data;
+            editHuesped(editTarget!, rest);
+            if (fechaCheckout) {
+              checkOut(editTarget!, fechaCheckout);
+            }
             setEditTarget(null);
           }}
         />
