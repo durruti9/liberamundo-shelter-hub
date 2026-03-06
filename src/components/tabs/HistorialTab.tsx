@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Download, History, Pencil, Trash2, UserPlus, AlertTriangle } from 'lucide-react';
 import { DIETAS, ROOMS, Dieta, UserRole } from '@/types';
+import { formatDateES } from '@/lib/dateFormat';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
