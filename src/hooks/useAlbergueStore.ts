@@ -232,8 +232,29 @@ export function useAlbergueStore(albergueId: string = 'default') {
     setAlbergues(prev => prev.map(a => a.id === albergueId ? { ...a, rooms: newRooms } : a));
   }, [albergueId]);
 
+  // Board messages
+  const addBoardMessage = useCallback((msg: Omit<BoardMessage, 'id' | 'resuelta' | 'respuestas'>) => {
+    setBoardMessages(prev => [...prev, { ...msg, id: crypto.randomUUID(), resuelta: false, respuestas: [] }]);
+  }, []);
+
+  const addBoardReply = useCallback((messageId: string, reply: Omit<BoardReply, 'id'>) => {
+    setBoardMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, respuestas: [...m.respuestas, { ...reply, id: crypto.randomUUID() }] } : m
+    ));
+  }, []);
+
+  const resolveBoardMessage = useCallback((messageId: string, resolucion: { autor: string; fecha: string; descripcion: string }) => {
+    setBoardMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, resuelta: true, resolucion } : m
+    ));
+  }, []);
+
+  const deleteBoardMessage = useCallback((messageId: string) => {
+    setBoardMessages(prev => prev.filter(m => m.id !== messageId));
+  }, []);
+
   return {
-    huespedes, huespedActivos, comedor, llegadas, users, incidencias,
+    huespedes, huespedActivos, comedor, llegadas, users, incidencias, boardMessages,
     rooms, totalCamas, albergues, currentAlbergue,
     checkIn, checkOut, cambiarCama, deleteHuesped, editHuesped, reincorporar,
     addLlegada, editLlegada, confirmarLlegada, deleteLlegada,
@@ -242,5 +263,6 @@ export function useAlbergueStore(albergueId: string = 'default') {
     getOccupant, getFreeBeds,
     addUser, removeUser, authenticate,
     addAlbergue, editAlbergueName, deleteAlbergue, updateRooms,
+    addBoardMessage, addBoardReply, resolveBoardMessage, deleteBoardMessage,
   };
 }
