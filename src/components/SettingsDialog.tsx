@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,6 +35,12 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
   const [deleteAlbergueTarget, setDeleteAlbergueTarget] = useState<string | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
+  // New albergue creation with rooms
+  const [creatingAlbergue, setCreatingAlbergue] = useState(false);
+  const [newAlbergueRooms, setNewAlbergueRooms] = useState<Room[]>([]);
+  const [newAlbergueRoomName, setNewAlbergueRoomName] = useState('');
+  const [newAlbergueRoomBeds, setNewAlbergueRoomBeds] = useState(2);
+
   // Init rooms when dialog opens
   const currentRooms = roomsDirty ? editingRooms : rooms;
 
@@ -66,7 +72,7 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
 
   const removeRoom = (id: string) => {
     const hasGuests = huespedActivos.some(h => h.habitacion === id);
-    if (hasGuests) return; // Prevent deletion if guests are in the room
+    if (hasGuests) return;
     startEditingRooms();
     setEditingRooms(prev => prev.filter(r => r.id !== id));
     setRoomsDirty(true);
@@ -77,10 +83,39 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
     setRoomsDirty(false);
   };
 
-  const handleAddAlbergue = () => {
+  // New albergue creation flow
+  const startCreatingAlbergue = () => {
     if (!newAlbergueName.trim()) return;
-    addAlbergue(newAlbergueName);
+    setCreatingAlbergue(true);
+    setNewAlbergueRooms([]);
+  };
+
+  const addNewAlbergueRoom = () => {
+    if (!newAlbergueRoomName.trim()) return;
+    setNewAlbergueRooms(prev => [...prev, {
+      id: crypto.randomUUID().split('-')[0],
+      nombre: newAlbergueRoomName,
+      camas: newAlbergueRoomBeds,
+    }]);
+    setNewAlbergueRoomName('');
+    setNewAlbergueRoomBeds(2);
+  };
+
+  const removeNewAlbergueRoom = (id: string) => {
+    setNewAlbergueRooms(prev => prev.filter(r => r.id !== id));
+  };
+
+  const confirmCreateAlbergue = () => {
+    addAlbergue(newAlbergueName, newAlbergueRooms);
     setNewAlbergueName('');
+    setNewAlbergueRooms([]);
+    setCreatingAlbergue(false);
+  };
+
+  const cancelCreateAlbergue = () => {
+    setCreatingAlbergue(false);
+    setNewAlbergueRooms([]);
+    setNewAlbergueRoomName('');
   };
 
   const handleSaveAlbergueName = () => {
@@ -100,9 +135,12 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="settings-desc">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">⚙️ {t.settings}</DialogTitle>
+          <DialogDescription id="settings-desc" className="sr-only">
+            {t.roomConfiguration} / {t.shelterManagement}
+          </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="rooms" className="space-y-4">
@@ -234,7 +272,7 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
                             </span>
                           )}
                         </TableCell>
-                        <TableCell className="text-center">{a.rooms.length}</TableCell>
+                        <TableCell className="text-center">{(a.rooms || []).length}</TableCell>
                         <TableCell className="text-right space-x-1">
                           <Button size="icon" variant="ghost" onClick={() => { setEditingAlbergueId(a.id); setEditingAlbergueName(a.nombre); }}>
                             <Pencil className="w-4 h-4" />
@@ -250,15 +288,76 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
                   </TableBody>
                 </Table>
 
-                <div className="flex items-end gap-3 p-3 border rounded-lg bg-muted/50">
-                  <div className="flex-1 space-y-1">
-                    <Label className="text-xs">{t.shelterName}</Label>
-                    <Input value={newAlbergueName} onChange={e => setNewAlbergueName(e.target.value)} placeholder="Ej: Albergue Norte" className="h-8 text-sm" />
+                {/* Create albergue form */}
+                {!creatingAlbergue ? (
+                  <div className="flex items-end gap-3 p-3 border rounded-lg bg-muted/50">
+                    <div className="flex-1 space-y-1">
+                      <Label className="text-xs">{t.shelterName}</Label>
+                      <Input value={newAlbergueName} onChange={e => setNewAlbergueName(e.target.value)} placeholder="Ej: Albergue Norte" className="h-8 text-sm" />
+                    </div>
+                    <Button size="sm" onClick={startCreatingAlbergue} disabled={!newAlbergueName.trim()}>
+                      <Plus className="w-4 h-4 mr-1" /> {t.createShelter}
+                    </Button>
                   </div>
-                  <Button size="sm" onClick={handleAddAlbergue} disabled={!newAlbergueName.trim()}>
-                    <Plus className="w-4 h-4 mr-1" /> {t.createShelter}
-                  </Button>
-                </div>
+                ) : (
+                  <Card className="border-primary/30 bg-primary/5">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Building2 className="w-4 h-4" />
+                        {t.createShelter}: <span className="text-primary">{newAlbergueName}</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-xs text-muted-foreground">{t.roomConfiguration}</p>
+
+                      {newAlbergueRooms.length > 0 && (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>{t.roomName}</TableHead>
+                              <TableHead className="w-24">{t.numberOfBeds}</TableHead>
+                              <TableHead className="w-12"></TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {newAlbergueRooms.map(room => (
+                              <TableRow key={room.id}>
+                                <TableCell className="text-sm">{room.nombre}</TableCell>
+                                <TableCell className="text-sm text-center">{room.camas}</TableCell>
+                                <TableCell>
+                                  <Button size="icon" variant="ghost" onClick={() => removeNewAlbergueRoom(room.id)}>
+                                    <Trash2 className="w-3 h-3 text-destructive" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+
+                      <div className="flex items-end gap-2">
+                        <div className="flex-1 space-y-1">
+                          <Label className="text-xs">{t.roomName}</Label>
+                          <Input value={newAlbergueRoomName} onChange={e => setNewAlbergueRoomName(e.target.value)} placeholder="Ej: Habitación 1" className="h-8 text-sm" />
+                        </div>
+                        <div className="w-20 space-y-1">
+                          <Label className="text-xs">{t.numberOfBeds}</Label>
+                          <Input type="number" min={1} max={20} value={newAlbergueRoomBeds} onChange={e => setNewAlbergueRoomBeds(parseInt(e.target.value) || 1)} className="h-8 text-sm" />
+                        </div>
+                        <Button size="sm" variant="outline" onClick={addNewAlbergueRoom} disabled={!newAlbergueRoomName.trim()}>
+                          <Plus className="w-3 h-3 mr-1" /> {t.addRoom}
+                        </Button>
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-2 border-t">
+                        <Button size="sm" variant="outline" onClick={cancelCreateAlbergue}>{t.cancel}</Button>
+                        <Button size="sm" onClick={confirmCreateAlbergue}>
+                          <Plus className="w-4 h-4 mr-1" /> {t.createShelter} ({newAlbergueRooms.length} {t.rooms})
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -267,14 +366,16 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
 
       {/* Delete albergue confirmation */}
       <Dialog open={!!deleteAlbergueTarget} onOpenChange={() => { setDeleteAlbergueTarget(null); setDeleteConfirmText(''); }}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby="delete-shelter-desc">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="w-5 h-5" /> {t.deleteShelter}
             </DialogTitle>
+            <DialogDescription id="delete-shelter-desc">
+              {t.deleteShelterWarning}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">{t.deleteShelterWarning}</p>
             <p className="text-sm text-muted-foreground">{t.deleteShelterConfirm}</p>
             <Input
               value={deleteConfirmText}
