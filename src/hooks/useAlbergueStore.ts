@@ -208,8 +208,8 @@ export function useAlbergueStore(albergueId: string = 'default') {
   }, [users]);
 
   // Albergue management
-  const addAlbergue = useCallback((nombre: string) => {
-    const newAlbergue: Albergue = { id: crypto.randomUUID(), nombre, rooms: [] };
+  const addAlbergue = useCallback((nombre: string, initialRooms: Room[] = []) => {
+    const newAlbergue: Albergue = { id: crypto.randomUUID(), nombre, rooms: initialRooms };
     setAlbergues(prev => [...prev, newAlbergue]);
     return newAlbergue;
   }, []);
