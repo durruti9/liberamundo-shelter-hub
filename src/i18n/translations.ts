@@ -219,6 +219,27 @@ export interface Translations {
   importError: string;
   downloadBackup: string;
   selectFile: string;
+
+  // Board (Instructions & Requests)
+  instructions: string;
+  requests: string;
+  newMessage: string;
+  noMessages: string;
+  author: string;
+  message: string;
+  visibility: string;
+  visibilityAll: string;
+  visibilityManager: string;
+  visibilityStaff: string;
+  markResolved: string;
+  resolvedBy: string;
+  resolutionDescription: string;
+  reply: string;
+  replies: string;
+  addReply: string;
+  writeReply: string;
+  resolveMessage: string;
+  upcomingArrivalsBoard: string;
 }
 
 const es: Translations = {

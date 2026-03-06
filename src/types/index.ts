@@ -115,3 +115,29 @@ export interface UserAccount {
   nombre: string;
   albergueIds: string[];
 }
+
+export type BoardType = 'instrucciones' | 'peticiones';
+export type BoardVisibility = 'todos' | 'gestor' | 'personal_albergue';
+
+export interface BoardReply {
+  id: string;
+  autor: string;
+  fecha: string;
+  texto: string;
+}
+
+export interface BoardMessage {
+  id: string;
+  tipo: BoardType;
+  autor: string;
+  fecha: string;
+  texto: string;
+  visibilidad: BoardVisibility;
+  resuelta: boolean;
+  resolucion?: {
+    autor: string;
+    fecha: string;
+    descripcion: string;
+  };
+  respuestas: BoardReply[];
+}
