@@ -3,12 +3,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Building2 } from 'lucide-react';
+import { Building2, Globe } from 'lucide-react';
 import { UserRole, UserAccount } from '@/types';
+import { useI18n } from '@/i18n/I18nContext';
+import { Language } from '@/i18n/translations';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface Props {
   onLogin: (role: UserRole) => void;
 }
+
+const LANG_FLAGS: Record<Language, string> = { es: '🇪🇸', fr: '🇫🇷', ar: '🇸🇦', en: '🇬🇧' };
+const LANG_LABELS: Record<Language, string> = { es: 'Español', fr: 'Français', ar: 'العربية', en: 'English' };
 
 function loadUsers(): UserAccount[] {
   try {
@@ -22,6 +28,7 @@ function loadUsers(): UserAccount[] {
 }
 
 export default function LoginPage({ onLogin }: Props) {
+  const { t, lang, setLang } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -35,32 +42,48 @@ export default function LoginPage({ onLogin }: Props) {
       localStorage.setItem('authRole', user.role);
       onLogin(user.role);
     } else {
-      setError('Credenciales incorrectas');
+      setError(t.wrongCredentials);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+      <div className="absolute top-4 right-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="gap-1">
+              <Globe className="w-4 h-4" /> {LANG_FLAGS[lang]}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {(Object.keys(LANG_LABELS) as Language[]).map(l => (
+              <DropdownMenuItem key={l} onClick={() => setLang(l)} className={l === lang ? 'bg-accent' : ''}>
+                {LANG_FLAGS[l]} {LANG_LABELS[l]}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center space-y-3">
           <div className="mx-auto w-16 h-16 rounded-2xl bg-primary flex items-center justify-center">
             <Building2 className="w-8 h-8 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-bold">Albergue LiberaMundo</CardTitle>
-          <p className="text-muted-foreground text-sm">Sistema de gestión</p>
+          <CardTitle className="text-2xl font-bold">{t.appName}</CardTitle>
+          <p className="text-muted-foreground text-sm">{t.managementSystem}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Correo electrónico</Label>
+              <Label htmlFor="email">{t.email}</Label>
               <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="albergue@liberamundo.com" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password">{t.password}</Label>
               <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••" />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full">Iniciar sesión</Button>
+            <Button type="submit" className="w-full">{t.login}</Button>
           </form>
         </CardContent>
       </Card>

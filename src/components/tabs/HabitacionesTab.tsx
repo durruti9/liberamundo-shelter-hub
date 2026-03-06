@@ -3,15 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { ROOMS, TOTAL_CAMAS, UserRole } from '@/types';
 import CheckInModal from '@/components/CheckInModal';
-import { BedDouble, MoreVertical } from 'lucide-react';
+import { BedDouble, MoreVertical, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { stayDuration, formatDateES } from '@/lib/dateFormat';
+import { useI18n } from '@/i18n/I18nContext';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
@@ -19,11 +21,16 @@ interface Props {
 }
 
 export default function HabitacionesTab({ store, role }: Props) {
-  const { huespedActivos, checkIn, checkOut, cambiarCama, editHuesped, getOccupant } = store;
+  const { huespedActivos, checkIn, checkOut, cambiarCama, editHuesped, deleteHuesped, getOccupant } = store;
+  const { t } = useI18n();
   const [checkInTarget, setCheckInTarget] = useState<{ habitacion: string; cama: number } | null>(null);
   const [editTarget, setEditTarget] = useState<string | null>(null);
   const [checkoutTarget, setCheckoutTarget] = useState<string | null>(null);
   const [checkoutDate, setCheckoutDate] = useState<Date | undefined>(new Date());
+  // Delete without record: two-step confirmation
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [deleteStep, setDeleteStep] = useState<1 | 2>(1);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   const canManage = role === 'admin' || role === 'gestor';
 
@@ -50,6 +57,7 @@ export default function HabitacionesTab({ store, role }: Props) {
 
   const editingHuesped = editTarget ? huespedActivos.find(h => h.id === editTarget) : null;
   const checkoutHuesped = checkoutTarget ? huespedActivos.find(h => h.id === checkoutTarget) : null;
+  const deleteHuespedData = deleteTarget ? huespedActivos.find(h => h.id === deleteTarget) : null;
 
   const dietColors: Record<string, string> = {
     'Omnívora estándar': 'bg-secondary text-secondary-foreground',
@@ -70,6 +78,20 @@ export default function HabitacionesTab({ store, role }: Props) {
     setCheckoutDate(new Date());
   };
 
+  const handleDeleteWithoutRecord = () => {
+    if (!deleteTarget || deleteConfirmText.toUpperCase() !== 'CONFIRMAR') return;
+    deleteHuesped(deleteTarget);
+    setDeleteTarget(null);
+    setDeleteStep(1);
+    setDeleteConfirmText('');
+  };
+
+  const openDeleteConfirm = (id: string) => {
+    setDeleteTarget(id);
+    setDeleteStep(1);
+    setDeleteConfirmText('');
+  };
+
   const today = new Date().toISOString().split('T')[0];
 
   return (
@@ -81,15 +103,15 @@ export default function HabitacionesTab({ store, role }: Props) {
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-3xl font-bold text-primary">{ocupadas}</div>
-                <div className="text-xs text-muted-foreground">Ocupadas</div>
+                <div className="text-xs text-muted-foreground">{t.occupied}</div>
               </div>
               <div>
                 <div className="text-3xl font-bold text-[hsl(var(--success))]">{libres}</div>
-                <div className="text-xs text-muted-foreground">Libres</div>
+                <div className="text-xs text-muted-foreground">{t.free}</div>
               </div>
               <div>
                 <div className="text-3xl font-bold">{porcentaje}%</div>
-                <div className="text-xs text-muted-foreground">Ocupación</div>
+                <div className="text-xs text-muted-foreground">{t.occupancy}</div>
               </div>
             </div>
             <div className="mt-4 w-full bg-secondary rounded-full h-2.5">
@@ -99,11 +121,11 @@ export default function HabitacionesTab({ store, role }: Props) {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Dietas activas</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t.activeDiets}</CardTitle>
           </CardHeader>
           <CardContent>
             {dietStats.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sin huéspedes</p>
+              <p className="text-sm text-muted-foreground">{t.noGuests}</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {dietStats.map(([dieta, count]) => (
@@ -127,7 +149,7 @@ export default function HabitacionesTab({ store, role }: Props) {
                   <BedDouble className="w-4 h-4 text-primary" />
                   {room.nombre}
                 </span>
-                <Badge variant="outline" className="text-xs">{room.camas} camas</Badge>
+                <Badge variant="outline" className="text-xs">{room.camas} {t.beds}</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -141,10 +163,10 @@ export default function HabitacionesTab({ store, role }: Props) {
                       return (
                         <div key={cama} className="bed-occupied rounded-lg p-3 text-left text-xs w-full">
                           <div className="font-medium truncate">{occupant.nombre}</div>
-                          <div className="opacity-70 mt-0.5">Cama {cama}</div>
+                          <div className="opacity-70 mt-0.5">{t.bed} {cama}</div>
                           <div className="opacity-60 mt-0.5 text-[10px]">⏱ {duration}</div>
                           {hasFutureCheckout && (
-                            <div className="text-[10px] opacity-60 mt-0.5">Sale: {formatDateES(occupant.fechaCheckout)}</div>
+                            <div className="text-[10px] opacity-60 mt-0.5">{t.exitDate}: {formatDateES(occupant.fechaCheckout)}</div>
                           )}
                         </div>
                       );
@@ -154,32 +176,36 @@ export default function HabitacionesTab({ store, role }: Props) {
                         <DropdownMenuTrigger asChild>
                           <button className="bed-occupied rounded-lg p-3 text-left text-xs w-full relative group">
                             <div className="font-medium truncate pr-4">{occupant.nombre}</div>
-                            <div className="opacity-70 mt-0.5">Cama {cama}</div>
+                            <div className="opacity-70 mt-0.5">{t.bed} {cama}</div>
                             <div className="opacity-60 mt-0.5 text-[10px]">⏱ {duration}</div>
                             {hasFutureCheckout && (
-                              <div className="text-[10px] opacity-60 mt-0.5">Sale: {formatDateES(occupant.fechaCheckout)}</div>
+                              <div className="text-[10px] opacity-60 mt-0.5">{t.exitDate}: {formatDateES(occupant.fechaCheckout)}</div>
                             )}
                             <MoreVertical className="w-3 h-3 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           <DropdownMenuItem onClick={() => setEditTarget(occupant.id)}>
-                            Editar
+                            {t.edit}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => { setCheckoutTarget(occupant.id); setCheckoutDate(new Date()); }} className="text-destructive">
-                            Check-out
+                            {t.checkOut}
                           </DropdownMenuItem>
                           <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>Cambiar cama</DropdownMenuSubTrigger>
+                            <DropdownMenuSubTrigger>{t.changeBed}</DropdownMenuSubTrigger>
                             <DropdownMenuSubContent className="max-h-60 overflow-y-auto">
                               {freeBeds.map(fb => (
                                 <DropdownMenuItem key={`${fb.habitacion}-${fb.cama}`} onClick={() => cambiarCama(occupant.id, fb.habitacion, fb.cama)}>
-                                  Hab {fb.habitacion} - Cama {fb.cama}
+                                  Hab {fb.habitacion} - {t.bed} {fb.cama}
                                 </DropdownMenuItem>
                               ))}
-                              {freeBeds.length === 0 && <DropdownMenuItem disabled>No hay camas libres</DropdownMenuItem>}
+                              {freeBeds.length === 0 && <DropdownMenuItem disabled>{t.noFreeBeds}</DropdownMenuItem>}
                             </DropdownMenuSubContent>
                           </DropdownMenuSub>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => openDeleteConfirm(occupant.id)} className="text-destructive">
+                            <AlertTriangle className="w-3 h-3 mr-1" /> {t.deleteWithoutRecord}
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     );
@@ -187,8 +213,8 @@ export default function HabitacionesTab({ store, role }: Props) {
                   if (!canManage) {
                     return (
                       <div key={cama} className="bed-free rounded-lg p-3 text-left text-xs opacity-70">
-                        <div className="font-medium">Libre</div>
-                        <div className="opacity-80 mt-0.5">Cama {cama}</div>
+                        <div className="font-medium">{t.free}</div>
+                        <div className="opacity-80 mt-0.5">{t.bed} {cama}</div>
                       </div>
                     );
                   }
@@ -198,8 +224,8 @@ export default function HabitacionesTab({ store, role }: Props) {
                       onClick={() => setCheckInTarget({ habitacion: room.id, cama })}
                       className="bed-free rounded-lg p-3 text-left text-xs hover:opacity-90 transition-opacity"
                     >
-                      <div className="font-medium">Check-in</div>
-                      <div className="opacity-80 mt-0.5">Cama {cama}</div>
+                      <div className="font-medium">{t.checkIn}</div>
+                      <div className="opacity-80 mt-0.5">{t.bed} {cama}</div>
                     </button>
                   );
                 })}
@@ -214,7 +240,7 @@ export default function HabitacionesTab({ store, role }: Props) {
         <CheckInModal
           open={!!checkInTarget}
           onClose={() => setCheckInTarget(null)}
-          title={`Check-in: Hab ${checkInTarget.habitacion} - Cama ${checkInTarget.cama}`}
+          title={`${t.checkIn}: Hab ${checkInTarget.habitacion} - ${t.bed} ${checkInTarget.cama}`}
           onSubmit={data => {
             checkIn({ ...data, habitacion: checkInTarget.habitacion, cama: checkInTarget.cama });
             setCheckInTarget(null);
@@ -227,16 +253,12 @@ export default function HabitacionesTab({ store, role }: Props) {
         <CheckInModal
           open={!!editTarget}
           onClose={() => setEditTarget(null)}
-          title={`Editar: ${editingHuesped.nombre}`}
-          submitLabel="Guardar cambios"
+          title={`${t.edit}: ${editingHuesped.nombre}`}
+          submitLabel={t.saveChanges}
           initialValues={{
-            nombre: editingHuesped.nombre,
-            nie: editingHuesped.nie,
-            nacionalidad: editingHuesped.nacionalidad,
-            idioma: editingHuesped.idioma,
-            dieta: editingHuesped.dieta,
-            fechaEntrada: editingHuesped.fechaEntrada,
-            notas: editingHuesped.notas,
+            nombre: editingHuesped.nombre, nie: editingHuesped.nie,
+            nacionalidad: editingHuesped.nacionalidad, idioma: editingHuesped.idioma,
+            dieta: editingHuesped.dieta, fechaEntrada: editingHuesped.fechaEntrada, notas: editingHuesped.notas,
           }}
           onSubmit={data => {
             editHuesped(editTarget!, data);
@@ -249,15 +271,13 @@ export default function HabitacionesTab({ store, role }: Props) {
       <Dialog open={!!checkoutTarget} onOpenChange={() => setCheckoutTarget(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Fecha de Check-out</DialogTitle>
+            <DialogTitle>{t.checkoutDate}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Selecciona la fecha de salida</Label>
+              <Label>{t.selectExitDate}</Label>
               {checkoutHuesped && (
-                <p className="text-sm text-muted-foreground">
-                  Si seleccionas una fecha futura, {checkoutHuesped.nombre} permanecerá en la habitación hasta ese día.
-                </p>
+                <p className="text-sm text-muted-foreground">{t.futureCheckoutNote}</p>
               )}
               <div className="flex justify-center">
                 <Calendar
@@ -269,20 +289,64 @@ export default function HabitacionesTab({ store, role }: Props) {
               </div>
               {checkoutDate && (
                 <p className="text-sm text-center text-muted-foreground">
-                  Fecha seleccionada: <strong>{format(checkoutDate, 'dd-MM-yyyy')}</strong>
+                  {t.selectedDate}: <strong>{format(checkoutDate, 'dd-MM-yyyy')}</strong>
                   {format(checkoutDate, 'yyyy-MM-dd') > today && (
-                    <span className="block text-xs text-primary mt-1">
-                      El huésped permanecerá hasta esta fecha
-                    </span>
+                    <span className="block text-xs text-primary mt-1">{t.guestWillStay}</span>
                   )}
                 </p>
               )}
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setCheckoutTarget(null)}>Cancelar</Button>
-              <Button variant="destructive" onClick={handleCheckoutConfirm}>Confirmar Check-out</Button>
+              <Button variant="outline" onClick={() => setCheckoutTarget(null)}>{t.cancel}</Button>
+              <Button variant="destructive" onClick={handleCheckoutConfirm}>{t.confirmCheckout}</Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete without record - Double confirmation dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={() => { setDeleteTarget(null); setDeleteStep(1); setDeleteConfirmText(''); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" /> {t.deleteWithoutRecord}
+            </DialogTitle>
+          </DialogHeader>
+          {deleteStep === 1 ? (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">{t.deleteWithoutRecordWarning}</p>
+              {deleteHuespedData && (
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <p className="font-medium text-sm">{deleteHuespedData.nombre}</p>
+                  <p className="text-xs text-muted-foreground">Hab {deleteHuespedData.habitacion} - {t.bed} {deleteHuespedData.cama}</p>
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => { setDeleteTarget(null); setDeleteStep(1); }}>{t.cancel}</Button>
+                <Button variant="destructive" onClick={() => setDeleteStep(2)}>{t.confirm}</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">{t.deleteWithoutRecordConfirm}</p>
+              <Input
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value)}
+                placeholder="CONFIRMAR"
+                className="border-destructive"
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => { setDeleteStep(1); setDeleteConfirmText(''); }}>{t.cancel}</Button>
+                <Button
+                  variant="destructive"
+                  disabled={deleteConfirmText.toUpperCase() !== 'CONFIRMAR'}
+                  onClick={handleDeleteWithoutRecord}
+                >
+                  {t.deleteWithoutRecordFinal}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
