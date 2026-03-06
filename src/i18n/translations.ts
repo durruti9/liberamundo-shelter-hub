@@ -799,6 +799,8 @@ const en: Translations = {
   paused: 'Paused',
   foodPlaceholder: 'Preferably...',
   observationsPlaceholder: 'Ramadan, etc.',
+  downloadWeeklyPdf: 'Download weekly PDF',
+  weekOf: 'Week of',
   all: 'All',
   breakfast: 'Breakfast',
   lunch: 'Lunch',
