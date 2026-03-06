@@ -63,6 +63,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
   useEffect(() => saveToStorage(`${prefix}_comedor`, comedor), [comedor, prefix]);
   useEffect(() => saveToStorage(`${prefix}_llegadas`, llegadas), [llegadas, prefix]);
   useEffect(() => saveToStorage(`${prefix}_incidencias`, incidencias), [incidencias, prefix]);
+  useEffect(() => saveToStorage(`${prefix}_board`, boardMessages), [boardMessages, prefix]);
   useEffect(() => saveToStorage('users', users), [users]);
   useEffect(() => saveToStorage('albergues', albergues), [albergues]);
 
