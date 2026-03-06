@@ -28,8 +28,11 @@ export type Dieta =
   | 'Situación especial'
   | 'Alergias e intolerancias';
 
+export type EstadoComedor = 'Activo' | 'Pausado';
+
 export interface ComedorEntry {
   huespedId: string;
+  estado: EstadoComedor;
   separarComidas: string[];
   diasSeparar: string[];
   motivoAusencia: string;
