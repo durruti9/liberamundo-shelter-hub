@@ -249,6 +249,11 @@ export function useAlbergueStore(albergueId: string = 'default') {
     setUsers(prev => prev.filter(u => u.email !== email));
   }, [useApi, loadFromApi]);
 
+  const changePassword = useCallback(async (email: string, newPassword: string) => {
+    if (useApi) { await api.changePassword(email, newPassword); return; }
+    setUsers(prev => prev.map(u => u.email === email ? { ...u, password: newPassword } : u));
+  }, [useApi]);
+
   const authenticate = useCallback((email: string, password: string): UserAccount | null => {
     // For API mode, authentication is handled via api.login() in LoginPage
     return users.find(u => u.email === email && u.password === password) || null;
@@ -316,7 +321,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
     updateComedor,
     addIncidencia, toggleIncidenciaResuelta, deleteIncidencia,
     getOccupant, getFreeBeds,
-    addUser, removeUser, authenticate,
+    addUser, removeUser, changePassword, authenticate,
     addAlbergue, editAlbergueName, deleteAlbergue, updateRooms,
     addBoardMessage, addBoardReply, resolveBoardMessage, deleteBoardMessage,
   };

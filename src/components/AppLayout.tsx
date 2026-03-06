@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard } from 'lucide-react';
+import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound } from 'lucide-react';
 import logo from '@/assets/Logo2Liberamundo.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +40,8 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
   const [showUsers, setShowUsers] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [newUser, setNewUser] = useState({ email: '', password: '', nombre: '', role: 'personal_albergue' as UserRole, albergueIds: [albergueId] });
+  const [changingPasswordFor, setChangingPasswordFor] = useState<string | null>(null);
+  const [newPasswordValue, setNewPasswordValue] = useState('');
 
   const handleAddUser = () => {
     if (!newUser.email || !newUser.password || !newUser.nombre) return;
@@ -263,7 +265,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                   <TableHead>{t.name}</TableHead>
                   <TableHead>{t.email}</TableHead>
                   <TableHead>{t.role}</TableHead>
-                  <TableHead className="w-10"></TableHead>
+                  <TableHead className="w-24"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -272,7 +274,10 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                     <TableCell className="text-sm">{u.nombre}</TableCell>
                     <TableCell className="text-sm">{u.email}</TableCell>
                     <TableCell><Badge variant="outline" className="text-xs">{roleLabel[u.role]}</Badge></TableCell>
-                    <TableCell>
+                    <TableCell className="space-x-1">
+                      <Button size="icon" variant="ghost" title={t.changePassword} onClick={() => { setChangingPasswordFor(u.email); setNewPasswordValue(''); }}>
+                        <KeyRound className="w-4 h-4" />
+                      </Button>
                       {u.role !== 'admin' && (
                         <Button size="icon" variant="ghost" onClick={() => store.removeUser(u.email)}>
                           <Trash2 className="w-4 h-4 text-destructive" />
@@ -283,6 +288,33 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                 ))}
               </TableBody>
             </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change password dialog */}
+      <Dialog open={!!changingPasswordFor} onOpenChange={() => setChangingPasswordFor(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><KeyRound className="w-5 h-5" /> {t.changePassword}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{changingPasswordFor}</p>
+            <div className="space-y-2">
+              <Label>{t.newPassword}</Label>
+              <Input type="password" value={newPasswordValue} onChange={e => setNewPasswordValue(e.target.value)} placeholder="••••••" autoFocus />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setChangingPasswordFor(null)}>{t.cancel}</Button>
+              <Button disabled={newPasswordValue.length < 4} onClick={async () => {
+                try {
+                  await store.changePassword(changingPasswordFor!, newPasswordValue);
+                  const { toast } = await import('sonner');
+                  toast.success(t.passwordChanged);
+                  setChangingPasswordFor(null);
+                } catch { /* error handled by api */ }
+              }}>{t.save}</Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

@@ -36,6 +36,18 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.put('/:email/password', async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password || password.length < 4) return res.status(400).json({ error: 'Contraseña demasiado corta' });
+    const hash = await bcrypt.hash(password, 10);
+    await pool.query('UPDATE users SET password_hash = $1 WHERE email = $2', [hash, req.params.email]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.delete('/:email', async (req, res) => {
   try {
     await pool.query('DELETE FROM users WHERE email = $1', [req.params.email]);

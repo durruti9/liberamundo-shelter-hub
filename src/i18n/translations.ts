@@ -166,6 +166,9 @@ export interface Translations {
   inviteNewUser: string;
   createUser: string;
   role: string;
+  changePassword: string;
+  newPassword: string;
+  passwordChanged: string;
 
   // Settings & multi-albergue
   settings: string;
@@ -387,6 +390,9 @@ const es: Translations = {
   inviteNewUser: 'Invitar nuevo usuario',
   createUser: 'Crear usuario',
   role: 'Rol',
+  changePassword: 'Cambiar contraseña',
+  newPassword: 'Nueva contraseña',
+  passwordChanged: 'Contraseña actualizada',
   settings: 'Configuración',
   shelterManagement: 'Gestión de Albergues',
   addShelter: 'Añadir albergue',
@@ -600,6 +606,9 @@ const fr: Translations = {
   inviteNewUser: 'Inviter un nouvel utilisateur',
   createUser: 'Créer un utilisateur',
   role: 'Rôle',
+  changePassword: 'Changer le mot de passe',
+  newPassword: 'Nouveau mot de passe',
+  passwordChanged: 'Mot de passe mis à jour',
   settings: 'Paramètres',
   shelterManagement: 'Gestion des Hébergements',
   addShelter: 'Ajouter un hébergement',
@@ -813,6 +822,9 @@ const ar: Translations = {
   inviteNewUser: 'دعوة مستخدم جديد',
   createUser: 'إنشاء مستخدم',
   role: 'الدور',
+  changePassword: 'تغيير كلمة المرور',
+  newPassword: 'كلمة المرور الجديدة',
+  passwordChanged: 'تم تحديث كلمة المرور',
   settings: 'الإعدادات',
   shelterManagement: 'إدارة الملاجئ',
   addShelter: 'إضافة ملجأ',
@@ -1026,6 +1038,9 @@ const en: Translations = {
   inviteNewUser: 'Invite new user',
   createUser: 'Create user',
   role: 'Role',
+  changePassword: 'Change password',
+  newPassword: 'New password',
+  passwordChanged: 'Password updated',
   settings: 'Settings',
   shelterManagement: 'Shelter Management',
   addShelter: 'Add shelter',
