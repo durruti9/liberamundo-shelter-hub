@@ -121,7 +121,6 @@ export function useAlbergueStore() {
   const getFreeBeds = useCallback(() => {
     const occupied = new Set(huespedActivos.map(h => `${h.habitacion}-${h.cama}`));
     const free: { habitacion: string; cama: number }[] = [];
-    const { ROOMS } = require('@/types');
     for (const room of ROOMS) {
       for (let i = 1; i <= room.camas; i++) {
         if (!occupied.has(`${room.id}-${i}`)) {
