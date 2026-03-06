@@ -62,6 +62,11 @@ export interface Translations {
   deleteWithoutRecordFinal: string;
   stayDuration: string;
   exitDate: string;
+  day: string;
+  days: string;
+  remaining: string;
+  checkoutToday: string;
+  checkoutPassed: string;
 
   // Llegadas
   upcomingArrivals: string;
@@ -236,6 +241,11 @@ const es: Translations = {
   deleteWithoutRecordFinal: 'Eliminar permanentemente',
   stayDuration: 'Estancia',
   exitDate: 'Sale',
+  day: 'día',
+  days: 'días',
+  remaining: 'restantes',
+  checkoutToday: 'Sale hoy',
+  checkoutPassed: 'Fecha de salida pasada',
   upcomingArrivals: 'Próximas Llegadas',
   newArrival: '+ Nueva llegada',
   noArrivals: 'No hay llegadas programadas',
@@ -396,6 +406,11 @@ const fr: Translations = {
   deleteWithoutRecordFinal: 'Supprimer définitivement',
   stayDuration: 'Séjour',
   exitDate: 'Départ',
+  day: 'jour',
+  days: 'jours',
+  remaining: 'restants',
+  checkoutToday: 'Départ aujourd\'hui',
+  checkoutPassed: 'Date de départ passée',
   upcomingArrivals: 'Prochaines Arrivées',
   newArrival: '+ Nouvelle arrivée',
   noArrivals: 'Aucune arrivée programmée',
@@ -556,6 +571,11 @@ const ar: Translations = {
   deleteWithoutRecordFinal: 'حذف نهائياً',
   stayDuration: 'الإقامة',
   exitDate: 'المغادرة',
+  day: 'يوم',
+  days: 'أيام',
+  remaining: 'متبقية',
+  checkoutToday: 'يغادر اليوم',
+  checkoutPassed: 'تاريخ المغادرة مضى',
   upcomingArrivals: 'الوصول القادم',
   newArrival: '+ وصول جديد',
   noArrivals: 'لا توجد حالات وصول مجدولة',
@@ -716,6 +736,11 @@ const en: Translations = {
   deleteWithoutRecordFinal: 'Delete permanently',
   stayDuration: 'Stay',
   exitDate: 'Leaves',
+  day: 'day',
+  days: 'days',
+  remaining: 'remaining',
+  checkoutToday: 'Checks out today',
+  checkoutPassed: 'Checkout date passed',
   upcomingArrivals: 'Upcoming Arrivals',
   newArrival: '+ New arrival',
   noArrivals: 'No scheduled arrivals',
