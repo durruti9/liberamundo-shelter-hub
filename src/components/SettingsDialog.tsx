@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, Pencil, AlertTriangle, BedDouble, Building2 } from 'lucide-react';
+import { Plus, Trash2, Pencil, AlertTriangle, BedDouble, Building2, Download, Upload, Database } from 'lucide-react';
 import { Room, Albergue } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
+import { toast } from 'sonner';
 
 interface Props {
   open: boolean;
