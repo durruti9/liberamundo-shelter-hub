@@ -36,9 +36,13 @@ export function useAlbergueStore(albergueId: string = 'default') {
   const prefix = albergueId;
 
   // Global: albergues list
-  const [albergues, setAlbergues] = useState<Albergue[]>(() => loadFromStorage('albergues', [DEFAULT_ALBERGUE]));
+  const [albergues, setAlbergues] = useState<Albergue[]>(() => {
+    const stored = loadFromStorage<Albergue[]>('albergues', [DEFAULT_ALBERGUE]);
+    // Ensure every albergue has a rooms array (backward compat)
+    return stored.map(a => ({ ...a, rooms: Array.isArray(a.rooms) ? a.rooms : [] }));
+  });
   const currentAlbergue = useMemo(() => albergues.find(a => a.id === albergueId) || albergues[0], [albergues, albergueId]);
-  const rooms: Room[] = currentAlbergue?.rooms ?? [];
+  const rooms: Room[] = Array.isArray(currentAlbergue?.rooms) ? currentAlbergue.rooms : [];
   const totalCamas = useMemo(() => rooms.reduce((acc, r) => acc + r.camas, 0), [rooms]);
 
   // Per-albergue data
