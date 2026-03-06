@@ -2,18 +2,31 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
-import { ROOMS, TOTAL_CAMAS, Dieta } from '@/types';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { ROOMS, TOTAL_CAMAS, Dieta, UserRole } from '@/types';
 import CheckInModal from '@/components/CheckInModal';
-import { BedDouble, Users, TrendingUp, MoreVertical } from 'lucide-react';
+import { BedDouble, MoreVertical, CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
+  role: UserRole;
 }
 
-export default function HabitacionesTab({ store }: Props) {
-  const { huespedActivos, checkIn, checkOut, cambiarCama, getOccupant } = store;
+export default function HabitacionesTab({ store, role }: Props) {
+  const { huespedActivos, checkIn, checkOut, cambiarCama, editHuesped, getOccupant } = store;
   const [checkInTarget, setCheckInTarget] = useState<{ habitacion: string; cama: number } | null>(null);
+  const [editTarget, setEditTarget] = useState<string | null>(null);
+  const [checkoutTarget, setCheckoutTarget] = useState<string | null>(null);
+  const [checkoutDate, setCheckoutDate] = useState<Date | undefined>(new Date());
+
+  const canManage = role === 'admin' || role === 'gestor';
 
   const ocupadas = huespedActivos.length;
   const libres = TOTAL_CAMAS - ocupadas;
@@ -30,23 +43,31 @@ export default function HabitacionesTab({ store }: Props) {
     const free: { habitacion: string; cama: number }[] = [];
     for (const room of ROOMS) {
       for (let i = 1; i <= room.camas; i++) {
-        if (!occupied.has(`${room.id}-${i}`)) {
-          free.push({ habitacion: room.id, cama: i });
-        }
+        if (!occupied.has(`${room.id}-${i}`)) free.push({ habitacion: room.id, cama: i });
       }
     }
     return free;
   }, [huespedActivos]);
 
+  const editingHuesped = editTarget ? huespedActivos.find(h => h.id === editTarget) : null;
+
   const dietColors: Record<string, string> = {
     'Omnívora estándar': 'bg-secondary text-secondary-foreground',
-    'Halal': 'bg-success text-success-foreground',
+    'Halal': 'bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)]',
     'Kosher': 'bg-accent text-accent-foreground',
-    'Vegetariana': 'bg-primary/20 text-primary',
+    'Vegetariana': 'bg-[hsl(212,72%,90%)] text-primary',
     'Vegana': 'bg-primary text-primary-foreground',
-    'Sin cerdo (no halal)': 'bg-warning text-warning-foreground',
+    'Sin cerdo (no halal)': 'bg-[hsl(38,92%,90%)] text-[hsl(38,92%,30%)]',
     'Situación especial': 'bg-accent text-accent-foreground',
-    'Alergias e intolerancias': 'bg-destructive/20 text-destructive',
+    'Alergias e intolerancias': 'bg-[hsl(0,72%,92%)] text-destructive',
+  };
+
+  const handleCheckoutConfirm = () => {
+    if (!checkoutTarget) return;
+    const dateStr = checkoutDate ? format(checkoutDate, 'yyyy-MM-dd') : new Date().toISOString().split('T')[0];
+    checkOut(checkoutTarget, dateStr);
+    setCheckoutTarget(null);
+    setCheckoutDate(new Date());
   };
 
   return (
@@ -61,7 +82,7 @@ export default function HabitacionesTab({ store }: Props) {
                 <div className="text-xs text-muted-foreground">Ocupadas</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-success">{libres}</div>
+                <div className="text-3xl font-bold text-[hsl(var(--success))]">{libres}</div>
                 <div className="text-xs text-muted-foreground">Libres</div>
               </div>
               <div>
@@ -112,6 +133,14 @@ export default function HabitacionesTab({ store }: Props) {
                 {Array.from({ length: room.camas }, (_, i) => i + 1).map(cama => {
                   const occupant = getOccupant(room.id, cama);
                   if (occupant) {
+                    if (!canManage) {
+                      return (
+                        <div key={cama} className="bed-occupied rounded-lg p-3 text-left text-xs w-full">
+                          <div className="font-medium truncate">{occupant.nombre}</div>
+                          <div className="opacity-70 mt-0.5">Cama {cama}</div>
+                        </div>
+                      );
+                    }
                     return (
                       <DropdownMenu key={cama}>
                         <DropdownMenuTrigger asChild>
@@ -122,7 +151,10 @@ export default function HabitacionesTab({ store }: Props) {
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => checkOut(occupant.id)} className="text-destructive">
+                          <DropdownMenuItem onClick={() => setEditTarget(occupant.id)}>
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setCheckoutTarget(occupant.id); setCheckoutDate(new Date()); }} className="text-destructive">
                             Check-out
                           </DropdownMenuItem>
                           <DropdownMenuSub>
@@ -138,6 +170,14 @@ export default function HabitacionesTab({ store }: Props) {
                           </DropdownMenuSub>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                    );
+                  }
+                  if (!canManage) {
+                    return (
+                      <div key={cama} className="bed-free rounded-lg p-3 text-left text-xs opacity-70">
+                        <div className="font-medium">Libre</div>
+                        <div className="opacity-80 mt-0.5">Cama {cama}</div>
+                      </div>
                     );
                   }
                   return (
@@ -169,6 +209,58 @@ export default function HabitacionesTab({ store }: Props) {
           }}
         />
       )}
+
+      {/* Edit Modal */}
+      {editingHuesped && (
+        <CheckInModal
+          open={!!editTarget}
+          onClose={() => setEditTarget(null)}
+          title={`Editar: ${editingHuesped.nombre}`}
+          submitLabel="Guardar cambios"
+          initialValues={{
+            nombre: editingHuesped.nombre,
+            nie: editingHuesped.nie,
+            nacionalidad: editingHuesped.nacionalidad,
+            idioma: editingHuesped.idioma,
+            dieta: editingHuesped.dieta,
+            fechaEntrada: editingHuesped.fechaEntrada,
+            notas: editingHuesped.notas,
+          }}
+          onSubmit={data => {
+            editHuesped(editTarget!, data);
+            setEditTarget(null);
+          }}
+        />
+      )}
+
+      {/* Checkout date dialog */}
+      <Dialog open={!!checkoutTarget} onOpenChange={() => setCheckoutTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Fecha de Check-out</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Selecciona la fecha de salida</Label>
+              <div className="flex justify-center">
+                <Calendar
+                  mode="single"
+                  selected={checkoutDate}
+                  onSelect={setCheckoutDate}
+                  className={cn("p-3 pointer-events-auto rounded-md border")}
+                />
+              </div>
+              {checkoutDate && (
+                <p className="text-sm text-center text-muted-foreground">
+                  Fecha seleccionada: <strong>{format(checkoutDate, 'dd/MM/yyyy')}</strong>
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setCheckoutTarget(null)}>Cancelar</Button>
+              <Button variant="destructive" onClick={handleCheckoutConfirm}>Confirmar Check-out</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

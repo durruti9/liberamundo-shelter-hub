@@ -1,3 +1,5 @@
+export type UserRole = 'admin' | 'gestor' | 'invitado';
+
 export interface Huesped {
   id: string;
   nombre: string;
@@ -29,8 +31,8 @@ export type Dieta =
 export interface ComedorEntry {
   huespedId: string;
   semana: string;
-  separarComidas: string;
-  diasSeparar: string;
+  separarComidas: string[];
+  diasSeparar: string[];
   motivoAusencia: string;
   observaciones: string;
   particularidades: string;
@@ -79,3 +81,10 @@ export const DIETAS: Dieta[] = [
 ];
 
 export const TOTAL_CAMAS = ROOMS.reduce((acc, r) => acc + r.camas, 0);
+
+export interface UserAccount {
+  email: string;
+  password: string;
+  role: UserRole;
+  nombre: string;
+}

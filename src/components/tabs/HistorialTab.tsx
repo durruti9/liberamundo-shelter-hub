@@ -9,13 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Download, History, Pencil, Trash2, UserPlus, AlertTriangle } from 'lucide-react';
-import { DIETAS, ROOMS, Dieta } from '@/types';
+import { DIETAS, ROOMS, Dieta, UserRole } from '@/types';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
+  role: UserRole;
 }
 
-export default function HistorialTab({ store }: Props) {
+export default function HistorialTab({ store, role }: Props) {
   const { huespedes, deleteHuesped, editHuesped, reincorporar, huespedActivos } = store;
   const [editId, setEditId] = useState<string | null>(null);
   const [reincorporarId, setReincorporarId] = useState<string | null>(null);

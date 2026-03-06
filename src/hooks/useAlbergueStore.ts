@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Huesped, ComedorEntry, ProximaLlegada, ROOMS, Dieta } from '@/types';
+import { Huesped, ComedorEntry, ProximaLlegada, ROOMS, Dieta, UserAccount, UserRole } from '@/types';
 
 function loadFromStorage<T>(key: string, fallback: T): T {
   try {
@@ -14,14 +14,20 @@ function saveToStorage(key: string, data: unknown) {
   localStorage.setItem(key, JSON.stringify(data));
 }
 
+const DEFAULT_USERS: UserAccount[] = [
+  { email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin', nombre: 'Administrador' },
+];
+
 export function useAlbergueStore() {
   const [huespedes, setHuespedes] = useState<Huesped[]>(() => loadFromStorage('huespedes', []));
   const [comedor, setComedor] = useState<ComedorEntry[]>(() => loadFromStorage('comedor', []));
   const [llegadas, setLlegadas] = useState<ProximaLlegada[]>(() => loadFromStorage('llegadas', []));
+  const [users, setUsers] = useState<UserAccount[]>(() => loadFromStorage('users', DEFAULT_USERS));
 
   useEffect(() => saveToStorage('huespedes', huespedes), [huespedes]);
   useEffect(() => saveToStorage('comedor', comedor), [comedor]);
   useEffect(() => saveToStorage('llegadas', llegadas), [llegadas]);
+  useEffect(() => saveToStorage('users', users), [users]);
 
   const checkIn = useCallback((huesped: Omit<Huesped, 'id' | 'activo'>) => {
     const newHuesped: Huesped = {
@@ -34,8 +40,8 @@ export function useAlbergueStore() {
     setComedor(prev => [...prev, {
       huespedId: newHuesped.id,
       semana,
-      separarComidas: 'Todas',
-      diasSeparar: 'Todos los días',
+      separarComidas: ['Todas'],
+      diasSeparar: ['Todos los días'],
       motivoAusencia: '',
       observaciones: '',
       particularidades: '',
@@ -43,9 +49,9 @@ export function useAlbergueStore() {
     return newHuesped;
   }, []);
 
-  const checkOut = useCallback((id: string) => {
+  const checkOut = useCallback((id: string, fecha?: string) => {
     setHuespedes(prev => prev.map(h =>
-      h.id === id ? { ...h, activo: false, fechaCheckout: new Date().toISOString().split('T')[0] } : h
+      h.id === id ? { ...h, activo: false, fechaCheckout: fecha || new Date().toISOString().split('T')[0] } : h
     ));
     setComedor(prev => prev.filter(c => c.huespedId !== id));
   }, []);
@@ -67,8 +73,8 @@ export function useAlbergueStore() {
     setComedor(prev => [...prev, {
       huespedId: id,
       semana,
-      separarComidas: 'Todas',
-      diasSeparar: 'Todos los días',
+      separarComidas: ['Todas'],
+      diasSeparar: ['Todos los días'],
       motivoAusencia: '',
       observaciones: '',
       particularidades: '',
@@ -110,7 +116,7 @@ export function useAlbergueStore() {
         updated[idx] = { ...updated[idx], ...data };
         return updated;
       }
-      return [...prev, { huespedId, semana, separarComidas: 'Todas', diasSeparar: 'Todos los días', motivoAusencia: '', observaciones: '', particularidades: '', ...data }];
+      return [...prev, { huespedId, semana, separarComidas: ['Todas'], diasSeparar: ['Todos los días'], motivoAusencia: '', observaciones: '', particularidades: '', ...data }];
     });
   }, []);
 
@@ -122,8 +128,8 @@ export function useAlbergueStore() {
       return {
         huespedId: h.id,
         semana,
-        separarComidas: existing?.separarComidas || 'Todas',
-        diasSeparar: existing?.diasSeparar || 'Todos los días',
+        separarComidas: existing?.separarComidas || ['Todas'],
+        diasSeparar: existing?.diasSeparar || ['Todos los días'],
         motivoAusencia: '',
         observaciones: '',
         particularidades: existing?.particularidades || '',
@@ -155,12 +161,26 @@ export function useAlbergueStore() {
     return free;
   }, [huespedActivos]);
 
+  // User management
+  const addUser = useCallback((account: UserAccount) => {
+    setUsers(prev => [...prev, account]);
+  }, []);
+
+  const removeUser = useCallback((email: string) => {
+    setUsers(prev => prev.filter(u => u.email !== email));
+  }, []);
+
+  const authenticate = useCallback((email: string, password: string): UserAccount | null => {
+    return users.find(u => u.email === email && u.password === password) || null;
+  }, [users]);
+
   return {
-    huespedes, huespedActivos, comedor, llegadas,
+    huespedes, huespedActivos, comedor, llegadas, users,
     checkIn, checkOut, cambiarCama, deleteHuesped, editHuesped, reincorporar,
     addLlegada, confirmarLlegada, deleteLlegada,
     updateComedor, nuevaSemana,
     getOccupant, getFreeBeds,
+    addUser, removeUser, authenticate,
   };
 }
 

@@ -1,15 +1,23 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { UtensilsCrossed, RefreshCw, Copy, CalendarDays } from 'lucide-react';
 import { getCurrentWeek } from '@/hooks/useAlbergueStore';
+import { format, startOfWeek, endOfWeek } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { UserRole } from '@/types';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
+  role: UserRole;
 }
 
 const SEPARAR_OPTIONS = ['Todas', 'Desayuno', 'Comida', 'Cena'];
@@ -17,28 +25,76 @@ const DIAS_OPTIONS = ['Todos los días', 'Laborables', 'Fines de semana', 'Lunes
 const MOTIVO_OPTIONS = ['Accem', 'Empleo', 'Formación', 'Médico', 'Otros'];
 
 const ROOM_COLORS: Record<string, string> = {
-  '1.1': 'bg-blue-100 text-blue-800 border-blue-300',
-  '1.2': 'bg-green-100 text-green-800 border-green-300',
-  '1.3': 'bg-amber-100 text-amber-800 border-amber-300',
-  '2.1': 'bg-purple-100 text-purple-800 border-purple-300',
-  '2.2': 'bg-pink-100 text-pink-800 border-pink-300',
-  '2.3': 'bg-teal-100 text-teal-800 border-teal-300',
+  '1.1': 'bg-[hsl(212,72%,90%)] text-[hsl(212,72%,35%)] border-[hsl(212,72%,75%)]',
+  '1.2': 'bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)] border-[hsl(142,60%,70%)]',
+  '1.3': 'bg-[hsl(38,92%,90%)] text-[hsl(38,92%,30%)] border-[hsl(38,92%,70%)]',
+  '2.1': 'bg-[hsl(280,60%,92%)] text-[hsl(280,60%,35%)] border-[hsl(280,60%,75%)]',
+  '2.2': 'bg-[hsl(340,60%,92%)] text-[hsl(340,60%,35%)] border-[hsl(340,60%,75%)]',
+  '2.3': 'bg-[hsl(180,50%,90%)] text-[hsl(180,50%,30%)] border-[hsl(180,50%,70%)]',
 };
 
 const DIET_COLORS: Record<string, string> = {
   'Omnívora estándar': 'bg-secondary text-secondary-foreground',
-  'Halal': 'bg-emerald-100 text-emerald-800',
-  'Kosher': 'bg-indigo-100 text-indigo-800',
-  'Vegetariana': 'bg-lime-100 text-lime-800',
-  'Vegana': 'bg-green-100 text-green-800',
-  'Sin cerdo (no halal)': 'bg-orange-100 text-orange-800',
-  'Situación especial': 'bg-amber-100 text-amber-800',
-  'Alergias e intolerancias': 'bg-red-100 text-red-800',
+  'Halal': 'bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)]',
+  'Kosher': 'bg-[hsl(240,50%,92%)] text-[hsl(240,50%,35%)]',
+  'Vegetariana': 'bg-[hsl(80,60%,90%)] text-[hsl(80,60%,30%)]',
+  'Vegana': 'bg-[hsl(142,50%,88%)] text-[hsl(142,50%,25%)]',
+  'Sin cerdo (no halal)': 'bg-[hsl(25,80%,90%)] text-[hsl(25,80%,30%)]',
+  'Situación especial': 'bg-[hsl(38,92%,90%)] text-[hsl(38,92%,30%)]',
+  'Alergias e intolerancias': 'bg-[hsl(0,72%,92%)] text-destructive',
 };
 
-export default function ComedorTab({ store }: Props) {
+function formatWeekFromDate(date: Date): string {
+  const start = startOfWeek(date, { weekStartsOn: 1 });
+  const end = endOfWeek(date, { weekStartsOn: 1 });
+  const fmt = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+  return `${fmt(start)} a ${fmt(end)}`;
+}
+
+function MultiCheckbox({ options, selected, onChange, label }: { options: string[]; selected: string[]; onChange: (val: string[]) => void; label: string }) {
+  const toggleOption = (opt: string) => {
+    if (opt === options[0]) {
+      onChange([options[0]]);
+      return;
+    }
+    const without = selected.filter(s => s !== options[0]);
+    if (without.includes(opt)) {
+      const next = without.filter(s => s !== opt);
+      onChange(next.length === 0 ? [options[0]] : next);
+    } else {
+      onChange([...without, opt]);
+    }
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className="min-w-[120px] h-8 text-xs justify-start font-normal truncate">
+          {selected.length === 1 && selected[0] === options[0] ? options[0] : selected.join(', ')}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-48 p-2" align="start">
+        <p className="text-xs font-medium text-muted-foreground mb-2">{label}</p>
+        {options.map(opt => (
+          <label key={opt} className="flex items-center gap-2 py-1 px-1 hover:bg-muted rounded cursor-pointer text-xs">
+            <Checkbox
+              checked={selected.includes(opt)}
+              onCheckedChange={() => toggleOption(opt)}
+            />
+            {opt}
+          </label>
+        ))}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export default function ComedorTab({ store, role }: Props) {
   const { huespedActivos, comedor, updateComedor, nuevaSemana } = store;
-  const semana = getCurrentWeek();
+  const [selectedWeekDate, setSelectedWeekDate] = useState<Date>(new Date());
+  const semana = formatWeekFromDate(selectedWeekDate);
+
+  const canEdit = role === 'admin' || role === 'gestor' || role === 'invitado';
 
   const entries = useMemo(() => {
     return huespedActivos
@@ -52,15 +108,15 @@ export default function ComedorTab({ store }: Props) {
           num: idx + 1,
           huesped: h,
           comedor: entry || {
-            huespedId: h.id, semana, separarComidas: 'Todas',
-            diasSeparar: 'Todos los días', motivoAusencia: '', observaciones: '', particularidades: '',
+            huespedId: h.id, semana, separarComidas: ['Todas'],
+            diasSeparar: ['Todos los días'], motivoAusencia: '', observaciones: '', particularidades: '',
           },
         };
       });
   }, [huespedActivos, comedor, semana]);
 
-  const handleUpdate = (huespedId: string, field: string, value: string) => {
-    updateComedor(huespedId, semana, { [field]: value });
+  const handleUpdate = (huespedId: string, field: string, value: unknown) => {
+    updateComedor(huespedId, semana, { [field]: value } as Partial<import('@/types').ComedorEntry>);
   };
 
   return (
@@ -70,20 +126,37 @@ export default function ComedorTab({ store }: Props) {
           <h2 className="text-xl font-bold flex items-center gap-2">
             <UtensilsCrossed className="w-5 h-5 text-primary" /> Comedor — Organización de Comidas
           </h2>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
             <CalendarDays className="w-4 h-4 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground font-medium">Semana: {semana}</p>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="text-xs h-7 gap-1">
+                  <CalendarDays className="w-3 h-3" />
+                  Semana: {semana}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedWeekDate}
+                  onSelect={d => d && setSelectedWeekDate(d)}
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
             <Badge variant="outline" className="text-xs">{entries.length} comensales</Badge>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={nuevaSemana}>
-            <RefreshCw className="w-4 h-4 mr-2" /> Nueva semana
-          </Button>
-          <Button variant="outline" size="sm" onClick={nuevaSemana}>
-            <Copy className="w-4 h-4 mr-2" /> Copiar anterior
-          </Button>
-        </div>
+        {(role === 'admin' || role === 'gestor') && (
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={nuevaSemana}>
+              <RefreshCw className="w-4 h-4 mr-2" /> Nueva semana
+            </Button>
+            <Button variant="outline" size="sm" onClick={nuevaSemana}>
+              <Copy className="w-4 h-4 mr-2" /> Copiar anterior
+            </Button>
+          </div>
+        )}
       </div>
 
       <Card>
@@ -109,70 +182,74 @@ export default function ComedorTab({ store }: Props) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {entries.map(({ num, huesped, comedor: c }) => (
-                    <TableRow key={huesped.id}>
-                      <TableCell className="text-muted-foreground text-xs">{num}</TableCell>
-                      <TableCell className="font-medium whitespace-nowrap">{huesped.nombre.toUpperCase()}</TableCell>
-                      <TableCell>
-                        <Badge className={`text-xs font-bold border ${ROOM_COLORS[huesped.habitacion] || ''}`} variant="outline">
-                          {huesped.habitacion}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className="bg-green-100 text-green-800 text-xs">Activo</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={`text-xs ${DIET_COLORS[huesped.dieta] || 'bg-secondary text-secondary-foreground'}`} variant="secondary">
-                          {huesped.dieta}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          className="min-w-[160px] h-8 text-xs"
-                          value={c.particularidades}
-                          onChange={e => handleUpdate(huesped.id, 'particularidades', e.target.value)}
-                          placeholder="Alimentación preferiblemente..."
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={c.separarComidas || 'Todas'}
-                          onValueChange={v => handleUpdate(huesped.id, 'separarComidas', v)}
-                        >
-                          <SelectTrigger className="min-w-[100px] h-8 text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {SEPARAR_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Select value={c.diasSeparar || 'Todos los días'} onValueChange={v => handleUpdate(huesped.id, 'diasSeparar', v)}>
-                          <SelectTrigger className="min-w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {DIAS_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Select value={c.motivoAusencia || 'none'} onValueChange={v => handleUpdate(huesped.id, 'motivoAusencia', v === 'none' ? '' : v)}>
-                          <SelectTrigger className="min-w-[110px] h-8 text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">—</SelectItem>
-                            {MOTIVO_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell className="text-xs whitespace-nowrap text-muted-foreground">{semana.split(' a ')[0]}</TableCell>
-                      <TableCell>
-                        <Input
-                          className="min-w-[140px] h-8 text-xs"
-                          value={c.observaciones}
-                          onChange={e => handleUpdate(huesped.id, 'observaciones', e.target.value)}
-                          placeholder="Ramadán, etc."
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {entries.map(({ num, huesped, comedor: c }) => {
+                    const separarArr = Array.isArray(c.separarComidas) ? c.separarComidas : [c.separarComidas || 'Todas'];
+                    const diasArr = Array.isArray(c.diasSeparar) ? c.diasSeparar : [c.diasSeparar || 'Todos los días'];
+
+                    return (
+                      <TableRow key={huesped.id}>
+                        <TableCell className="text-muted-foreground text-xs">{num}</TableCell>
+                        <TableCell className="font-medium whitespace-nowrap">{huesped.nombre.toUpperCase()}</TableCell>
+                        <TableCell>
+                          <Badge className={`text-xs font-bold border ${ROOM_COLORS[huesped.habitacion] || ''}`} variant="outline">
+                            {huesped.habitacion}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className="bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)] text-xs">Activo</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`text-xs ${DIET_COLORS[huesped.dieta] || 'bg-secondary text-secondary-foreground'}`} variant="secondary">
+                            {huesped.dieta}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            className="min-w-[160px] h-8 text-xs"
+                            value={c.particularidades}
+                            onChange={e => handleUpdate(huesped.id, 'particularidades', e.target.value)}
+                            placeholder="Alimentación preferiblemente..."
+                            readOnly={!canEdit}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <MultiCheckbox
+                            options={SEPARAR_OPTIONS}
+                            selected={separarArr}
+                            onChange={v => handleUpdate(huesped.id, 'separarComidas', v)}
+                            label="Separar comidas"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <MultiCheckbox
+                            options={DIAS_OPTIONS}
+                            selected={diasArr}
+                            onChange={v => handleUpdate(huesped.id, 'diasSeparar', v)}
+                            label="Días a separar"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Select value={c.motivoAusencia || 'none'} onValueChange={v => handleUpdate(huesped.id, 'motivoAusencia', v === 'none' ? '' : v)}>
+                            <SelectTrigger className="min-w-[110px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">—</SelectItem>
+                              {MOTIVO_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="text-xs whitespace-nowrap text-muted-foreground">{semana.split(' a ')[0]}</TableCell>
+                        <TableCell>
+                          <Input
+                            className="min-w-[140px] h-8 text-xs"
+                            value={c.observaciones}
+                            onChange={e => handleUpdate(huesped.id, 'observaciones', e.target.value)}
+                            placeholder="Ramadán, etc."
+                            readOnly={!canEdit}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

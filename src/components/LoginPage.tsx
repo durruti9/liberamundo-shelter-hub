@@ -4,9 +4,21 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Building2 } from 'lucide-react';
+import { UserRole, UserAccount } from '@/types';
 
 interface Props {
-  onLogin: () => void;
+  onLogin: (role: UserRole) => void;
+}
+
+function loadUsers(): UserAccount[] {
+  try {
+    const data = localStorage.getItem('users');
+    return data ? JSON.parse(data) : [
+      { email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin', nombre: 'Administrador' },
+    ];
+  } catch {
+    return [{ email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin', nombre: 'Administrador' }];
+  }
 }
 
 export default function LoginPage({ onLogin }: Props) {
@@ -16,9 +28,12 @@ export default function LoginPage({ onLogin }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === 'albergue@liberamundo.com' && password === 'admin123') {
+    const users = loadUsers();
+    const user = users.find(u => u.email === email && u.password === password);
+    if (user) {
       localStorage.setItem('auth', 'true');
-      onLogin();
+      localStorage.setItem('authRole', user.role);
+      onLogin(user.role);
     } else {
       setError('Credenciales incorrectas');
     }
