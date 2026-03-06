@@ -137,30 +137,6 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
         </Card>
       </div>
 
-      {/* Board Panels - Instructions & Requests */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <BoardPanel
-          title={t.instructions}
-          tipo="instrucciones"
-          messages={boardMessages}
-          role={role}
-          onAdd={addBoardMessage}
-          onReply={addBoardReply}
-          onResolve={resolveBoardMessage}
-          onDelete={deleteBoardMessage}
-        />
-        <BoardPanel
-          title={t.requests}
-          tipo="peticiones"
-          messages={boardMessages}
-          role={role}
-          onAdd={addBoardMessage}
-          onReply={addBoardReply}
-          onResolve={resolveBoardMessage}
-          onDelete={deleteBoardMessage}
-        />
-      </div>
-
       {/* Charts row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
@@ -212,6 +188,32 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
             </ResponsiveContainer>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Board Panels - Instructions & Requests (below charts) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <BoardPanel
+          title={t.instructions}
+          icon="instructions"
+          tipo="instrucciones"
+          messages={boardMessages}
+          role={role}
+          onAdd={addBoardMessage}
+          onReply={addBoardReply}
+          onResolve={resolveBoardMessage}
+          onDelete={deleteBoardMessage}
+        />
+        <BoardPanel
+          title={t.requests}
+          icon="requests"
+          tipo="peticiones"
+          messages={boardMessages}
+          role={role}
+          onAdd={addBoardMessage}
+          onReply={addBoardReply}
+          onResolve={resolveBoardMessage}
+          onDelete={deleteBoardMessage}
+        />
       </div>
 
       {/* Upcoming checkouts & arrivals */}
