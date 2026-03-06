@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Huesped, ComedorEntry, ProximaLlegada, Incidencia, Room, Albergue, DEFAULT_ALBERGUE, Dieta, UserAccount, UserRole, IncidentType } from '@/types';
+import { Huesped, ComedorEntry, ProximaLlegada, Incidencia, Room, Albergue, DEFAULT_ALBERGUE, Dieta, UserAccount, UserRole, IncidentType, BoardMessage, BoardType, BoardVisibility, BoardReply } from '@/types';
 
 function loadFromStorage<T>(key: string, fallback: T): T {
   try {
