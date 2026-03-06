@@ -39,11 +39,14 @@ export default function HabitacionesTab({ store }: Props) {
   }, [huespedActivos]);
 
   const dietColors: Record<string, string> = {
-    'Sin restricciones': 'bg-secondary text-secondary-foreground',
-    'Sin cerdo': 'bg-warning text-warning-foreground',
-    'Situación especial': 'bg-accent text-accent-foreground',
+    'Omnívora estándar': 'bg-secondary text-secondary-foreground',
     'Halal': 'bg-success text-success-foreground',
-    'Vegano': 'bg-primary text-primary-foreground',
+    'Kosher': 'bg-accent text-accent-foreground',
+    'Vegetariana': 'bg-primary/20 text-primary',
+    'Vegana': 'bg-primary text-primary-foreground',
+    'Sin cerdo (no halal)': 'bg-warning text-warning-foreground',
+    'Situación especial': 'bg-accent text-accent-foreground',
+    'Alergias e intolerancias': 'bg-destructive/20 text-destructive',
   };
 
   return (
