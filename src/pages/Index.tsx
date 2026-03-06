@@ -4,8 +4,8 @@ import AppLayout from '@/components/AppLayout';
 import { UserRole, Albergue, DEFAULT_ALBERGUE } from '@/types';
 import { I18nProvider } from '@/i18n/I18nContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Building2 } from 'lucide-react';
+import logo from '@/assets/Logo2Liberamundo.png';
 
 function loadAlbergues(): Albergue[] {
   try {
