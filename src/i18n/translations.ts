@@ -632,6 +632,8 @@ const ar: Translations = {
   paused: 'متوقف',
   foodPlaceholder: 'تغذية مفضلة...',
   observationsPlaceholder: 'رمضان، إلخ.',
+  downloadWeeklyPdf: 'تحميل PDF أسبوعي',
+  weekOf: 'أسبوع',
   all: 'الكل',
   breakfast: 'فطور',
   lunch: 'غداء',
