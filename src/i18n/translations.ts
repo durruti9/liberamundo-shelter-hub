@@ -219,6 +219,27 @@ export interface Translations {
   importError: string;
   downloadBackup: string;
   selectFile: string;
+
+  // Board (Instructions & Requests)
+  instructions: string;
+  requests: string;
+  newMessage: string;
+  noMessages: string;
+  author: string;
+  message: string;
+  visibility: string;
+  visibilityAll: string;
+  visibilityManager: string;
+  visibilityStaff: string;
+  markResolved: string;
+  resolvedBy: string;
+  resolutionDescription: string;
+  reply: string;
+  replies: string;
+  addReply: string;
+  writeReply: string;
+  resolveMessage: string;
+  upcomingArrivalsBoard: string;
 }
 
 const es: Translations = {
@@ -413,6 +434,25 @@ const es: Translations = {
   importError: 'Error al importar. Archivo inválido.',
   downloadBackup: 'Descargar backup',
   selectFile: 'Seleccionar archivo',
+  instructions: 'Instrucciones',
+  requests: 'Peticiones',
+  newMessage: 'Nuevo mensaje',
+  noMessages: 'No hay mensajes',
+  author: 'Autor',
+  message: 'Mensaje',
+  visibility: 'Visibilidad',
+  visibilityAll: 'Todos',
+  visibilityManager: 'Gestor',
+  visibilityStaff: 'Personal Albergue',
+  markResolved: 'Marcar como resuelta',
+  resolvedBy: 'Resuelta por',
+  resolutionDescription: 'Descripción de la resolución',
+  reply: 'Respuesta',
+  replies: 'Respuestas',
+  addReply: 'Añadir respuesta',
+  writeReply: 'Escribe una respuesta...',
+  resolveMessage: 'Resolver mensaje',
+  upcomingArrivalsBoard: 'Próximas llegadas',
 };
 
 const fr: Translations = {
@@ -607,6 +647,25 @@ const fr: Translations = {
   importError: 'Erreur d\'importation. Fichier invalide.',
   downloadBackup: 'Télécharger la sauvegarde',
   selectFile: 'Sélectionner un fichier',
+  instructions: 'Instructions',
+  requests: 'Demandes',
+  newMessage: 'Nouveau message',
+  noMessages: 'Aucun message',
+  author: 'Auteur',
+  message: 'Message',
+  visibility: 'Visibilité',
+  visibilityAll: 'Tous',
+  visibilityManager: 'Gestionnaire',
+  visibilityStaff: 'Personnel',
+  markResolved: 'Marquer comme résolu',
+  resolvedBy: 'Résolu par',
+  resolutionDescription: 'Description de la résolution',
+  reply: 'Réponse',
+  replies: 'Réponses',
+  addReply: 'Ajouter une réponse',
+  writeReply: 'Écrire une réponse...',
+  resolveMessage: 'Résoudre le message',
+  upcomingArrivalsBoard: 'Prochaines arrivées',
 };
 
 const ar: Translations = {
@@ -801,6 +860,25 @@ const ar: Translations = {
   importError: 'خطأ في الاستيراد. ملف غير صالح.',
   downloadBackup: 'تحميل النسخة الاحتياطية',
   selectFile: 'اختر ملفاً',
+  instructions: 'تعليمات',
+  requests: 'طلبات',
+  newMessage: 'رسالة جديدة',
+  noMessages: 'لا توجد رسائل',
+  author: 'الكاتب',
+  message: 'رسالة',
+  visibility: 'الرؤية',
+  visibilityAll: 'الكل',
+  visibilityManager: 'المسؤول',
+  visibilityStaff: 'الموظفون',
+  markResolved: 'تحديد كمحلول',
+  resolvedBy: 'تم الحل بواسطة',
+  resolutionDescription: 'وصف الحل',
+  reply: 'رد',
+  replies: 'ردود',
+  addReply: 'إضافة رد',
+  writeReply: 'اكتب رداً...',
+  resolveMessage: 'حل الرسالة',
+  upcomingArrivalsBoard: 'الوصول القادم',
 };
 
 const en: Translations = {
@@ -995,6 +1073,25 @@ const en: Translations = {
   importError: 'Import error. Invalid file.',
   downloadBackup: 'Download backup',
   selectFile: 'Select file',
+  instructions: 'Instructions',
+  requests: 'Requests',
+  newMessage: 'New message',
+  noMessages: 'No messages',
+  author: 'Author',
+  message: 'Message',
+  visibility: 'Visibility',
+  visibilityAll: 'All',
+  visibilityManager: 'Manager',
+  visibilityStaff: 'Shelter Staff',
+  markResolved: 'Mark as resolved',
+  resolvedBy: 'Resolved by',
+  resolutionDescription: 'Resolution description',
+  reply: 'Reply',
+  replies: 'Replies',
+  addReply: 'Add reply',
+  writeReply: 'Write a reply...',
+  resolveMessage: 'Resolve message',
+  upcomingArrivalsBoard: 'Upcoming arrivals',
 };
 
 export const translations: Record<Language, Translations> = { es, fr, ar, en };

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Huesped, ComedorEntry, ProximaLlegada, Incidencia, Room, Albergue, DEFAULT_ALBERGUE, Dieta, UserAccount, UserRole, IncidentType } from '@/types';
+import { Huesped, ComedorEntry, ProximaLlegada, Incidencia, Room, Albergue, DEFAULT_ALBERGUE, Dieta, UserAccount, UserRole, IncidentType, BoardMessage, BoardType, BoardVisibility, BoardReply } from '@/types';
 
 function loadFromStorage<T>(key: string, fallback: T): T {
   try {
@@ -50,6 +50,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
   const [comedor, setComedor] = useState<ComedorEntry[]>(() => loadFromStorage(`${prefix}_comedor`, []));
   const [llegadas, setLlegadas] = useState<ProximaLlegada[]>(() => loadFromStorage(`${prefix}_llegadas`, []));
   const [incidencias, setIncidencias] = useState<Incidencia[]>(() => loadFromStorage(`${prefix}_incidencias`, []));
+  const [boardMessages, setBoardMessages] = useState<BoardMessage[]>(() => loadFromStorage(`${prefix}_board`, []));
 
   // Global: users
   const [users, setUsers] = useState<UserAccount[]>(() => {
@@ -62,6 +63,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
   useEffect(() => saveToStorage(`${prefix}_comedor`, comedor), [comedor, prefix]);
   useEffect(() => saveToStorage(`${prefix}_llegadas`, llegadas), [llegadas, prefix]);
   useEffect(() => saveToStorage(`${prefix}_incidencias`, incidencias), [incidencias, prefix]);
+  useEffect(() => saveToStorage(`${prefix}_board`, boardMessages), [boardMessages, prefix]);
   useEffect(() => saveToStorage('users', users), [users]);
   useEffect(() => saveToStorage('albergues', albergues), [albergues]);
 
@@ -230,8 +232,29 @@ export function useAlbergueStore(albergueId: string = 'default') {
     setAlbergues(prev => prev.map(a => a.id === albergueId ? { ...a, rooms: newRooms } : a));
   }, [albergueId]);
 
+  // Board messages
+  const addBoardMessage = useCallback((msg: Omit<BoardMessage, 'id' | 'resuelta' | 'respuestas'>) => {
+    setBoardMessages(prev => [...prev, { ...msg, id: crypto.randomUUID(), resuelta: false, respuestas: [] }]);
+  }, []);
+
+  const addBoardReply = useCallback((messageId: string, reply: Omit<BoardReply, 'id'>) => {
+    setBoardMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, respuestas: [...m.respuestas, { ...reply, id: crypto.randomUUID() }] } : m
+    ));
+  }, []);
+
+  const resolveBoardMessage = useCallback((messageId: string, resolucion: { autor: string; fecha: string; descripcion: string }) => {
+    setBoardMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, resuelta: true, resolucion } : m
+    ));
+  }, []);
+
+  const deleteBoardMessage = useCallback((messageId: string) => {
+    setBoardMessages(prev => prev.filter(m => m.id !== messageId));
+  }, []);
+
   return {
-    huespedes, huespedActivos, comedor, llegadas, users, incidencias,
+    huespedes, huespedActivos, comedor, llegadas, users, incidencias, boardMessages,
     rooms, totalCamas, albergues, currentAlbergue,
     checkIn, checkOut, cambiarCama, deleteHuesped, editHuesped, reincorporar,
     addLlegada, editLlegada, confirmarLlegada, deleteLlegada,
@@ -240,5 +263,6 @@ export function useAlbergueStore(albergueId: string = 'default') {
     getOccupant, getFreeBeds,
     addUser, removeUser, authenticate,
     addAlbergue, editAlbergueName, deleteAlbergue, updateRooms,
+    addBoardMessage, addBoardReply, resolveBoardMessage, deleteBoardMessage,
   };
 }
