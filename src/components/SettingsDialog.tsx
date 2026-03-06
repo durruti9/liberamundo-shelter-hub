@@ -365,6 +365,10 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="backup">
+            <BackupSection t={t} />
+          </TabsContent>
         </Tabs>
       </DialogContent>
 
