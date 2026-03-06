@@ -40,6 +40,8 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
   const [showUsers, setShowUsers] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [newUser, setNewUser] = useState({ email: '', password: '', nombre: '', role: 'personal_albergue' as UserRole, albergueIds: [albergueId] });
+  const [changingPasswordFor, setChangingPasswordFor] = useState<string | null>(null);
+  const [newPasswordValue, setNewPasswordValue] = useState('');
 
   const handleAddUser = () => {
     if (!newUser.email || !newUser.password || !newUser.nombre) return;
