@@ -150,6 +150,7 @@ export function useAlbergueStore() {
       }
       return [...prev, {
         huespedId,
+        estado: 'Activo' as const,
         separarComidas: ['Todas'],
         diasSeparar: ['Todos los días'],
         motivoAusencia: '',
