@@ -298,6 +298,8 @@ const es: Translations = {
   paused: 'Pausado',
   foodPlaceholder: 'Alimentación preferiblemente...',
   observationsPlaceholder: 'Ramadán, etc.',
+  downloadWeeklyPdf: 'Descargar PDF semanal',
+  weekOf: 'Semana del',
   all: 'Todas',
   breakfast: 'Desayuno',
   lunch: 'Comida',
