@@ -11,6 +11,7 @@ import { UtensilsCrossed, Clock } from 'lucide-react';
 import { UserRole } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useI18n } from '@/i18n/I18nContext';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
@@ -44,10 +45,7 @@ const DIET_COLORS: Record<string, string> = {
 
 function MultiCheckbox({ options, selected, onChange, label }: { options: string[]; selected: string[]; onChange: (val: string[]) => void; label: string }) {
   const toggleOption = (opt: string) => {
-    if (opt === options[0]) {
-      onChange([options[0]]);
-      return;
-    }
+    if (opt === options[0]) { onChange([options[0]]); return; }
     const without = selected.filter(s => s !== options[0]);
     if (without.includes(opt)) {
       const next = without.filter(s => s !== opt);
@@ -68,10 +66,7 @@ function MultiCheckbox({ options, selected, onChange, label }: { options: string
         <p className="text-xs font-medium text-muted-foreground mb-2">{label}</p>
         {options.map(opt => (
           <label key={opt} className="flex items-center gap-2 py-1 px-1 hover:bg-muted rounded cursor-pointer text-xs">
-            <Checkbox
-              checked={selected.includes(opt)}
-              onCheckedChange={() => toggleOption(opt)}
-            />
+            <Checkbox checked={selected.includes(opt)} onCheckedChange={() => toggleOption(opt)} />
             {opt}
           </label>
         ))}
@@ -82,8 +77,10 @@ function MultiCheckbox({ options, selected, onChange, label }: { options: string
 
 export default function ComedorTab({ store, role }: Props) {
   const { huespedActivos, comedor, updateComedor } = store;
+  const { t } = useI18n();
 
-  const canEdit = role === 'admin' || role === 'gestor' || role === 'invitado';
+  // All roles can edit comedor
+  const canEdit = true;
 
   const entries = useMemo(() => {
     return huespedActivos
@@ -97,13 +94,9 @@ export default function ComedorTab({ store, role }: Props) {
           num: idx + 1,
           huesped: h,
           comedor: entry || {
-            huespedId: h.id,
-            estado: 'Activo' as const,
-            separarComidas: ['Todas'],
-            diasSeparar: ['Todos los días'],
-            motivoAusencia: '',
-            observaciones: '',
-            particularidades: '',
+            huespedId: h.id, estado: 'Activo' as const,
+            separarComidas: ['Todas'], diasSeparar: ['Todos los días'],
+            motivoAusencia: '', observaciones: '', particularidades: '',
             ultimaModificacion: new Date().toISOString(),
           },
         };
@@ -119,10 +112,10 @@ export default function ComedorTab({ store, role }: Props) {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-xl font-bold flex items-center gap-2">
-            <UtensilsCrossed className="w-5 h-5 text-primary" /> Comedor — Organización de Comidas
+            <UtensilsCrossed className="w-5 h-5 text-primary" /> {t.diningOrganization}
           </h2>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <Badge variant="outline" className="text-xs">{entries.length} comensales</Badge>
+            <Badge variant="outline" className="text-xs">{entries.length} {t.diners}</Badge>
           </div>
         </div>
       </div>
@@ -130,23 +123,23 @@ export default function ComedorTab({ store, role }: Props) {
       <Card>
         <CardContent className="pt-6">
           {entries.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No hay huéspedes activos</p>
+            <p className="text-center text-muted-foreground py-8">{t.noActiveGuests}</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-10">#</TableHead>
-                    <TableHead>Nombre Completo</TableHead>
-                    <TableHead className="w-16">Hab.</TableHead>
-                    <TableHead className="w-24">Estado</TableHead>
-                    <TableHead>Tipo de Dieta</TableHead>
-                    <TableHead>Particularidades Alimentarias</TableHead>
-                    <TableHead>Separar Comidas</TableHead>
-                    <TableHead>Días a Separar</TableHead>
-                    <TableHead>Motivo Ausencia</TableHead>
-                    <TableHead>Última Modificación</TableHead>
-                    <TableHead>Observaciones</TableHead>
+                    <TableHead>{t.fullName}</TableHead>
+                    <TableHead className="w-16">{t.roomShort}</TableHead>
+                    <TableHead className="w-24">{t.status}</TableHead>
+                    <TableHead>{t.dietType}</TableHead>
+                    <TableHead>{t.foodParticularities}</TableHead>
+                    <TableHead>{t.separateMeals}</TableHead>
+                    <TableHead>{t.daysToSeparate}</TableHead>
+                    <TableHead>{t.absenceReason}</TableHead>
+                    <TableHead>{t.lastModification}</TableHead>
+                    <TableHead>{t.observations}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -177,7 +170,7 @@ export default function ComedorTab({ store, role }: Props) {
                                 {ESTADO_OPTIONS.map(o => (
                                   <SelectItem key={o} value={o}>
                                     <span className={o === 'Pausado' ? 'text-destructive font-medium' : 'text-[hsl(142,60%,30%)] font-medium'}>
-                                      {o}
+                                      {o === 'Activo' ? t.active : t.paused}
                                     </span>
                                   </SelectItem>
                                 ))}
@@ -188,7 +181,7 @@ export default function ComedorTab({ store, role }: Props) {
                               ? 'bg-[hsl(0,72%,92%)] text-destructive text-xs'
                               : 'bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)] text-xs'
                             }>
-                              {estado}
+                              {estado === 'Activo' ? t.active : t.paused}
                             </Badge>
                           )}
                         </TableCell>
@@ -202,25 +195,15 @@ export default function ComedorTab({ store, role }: Props) {
                             className="min-w-[160px] h-8 text-xs"
                             value={c.particularidades}
                             onChange={e => handleUpdate(huesped.id, 'particularidades', e.target.value)}
-                            placeholder="Alimentación preferiblemente..."
+                            placeholder={t.foodPlaceholder}
                             readOnly={!canEdit}
                           />
                         </TableCell>
                         <TableCell>
-                          <MultiCheckbox
-                            options={SEPARAR_OPTIONS}
-                            selected={separarArr}
-                            onChange={v => handleUpdate(huesped.id, 'separarComidas', v)}
-                            label="Separar comidas"
-                          />
+                          <MultiCheckbox options={SEPARAR_OPTIONS} selected={separarArr} onChange={v => handleUpdate(huesped.id, 'separarComidas', v)} label={t.separateMeals} />
                         </TableCell>
                         <TableCell>
-                          <MultiCheckbox
-                            options={DIAS_OPTIONS}
-                            selected={diasArr}
-                            onChange={v => handleUpdate(huesped.id, 'diasSeparar', v)}
-                            label="Días a separar"
-                          />
+                          <MultiCheckbox options={DIAS_OPTIONS} selected={diasArr} onChange={v => handleUpdate(huesped.id, 'diasSeparar', v)} label={t.daysToSeparate} />
                         </TableCell>
                         <TableCell>
                           <Select value={c.motivoAusencia || 'none'} onValueChange={v => handleUpdate(huesped.id, 'motivoAusencia', v === 'none' ? '' : v)}>
@@ -241,7 +224,7 @@ export default function ComedorTab({ store, role }: Props) {
                             className="min-w-[140px] h-8 text-xs"
                             value={c.observaciones}
                             onChange={e => handleUpdate(huesped.id, 'observaciones', e.target.value)}
-                            placeholder="Ramadán, etc."
+                            placeholder={t.observationsPlaceholder}
                             readOnly={!canEdit}
                           />
                         </TableCell>

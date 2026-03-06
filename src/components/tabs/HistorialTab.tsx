@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Download, History, Pencil, Trash2, UserPlus, AlertTriangle } from 'lucide-react';
-import { DIETAS, ROOMS, Dieta, UserRole } from '@/types';
+import { DIETAS, Dieta, UserRole } from '@/types';
 import { formatDateES } from '@/lib/dateFormat';
+import { useI18n } from '@/i18n/I18nContext';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
@@ -18,7 +19,8 @@ interface Props {
 }
 
 export default function HistorialTab({ store, role }: Props) {
-  const { huespedes, deleteHuesped, editHuesped, reincorporar, huespedActivos } = store;
+  const { huespedes, rooms, deleteHuesped, editHuesped, reincorporar, huespedActivos } = store;
+  const { t } = useI18n();
   const [editId, setEditId] = useState<string | null>(null);
   const [reincorporarId, setReincorporarId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -31,13 +33,13 @@ export default function HistorialTab({ store, role }: Props) {
   const freeBeds = useMemo(() => {
     const occupied = new Set(huespedActivos.map(h => `${h.habitacion}-${h.cama}`));
     const free: { habitacion: string; cama: number }[] = [];
-    for (const room of ROOMS) {
+    for (const room of rooms) {
       for (let i = 1; i <= room.camas; i++) {
         if (!occupied.has(`${room.id}-${i}`)) free.push({ habitacion: room.id, cama: i });
       }
     }
     return free;
-  }, [huespedActivos]);
+  }, [huespedActivos, rooms]);
 
   const openEdit = (h: typeof huespedes[0]) => {
     setEditForm({ nombre: h.nombre, nie: h.nie, nacionalidad: h.nacionalidad, idioma: h.idioma, dieta: h.dieta, notas: h.notas });
@@ -61,7 +63,7 @@ export default function HistorialTab({ store, role }: Props) {
   const exportCSV = () => {
     const headers = ['Nombre', 'Habitación', 'Cama', 'Check-in', 'Check-out', 'Dieta', 'NIE', 'Nacionalidad', 'Estado'];
     const rows = sorted.map(h => [
-      h.nombre, h.habitacion, h.cama, h.fechaEntrada, h.fechaCheckout || '-', h.dieta, h.nie, h.nacionalidad, h.activo ? 'Activo' : 'Histórico'
+      h.nombre, h.habitacion, h.cama, h.fechaEntrada, h.fechaCheckout || '-', h.dieta, h.nie, h.nacionalidad, h.activo ? t.active : t.historic
     ]);
     const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -79,27 +81,27 @@ export default function HistorialTab({ store, role }: Props) {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <History className="w-5 h-5 text-primary" />
-            Historial de Huéspedes
+            {t.guestHistory}
           </CardTitle>
           <Button variant="outline" size="sm" onClick={exportCSV}>
-            <Download className="w-4 h-4 mr-2" /> Exportar CSV
+            <Download className="w-4 h-4 mr-2" /> {t.exportCSV}
           </Button>
         </CardHeader>
         <CardContent>
           {sorted.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No hay registros</p>
+            <p className="text-center text-muted-foreground py-8">{t.noRecords}</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Habitación</TableHead>
-                    <TableHead>Check-in</TableHead>
-                    <TableHead>Check-out</TableHead>
-                    <TableHead>Dieta</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead>{t.name}</TableHead>
+                    <TableHead>{t.room}</TableHead>
+                    <TableHead>{t.checkInDate}</TableHead>
+                    <TableHead>{t.checkOutDate}</TableHead>
+                    <TableHead>{t.diet}</TableHead>
+                    <TableHead>{t.status}</TableHead>
+                    <TableHead className="text-right">{t.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -114,20 +116,20 @@ export default function HistorialTab({ store, role }: Props) {
                       <TableCell className="text-xs">{h.dieta}</TableCell>
                       <TableCell>
                         <Badge variant={h.activo ? 'default' : 'secondary'}>
-                          {h.activo ? 'Activo' : 'Histórico'}
+                          {h.activo ? t.active : t.historic}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Button size="icon" variant="ghost" onClick={() => openEdit(h)} title="Editar">
+                          <Button size="icon" variant="ghost" onClick={() => openEdit(h)} title={t.edit}>
                             <Pencil className="w-4 h-4" />
                           </Button>
                           {!h.activo && (
-                            <Button size="icon" variant="ghost" onClick={() => setReincorporarId(h.id)} title="Reincorporar">
+                            <Button size="icon" variant="ghost" onClick={() => setReincorporarId(h.id)} title={t.reincorporate}>
                               <UserPlus className="w-4 h-4 text-primary" />
                             </Button>
                           )}
-                          <Button size="icon" variant="ghost" onClick={() => setDeleteConfirmId(h.id)} title="Eliminar">
+                          <Button size="icon" variant="ghost" onClick={() => setDeleteConfirmId(h.id)} title={t.delete}>
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
                         </div>
@@ -141,30 +143,29 @@ export default function HistorialTab({ store, role }: Props) {
         </CardContent>
       </Card>
 
-      {/* Edit dialog */}
       <Dialog open={!!editId} onOpenChange={() => setEditId(null)}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Editar huésped</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t.editGuest}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Nombre</Label>
+                <Label>{t.name}</Label>
                 <Input value={editForm.nombre} onChange={e => setEditForm(p => ({ ...p, nombre: e.target.value }))} />
               </div>
               <div className="space-y-2">
-                <Label>NIE</Label>
+                <Label>{t.nieDocument}</Label>
                 <Input value={editForm.nie} onChange={e => setEditForm(p => ({ ...p, nie: e.target.value }))} />
               </div>
               <div className="space-y-2">
-                <Label>Nacionalidad</Label>
+                <Label>{t.nationality}</Label>
                 <Input value={editForm.nacionalidad} onChange={e => setEditForm(p => ({ ...p, nacionalidad: e.target.value }))} />
               </div>
               <div className="space-y-2">
-                <Label>Idioma</Label>
+                <Label>{t.language}</Label>
                 <Input value={editForm.idioma} onChange={e => setEditForm(p => ({ ...p, idioma: e.target.value }))} />
               </div>
               <div className="space-y-2 col-span-2">
-                <Label>Dieta</Label>
+                <Label>{t.diet}</Label>
                 <Select value={editForm.dieta} onValueChange={v => setEditForm(p => ({ ...p, dieta: v as Dieta }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -174,62 +175,60 @@ export default function HistorialTab({ store, role }: Props) {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Notas</Label>
+              <Label>{t.notes}</Label>
               <Textarea value={editForm.notas} onChange={e => setEditForm(p => ({ ...p, notas: e.target.value }))} rows={3} />
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setEditId(null)}>Cancelar</Button>
-              <Button onClick={saveEdit}>Guardar</Button>
+              <Button variant="outline" onClick={() => setEditId(null)}>{t.cancel}</Button>
+              <Button onClick={saveEdit}>{t.save}</Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Reincorporar dialog */}
       <Dialog open={!!reincorporarId} onOpenChange={() => setReincorporarId(null)}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Reincorporar a habitación</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t.reincorporateToRoom}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Habitación</Label>
+              <Label>{t.room}</Label>
               <Select value={selectedRoom} onValueChange={v => { setSelectedRoom(v); setSelectedBed(''); }}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar habitación" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t.selectRoom} /></SelectTrigger>
                 <SelectContent>
                   {[...new Set(freeBeds.map(fb => fb.habitacion))].map(r => (
-                    <SelectItem key={r} value={r}>Habitación {r}</SelectItem>
+                    <SelectItem key={r} value={r}>{t.room} {r}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             {selectedRoom && (
               <div className="space-y-2">
-                <Label>Cama</Label>
+                <Label>{t.bed}</Label>
                 <Select value={selectedBed} onValueChange={setSelectedBed}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar cama" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t.selectBed} /></SelectTrigger>
                   <SelectContent>
                     {bedsForRoom.map(fb => (
-                      <SelectItem key={fb.cama} value={String(fb.cama)}>Cama {fb.cama}</SelectItem>
+                      <SelectItem key={fb.cama} value={String(fb.cama)}>{t.bed} {fb.cama}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             )}
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setReincorporarId(null)}>Cancelar</Button>
-              <Button disabled={!selectedRoom || !selectedBed} onClick={handleReincorporar}>Reincorporar</Button>
+              <Button variant="outline" onClick={() => setReincorporarId(null)}>{t.cancel}</Button>
+              <Button disabled={!selectedRoom || !selectedBed} onClick={handleReincorporar}>{t.reincorporate}</Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Delete confirm */}
       <Dialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
         <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-destructive" /> Confirmar eliminación</DialogTitle></DialogHeader>
-          <p className="text-sm text-muted-foreground">¿Estás seguro de que quieres eliminar este huésped permanentemente? Esta acción no se puede deshacer.</p>
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-destructive" /> {t.confirmDeletion}</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">{t.deleteConfirmMsg}</p>
           <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>Cancelar</Button>
-            <Button variant="destructive" onClick={() => { if (deleteConfirmId) deleteHuesped(deleteConfirmId); setDeleteConfirmId(null); }}>Eliminar</Button>
+            <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>{t.cancel}</Button>
+            <Button variant="destructive" onClick={() => { if (deleteConfirmId) deleteHuesped(deleteConfirmId); setDeleteConfirmId(null); }}>{t.delete}</Button>
           </div>
         </DialogContent>
       </Dialog>

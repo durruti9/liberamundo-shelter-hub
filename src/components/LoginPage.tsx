@@ -10,7 +10,7 @@ import { Language } from '@/i18n/translations';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface Props {
-  onLogin: (role: UserRole) => void;
+  onLogin: (role: UserRole, albergueIds: string[]) => void;
 }
 
 const LANG_FLAGS: Record<Language, string> = { es: '🇪🇸', fr: '🇫🇷', ar: '🇸🇦', en: '🇬🇧' };
@@ -19,11 +19,13 @@ const LANG_LABELS: Record<Language, string> = { es: 'Español', fr: 'Français',
 function loadUsers(): UserAccount[] {
   try {
     const data = localStorage.getItem('users');
-    return data ? JSON.parse(data) : [
-      { email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin', nombre: 'Administrador' },
-    ];
+    if (data) {
+      const users = JSON.parse(data) as UserAccount[];
+      return users.map(u => ({ ...u, albergueIds: u.albergueIds || ['default'] }));
+    }
+    return [{ email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin', nombre: 'Administrador', albergueIds: [] }];
   } catch {
-    return [{ email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin', nombre: 'Administrador' }];
+    return [{ email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin', nombre: 'Administrador', albergueIds: [] }];
   }
 }
 
@@ -40,7 +42,7 @@ export default function LoginPage({ onLogin }: Props) {
     if (user) {
       localStorage.setItem('auth', 'true');
       localStorage.setItem('authRole', user.role);
-      onLogin(user.role);
+      onLogin(user.role, user.albergueIds);
     } else {
       setError(t.wrongCredentials);
     }

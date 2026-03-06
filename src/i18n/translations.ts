@@ -24,7 +24,7 @@ export interface Translations {
   // Header
   administrator: string;
   manager: string;
-  guest: string;
+  shelterStaff: string;
   users: string;
   logout: string;
   
@@ -159,6 +159,28 @@ export interface Translations {
   inviteNewUser: string;
   createUser: string;
   role: string;
+
+  // Settings & multi-albergue
+  settings: string;
+  shelterManagement: string;
+  addShelter: string;
+  deleteShelter: string;
+  shelterName: string;
+  roomConfiguration: string;
+  addRoom: string;
+  deleteRoom: string;
+  roomName: string;
+  numberOfBeds: string;
+  switchShelter: string;
+  editShelterName: string;
+  deleteShelterWarning: string;
+  deleteShelterConfirm: string;
+  selectShelter: string;
+  createShelter: string;
+  currentShelter: string;
+  noRooms: string;
+  assignedShelters: string;
+  allShelters: string;
 }
 
 const es: Translations = {
@@ -180,7 +202,7 @@ const es: Translations = {
   wrongCredentials: 'Credenciales incorrectas',
   administrator: 'Administrador',
   manager: 'Gestor',
-  guest: 'Invitado',
+  shelterStaff: 'Personal Albergue',
   users: 'Usuarios',
   logout: 'Cerrar sesión',
   rooms: 'Habitaciones',
@@ -299,6 +321,26 @@ const es: Translations = {
   inviteNewUser: 'Invitar nuevo usuario',
   createUser: 'Crear usuario',
   role: 'Rol',
+  settings: 'Configuración',
+  shelterManagement: 'Gestión de Albergues',
+  addShelter: 'Añadir albergue',
+  deleteShelter: 'Eliminar albergue',
+  shelterName: 'Nombre del albergue',
+  roomConfiguration: 'Configuración de Habitaciones',
+  addRoom: 'Añadir habitación',
+  deleteRoom: 'Eliminar habitación',
+  roomName: 'Nombre de la habitación',
+  numberOfBeds: 'Nº de camas',
+  switchShelter: 'Cambiar albergue',
+  editShelterName: 'Editar nombre',
+  deleteShelterWarning: '⚠️ Se eliminará el albergue y TODOS sus datos (huéspedes, historial, comedor, incidencias). Esta acción es irreversible.',
+  deleteShelterConfirm: '¿Estás seguro? Escribe "ELIMINAR" para proceder.',
+  selectShelter: 'Seleccionar albergue',
+  createShelter: 'Crear albergue',
+  currentShelter: 'Albergue actual',
+  noRooms: 'No hay habitaciones configuradas',
+  assignedShelters: 'Albergues asignados',
+  allShelters: 'Todos los albergues',
 };
 
 const fr: Translations = {
@@ -320,7 +362,7 @@ const fr: Translations = {
   wrongCredentials: 'Identifiants incorrects',
   administrator: 'Administrateur',
   manager: 'Gestionnaire',
-  guest: 'Invité',
+  shelterStaff: 'Personnel hébergement',
   users: 'Utilisateurs',
   logout: 'Se déconnecter',
   rooms: 'Chambres',
@@ -349,7 +391,7 @@ const fr: Translations = {
   editGuest: 'Modifier le résident',
   saveChanges: 'Enregistrer les modifications',
   deleteWithoutRecord: 'Supprimer sans enregistrement',
-  deleteWithoutRecordWarning: '⚠️ Cette action supprimera complètement le résident du système. Aucune trace ne sera conservée dans l\'historique. Cette action est irréversible.',
+  deleteWithoutRecordWarning: '⚠️ Cette action supprimera complètement le résident du système. Aucune trace ne sera conservée. Irréversible.',
   deleteWithoutRecordConfirm: 'Êtes-vous sûr ? Tapez "CONFIRMER" pour continuer.',
   deleteWithoutRecordFinal: 'Supprimer définitivement',
   stayDuration: 'Séjour',
@@ -367,7 +409,7 @@ const fr: Translations = {
   plannedBed: 'Lit prévu',
   scheduleArrival: 'Programmer l\'arrivée',
   confirmEntry: 'Confirmer l\'entrée',
-  reviewBeforeConfirm: 'Vérifiez et modifiez les données avant de confirmer le transfert. Seuls les lits libres sont disponibles.',
+  reviewBeforeConfirm: 'Vérifiez et modifiez les données avant de confirmer le transfert.',
   entryDate: 'Date d\'entrée',
   roomFull: '(Complet)',
   roomAvailable: '(Disponible)',
@@ -439,6 +481,26 @@ const fr: Translations = {
   inviteNewUser: 'Inviter un nouvel utilisateur',
   createUser: 'Créer un utilisateur',
   role: 'Rôle',
+  settings: 'Paramètres',
+  shelterManagement: 'Gestion des Hébergements',
+  addShelter: 'Ajouter un hébergement',
+  deleteShelter: 'Supprimer l\'hébergement',
+  shelterName: 'Nom de l\'hébergement',
+  roomConfiguration: 'Configuration des Chambres',
+  addRoom: 'Ajouter une chambre',
+  deleteRoom: 'Supprimer la chambre',
+  roomName: 'Nom de la chambre',
+  numberOfBeds: 'Nbre de lits',
+  switchShelter: 'Changer d\'hébergement',
+  editShelterName: 'Modifier le nom',
+  deleteShelterWarning: '⚠️ L\'hébergement et TOUTES ses données seront supprimés. Irréversible.',
+  deleteShelterConfirm: 'Êtes-vous sûr ? Tapez "SUPPRIMER" pour continuer.',
+  selectShelter: 'Sélectionner un hébergement',
+  createShelter: 'Créer un hébergement',
+  currentShelter: 'Hébergement actuel',
+  noRooms: 'Aucune chambre configurée',
+  assignedShelters: 'Hébergements assignés',
+  allShelters: 'Tous les hébergements',
 };
 
 const ar: Translations = {
@@ -460,7 +522,7 @@ const ar: Translations = {
   wrongCredentials: 'بيانات اعتماد غير صحيحة',
   administrator: 'مدير',
   manager: 'مسؤول',
-  guest: 'ضيف',
+  shelterStaff: 'موظف الملجأ',
   users: 'المستخدمون',
   logout: 'تسجيل الخروج',
   rooms: 'الغرف',
@@ -489,7 +551,7 @@ const ar: Translations = {
   editGuest: 'تعديل النزيل',
   saveChanges: 'حفظ التغييرات',
   deleteWithoutRecord: 'حذف بدون سجل',
-  deleteWithoutRecordWarning: '⚠️ سيتم حذف النزيل نهائياً من النظام. لن يظهر في السجل. هذا الإجراء لا يمكن التراجع عنه.',
+  deleteWithoutRecordWarning: '⚠️ سيتم حذف النزيل نهائياً من النظام. لن يظهر في السجل. لا يمكن التراجع.',
   deleteWithoutRecordConfirm: 'هل أنت متأكد تماماً؟ اكتب "تأكيد" للمتابعة.',
   deleteWithoutRecordFinal: 'حذف نهائياً',
   stayDuration: 'الإقامة',
@@ -507,7 +569,7 @@ const ar: Translations = {
   plannedBed: 'السرير المتوقع',
   scheduleArrival: 'جدولة الوصول',
   confirmEntry: 'تأكيد الدخول',
-  reviewBeforeConfirm: 'راجع البيانات قبل تأكيد النقل. يمكنك فقط تعيين الأسرّة المتاحة.',
+  reviewBeforeConfirm: 'راجع البيانات قبل تأكيد النقل.',
   entryDate: 'تاريخ الدخول',
   roomFull: '(ممتلئة)',
   roomAvailable: '(متاحة)',
@@ -579,6 +641,26 @@ const ar: Translations = {
   inviteNewUser: 'دعوة مستخدم جديد',
   createUser: 'إنشاء مستخدم',
   role: 'الدور',
+  settings: 'الإعدادات',
+  shelterManagement: 'إدارة الملاجئ',
+  addShelter: 'إضافة ملجأ',
+  deleteShelter: 'حذف الملجأ',
+  shelterName: 'اسم الملجأ',
+  roomConfiguration: 'تكوين الغرف',
+  addRoom: 'إضافة غرفة',
+  deleteRoom: 'حذف الغرفة',
+  roomName: 'اسم الغرفة',
+  numberOfBeds: 'عدد الأسرّة',
+  switchShelter: 'تغيير الملجأ',
+  editShelterName: 'تعديل الاسم',
+  deleteShelterWarning: '⚠️ سيتم حذف الملجأ وجميع بياناته. لا يمكن التراجع.',
+  deleteShelterConfirm: 'هل أنت متأكد؟ اكتب "حذف" للمتابعة.',
+  selectShelter: 'اختر ملجأ',
+  createShelter: 'إنشاء ملجأ',
+  currentShelter: 'الملجأ الحالي',
+  noRooms: 'لا توجد غرف مُعدّة',
+  assignedShelters: 'الملاجئ المعيّنة',
+  allShelters: 'جميع الملاجئ',
 };
 
 const en: Translations = {
@@ -600,7 +682,7 @@ const en: Translations = {
   wrongCredentials: 'Incorrect credentials',
   administrator: 'Administrator',
   manager: 'Manager',
-  guest: 'Guest',
+  shelterStaff: 'Shelter Staff',
   users: 'Users',
   logout: 'Log out',
   rooms: 'Rooms',
@@ -629,8 +711,8 @@ const en: Translations = {
   editGuest: 'Edit guest',
   saveChanges: 'Save changes',
   deleteWithoutRecord: 'Delete without record',
-  deleteWithoutRecordWarning: '⚠️ This action will permanently remove the guest from the system. NO record will be kept in history. This action is irreversible.',
-  deleteWithoutRecordConfirm: 'Are you completely sure? Type "CONFIRM" to proceed.',
+  deleteWithoutRecordWarning: '⚠️ This will permanently remove the guest. NO record will be kept. Irreversible.',
+  deleteWithoutRecordConfirm: 'Are you sure? Type "CONFIRM" to proceed.',
   deleteWithoutRecordFinal: 'Delete permanently',
   stayDuration: 'Stay',
   exitDate: 'Leaves',
@@ -647,7 +729,7 @@ const en: Translations = {
   plannedBed: 'Planned bed',
   scheduleArrival: 'Schedule arrival',
   confirmEntry: 'Confirm entry',
-  reviewBeforeConfirm: 'Review and edit data before confirming transfer. Only free beds can be assigned.',
+  reviewBeforeConfirm: 'Review and edit data before confirming transfer.',
   entryDate: 'Entry date',
   roomFull: '(Full)',
   roomAvailable: '(Available)',
@@ -668,7 +750,7 @@ const en: Translations = {
   selectRoom: 'Select room',
   selectBed: 'Select bed',
   confirmDeletion: 'Confirm deletion',
-  deleteConfirmMsg: 'Are you sure you want to permanently delete this guest? This cannot be undone.',
+  deleteConfirmMsg: 'Are you sure you want to permanently delete this guest?',
   diningOrganization: 'Dining — Meal Organization',
   diners: 'diners',
   noActiveGuests: 'No active guests',
@@ -719,6 +801,26 @@ const en: Translations = {
   inviteNewUser: 'Invite new user',
   createUser: 'Create user',
   role: 'Role',
+  settings: 'Settings',
+  shelterManagement: 'Shelter Management',
+  addShelter: 'Add shelter',
+  deleteShelter: 'Delete shelter',
+  shelterName: 'Shelter name',
+  roomConfiguration: 'Room Configuration',
+  addRoom: 'Add room',
+  deleteRoom: 'Delete room',
+  roomName: 'Room name',
+  numberOfBeds: 'No. of beds',
+  switchShelter: 'Switch shelter',
+  editShelterName: 'Edit name',
+  deleteShelterWarning: '⚠️ The shelter and ALL its data will be deleted. Irreversible.',
+  deleteShelterConfirm: 'Are you sure? Type "DELETE" to proceed.',
+  selectShelter: 'Select shelter',
+  createShelter: 'Create shelter',
+  currentShelter: 'Current shelter',
+  noRooms: 'No rooms configured',
+  assignedShelters: 'Assigned shelters',
+  allShelters: 'All shelters',
 };
 
 export const translations: Record<Language, Translations> = { es, fr, ar, en };

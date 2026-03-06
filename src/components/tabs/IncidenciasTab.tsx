@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { AlertTriangle, Check, Trash2, FileWarning } from 'lucide-react';
+import { Check, Trash2, FileWarning } from 'lucide-react';
 import { UserRole, IncidentType } from '@/types';
 import { formatDateES } from '@/lib/dateFormat';
 import { useI18n } from '@/i18n/I18nContext';
@@ -36,7 +36,8 @@ export default function IncidenciasTab({ store, role }: Props) {
     huespedId: '', tipo: 'other' as IncidentType, descripcion: '', fecha: new Date().toISOString().split('T')[0],
   });
 
-  const canManage = role === 'admin' || role === 'gestor';
+  // Anyone can create incidents; only admin/gestor can resolve/delete
+  const canResolve = role === 'admin' || role === 'gestor';
 
   const sorted = [...incidencias].sort((a, b) => b.fecha.localeCompare(a.fecha));
 
@@ -63,7 +64,8 @@ export default function IncidenciasTab({ store, role }: Props) {
         <h2 className="text-xl font-bold flex items-center gap-2">
           <FileWarning className="w-5 h-5 text-primary" /> {t.incidentRegistry}
         </h2>
-        {canManage && <Button onClick={() => setShowForm(true)}>{t.newIncident}</Button>}
+        {/* All roles can create incidents */}
+        <Button onClick={() => setShowForm(true)}>{t.newIncident}</Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -101,7 +103,7 @@ export default function IncidenciasTab({ store, role }: Props) {
                     <TableHead>{t.incidentType}</TableHead>
                     <TableHead>{t.incidentDescription}</TableHead>
                     <TableHead>{t.status}</TableHead>
-                    {canManage && <TableHead className="text-right">{t.actions}</TableHead>}
+                    {canResolve && <TableHead className="text-right">{t.actions}</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -125,7 +127,7 @@ export default function IncidenciasTab({ store, role }: Props) {
                           {inc.resuelta ? t.resolved : t.pending}
                         </Badge>
                       </TableCell>
-                      {canManage && (
+                      {canResolve && (
                         <TableCell className="text-right space-x-1">
                           <Button size="sm" variant="outline" onClick={() => toggleIncidenciaResuelta(inc.id)} title={t.toggleResolved}>
                             <Check className="w-4 h-4" />
