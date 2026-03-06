@@ -99,6 +99,7 @@ export function useAlbergueStore() {
     ));
     setComedor(prev => [...prev, {
       huespedId: id,
+      estado: 'Activo' as const,
       separarComidas: ['Todas'],
       diasSeparar: ['Todos los días'],
       motivoAusencia: '',
