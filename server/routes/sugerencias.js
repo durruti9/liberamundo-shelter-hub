@@ -44,6 +44,9 @@ router.get('/:albergueId', async (req, res) => {
       respuesta: r.respuesta,
       traduccion: r.traduccion,
       resuelta: r.resuelta ?? false,
+      adjunto: r.adjunto || '',
+      adjuntoNombre: r.adjunto_nombre || '',
+      adjuntoTipo: r.adjunto_tipo || '',
     })));
   } catch (err) {
     res.status(500).json({ error: err.message });
