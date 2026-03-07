@@ -57,6 +57,11 @@ const Index = () => {
   const handleLogout = () => {
     setAuthed(false);
     setAlbergueId(null);
+    setRole('admin');
+    setUserAlbergueIds([]);
+    localStorage.removeItem('auth');
+    localStorage.removeItem('authRole');
+    localStorage.removeItem('authEmail');
     localStorage.removeItem('currentAlbergueId');
     localStorage.removeItem('userAlbergueIds');
   };

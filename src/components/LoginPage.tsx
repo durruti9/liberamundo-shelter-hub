@@ -12,6 +12,7 @@ import { Language } from '@/i18n/translations';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { api, isApiAvailable } from '@/lib/api';
 import { Link } from 'react-router-dom';
+import PasswordInput from '@/components/PasswordInput';
 
 interface Props {
   onLogin: (role: UserRole, albergueIds: string[]) => void;
@@ -24,8 +25,8 @@ function loadUsers(): UserAccount[] {
   try {
     const data = localStorage.getItem('users');
     const users = data ? (JSON.parse(data) as UserAccount[]) : [];
-    // Always ensure admin user exists
-    if (!users.find(u => u.email === 'admin')) {
+    // Only add default admin if no users exist at all
+    if (users.length === 0) {
       users.push({ email: 'admin', password: 'admin123', role: 'admin' });
     }
     return users;
@@ -39,35 +40,41 @@ export default function LoginPage({ onLogin }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
-    const apiAvailable = await isApiAvailable();
-    if (apiAvailable) {
-      try {
-        const result = await api.login(email, password);
-        localStorage.setItem('auth', 'true');
-        localStorage.setItem('authRole', result.role);
-        localStorage.setItem('authEmail', email);
-        onLogin(result.role as UserRole, result.albergueIds);
-        return;
-      } catch {
-        setError(t.wrongCredentials);
-        return;
+    try {
+      const apiAvailable = await isApiAvailable();
+      if (apiAvailable) {
+        try {
+          const result = await api.login(email, password);
+          localStorage.setItem('auth', 'true');
+          localStorage.setItem('authRole', result.role);
+          localStorage.setItem('authEmail', email);
+          onLogin(result.role as UserRole, result.albergueIds);
+          return;
+        } catch {
+          setError(t.wrongCredentials);
+          return;
+        }
       }
-    }
-    
-    const users = loadUsers();
-    const user = users.find(u => u.email === email && u.password === password);
-    if (user) {
-      localStorage.setItem('auth', 'true');
-      localStorage.setItem('authRole', user.role);
-      localStorage.setItem('authEmail', email);
-      onLogin(user.role, []);
-    } else {
-      setError(t.wrongCredentials);
+      
+      const users = loadUsers();
+      const user = users.find(u => u.email === email && u.password === password);
+      if (user) {
+        localStorage.setItem('auth', 'true');
+        localStorage.setItem('authRole', user.role);
+        localStorage.setItem('authEmail', email);
+        onLogin(user.role, []);
+      } else {
+        setError(t.wrongCredentials);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,10 +115,12 @@ export default function LoginPage({ onLogin }: Props) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">{t.password}</Label>
-                <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••" />
+                <PasswordInput id="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••" />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
-              <Button type="submit" className="w-full">{t.login}</Button>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Entrando...' : t.login}
+              </Button>
             </form>
           </CardContent>
         </Card>

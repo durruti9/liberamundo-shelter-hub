@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound, ListChecks, Mailbox, StickyNote } from 'lucide-react';
+import PasswordInput from '@/components/PasswordInput';
 import logo from '@/assets/Logo2Liberamundo.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -252,7 +253,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Contraseña</Label>
-                  <Input type="password" value={newUser.password} onChange={e => setNewUser(p => ({ ...p, password: e.target.value }))} placeholder="••••••" />
+                  <PasswordInput value={newUser.password} onChange={e => setNewUser(p => ({ ...p, password: e.target.value }))} placeholder="••••••" />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Rol</Label>
@@ -312,7 +313,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             <p className="text-sm text-muted-foreground">{changingPasswordFor}</p>
             <div className="space-y-2">
               <Label>{t.newPassword}</Label>
-              <Input type="password" value={newPasswordValue} onChange={e => setNewPasswordValue(e.target.value)} placeholder="••••••" autoFocus />
+              <PasswordInput value={newPasswordValue} onChange={e => setNewPasswordValue(e.target.value)} placeholder="••••••" autoFocus />
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setChangingPasswordFor(null)}>{t.cancel}</Button>
