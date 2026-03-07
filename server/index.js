@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { readFileSync } from 'fs';
+import bcrypt from 'bcrypt';
 import pool from './db.js';
 import authRoutes from './routes/auth.js';
 import albergueRoutes from './routes/albergues.js';
