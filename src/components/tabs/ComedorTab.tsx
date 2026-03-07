@@ -298,7 +298,6 @@ export default function ComedorTab({ store, role }: Props) {
                             value={c.observaciones}
                             onChange={e => handleUpdate(huesped.id, 'observaciones', e.target.value)}
                             placeholder={t.observationsPlaceholder}
-                            readOnly={!canEdit}
                           />
                         </TableCell>
                       </TableRow>

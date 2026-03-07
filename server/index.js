@@ -10,6 +10,7 @@ import llegadaRoutes from './routes/llegadas.js';
 import incidenciaRoutes from './routes/incidencias.js';
 import boardRoutes from './routes/board.js';
 import userRoutes from './routes/users.js';
+import tareasRoutes from './routes/tareas.js';
 
 const app = express();
 app.use(cors());
@@ -27,6 +28,7 @@ app.use('/api/llegadas', llegadaRoutes);
 app.use('/api/incidencias', incidenciaRoutes);
 app.use('/api/board', boardRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/tareas', tareasRoutes);
 
 // Serve static frontend
 app.use(express.static('/app/public'));

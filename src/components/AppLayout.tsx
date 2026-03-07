@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound } from 'lucide-react';
+import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound, ClipboardList } from 'lucide-react';
 import logo from '@/assets/Logo2Liberamundo.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import ComedorTab from './tabs/ComedorTab';
 import IncidenciasTab from './tabs/IncidenciasTab';
 import SettingsDialog from './SettingsDialog';
 import DashboardTab from './tabs/DashboardTab';
+import TareasEmpleadosTab from './tabs/TareasEmpleadosTab';
 import { useAlbergueStore } from '@/hooks/useAlbergueStore';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
@@ -30,8 +31,8 @@ interface Props {
   onSwitchAlbergue: (id: string) => void;
 }
 
-const LANG_LABELS: Record<Language, string> = { es: 'Español', fr: 'Français', ar: 'العربية', en: 'English' };
-const LANG_FLAGS: Record<Language, string> = { es: '🇪🇸', fr: '🇫🇷', ar: '🇸🇦', en: '🇬🇧' };
+const LANG_LABELS: Record<Language, string> = { es: 'Español', fr: 'Français', ar: 'العربية', en: 'English', ru: 'Русский' };
+const LANG_FLAGS: Record<Language, string> = { es: '🇪🇸', fr: '🇫🇷', ar: '🇸🇦', en: '🇬🇧', ru: '🇷🇺' };
 
 export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue }: Props) {
   const store = useAlbergueStore(albergueId);
@@ -62,7 +63,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
     personal_albergue: t.shelterStaff,
   };
 
-  const tabCount = role === 'personal_albergue' ? 5 : 7;
+  const tabCount = role === 'gestor' ? 7 : role === 'admin' ? 8 : 5;
 
   const handleAlbergueDeleted = (deletedId: string) => {
     if (deletedId === albergueId && store.albergues.length > 0) {
@@ -171,6 +172,12 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               <FileWarning className="w-4 h-4" />
               <span className="hidden sm:inline">{t.incidents}</span>
             </TabsTrigger>
+            {(role === 'admin' || role === 'personal_albergue') && (
+              <TabsTrigger value="tareas" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
+                <ClipboardList className="w-4 h-4" />
+                <span className="hidden sm:inline">{t.employeeTasks}</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {(role === 'admin' || role === 'gestor') && (
@@ -195,6 +202,11 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
           <TabsContent value="incidencias">
             <IncidenciasTab store={store} role={role} />
           </TabsContent>
+          {(role === 'admin' || role === 'personal_albergue') && (
+            <TabsContent value="tareas">
+              <TareasEmpleadosTab role={role} albergueId={albergueId} />
+            </TabsContent>
+          )}
         </Tabs>
       </main>
 
