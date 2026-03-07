@@ -189,9 +189,18 @@ export default function ComedorTab({ store, role }: Props) {
             <Badge variant="outline" className="text-xs">{entries.length} {t.diners}</Badge>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={downloadWeeklyPdf} disabled={entries.length === 0} className="flex items-center gap-2">
-          <Download className="w-4 h-4" /> {t.downloadWeeklyPdf}
-        </Button>
+        <div className="flex items-center gap-2">
+          <ExportButton type="comedor" getData={() => entries.map(e => ({
+            nombre: e.nombre,
+            dieta: e.dieta,
+            estado: e.estado,
+            particularidades: e.particularidades,
+            observaciones: e.observaciones,
+          }))} />
+          <Button variant="outline" size="sm" onClick={downloadWeeklyPdf} disabled={entries.length === 0} className="flex items-center gap-2">
+            <Download className="w-4 h-4" /> {t.downloadWeeklyPdf}
+          </Button>
+        </div>
       </div>
 
       <Card>

@@ -106,6 +106,9 @@ export default function HabitacionesTab({ store, role }: Props) {
   return (
     <div className="space-y-6">
       {/* Summary */}
+      <div className="flex justify-end">
+        <ExportButton type="huespedes" getData={() => huespedActivos.map(h => ({ ...h, estado: h.activo ? 'Activo' : 'Inactivo' }))} />
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="pt-6">

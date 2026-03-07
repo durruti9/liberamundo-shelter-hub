@@ -155,7 +155,10 @@ export default function LlegadasTab({ store, role }: Props) {
         <h2 className="text-xl font-bold flex items-center gap-2">
           <CalendarPlus className="w-5 h-5 text-primary" /> {t.upcomingArrivals}
         </h2>
-        {canManage && <Button onClick={openNew}>{t.newArrival}</Button>}
+        <div className="flex items-center gap-2">
+          <ExportButton type="llegadas" getData={() => llegadas} />
+          {canManage && <Button onClick={openNew}>{t.newArrival}</Button>}
+        </div>
       </div>
 
       <Card>
