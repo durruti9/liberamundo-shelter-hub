@@ -169,19 +169,50 @@ export default function SugerenciasPublic() {
       if (fecha) extras.push(`Fecha: ${fecha}`);
       if (extras.length > 0) fullMsg = `${fullMsg}\n\n---\n${extras.join(' | ')}`;
 
+      const sugerencia = {
+        id: crypto.randomUUID(),
+        nombre: anonimo ? '' : nombre,
+        anonimo,
+        email,
+        telefono,
+        mensaje: fullMsg,
+        fecha: new Date().toISOString(),
+        leida: false,
+        respuesta: '',
+        traduccion: '',
+      };
+
       const apiAvailable = await isApiAvailable();
       if (apiAvailable) {
-        await api.addSugerencia('default', {
-          nombre: anonimo ? '' : nombre,
-          anonimo,
-          email,
-          telefono,
-          mensaje: fullMsg,
-        });
+        await api.addSugerencia('default', sugerencia);
+      } else {
+        // Fallback: save to localStorage
+        const existing = JSON.parse(localStorage.getItem('sugerencias_default') || '[]');
+        existing.unshift(sugerencia);
+        localStorage.setItem('sugerencias_default', JSON.stringify(existing));
       }
       setSubmitted(true);
     } catch (err) {
       console.error('Error:', err);
+      // Even on API error, save to localStorage as fallback
+      try {
+        const sugerencia = {
+          id: crypto.randomUUID(),
+          nombre: anonimo ? '' : nombre,
+          anonimo,
+          email,
+          telefono,
+          mensaje: mensaje,
+          fecha: new Date().toISOString(),
+          leida: false,
+          respuesta: '',
+          traduccion: '',
+        };
+        const existing = JSON.parse(localStorage.getItem('sugerencias_default') || '[]');
+        existing.unshift(sugerencia);
+        localStorage.setItem('sugerencias_default', JSON.stringify(existing));
+        setSubmitted(true);
+      } catch { /* ignore */ }
     } finally {
       setSending(false);
     }

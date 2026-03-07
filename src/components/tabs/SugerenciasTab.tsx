@@ -55,9 +55,17 @@ export default function SugerenciasTab({ role, albergueId, userName }: Props) {
     try {
       setLoading(true);
       const data = await api.getSugerencias(albergueId);
-      setSugerencias(data);
+      if (Array.isArray(data)) {
+        setSugerencias(data);
+      } else {
+        // API returned non-JSON (e.g. HTML fallback), use localStorage
+        const local = JSON.parse(localStorage.getItem(`sugerencias_${albergueId}`) || '[]');
+        setSugerencias(local);
+      }
     } catch {
-      setSugerencias([]);
+      // Fallback to localStorage
+      const local = JSON.parse(localStorage.getItem(`sugerencias_${albergueId}`) || '[]');
+      setSugerencias(local);
     } finally {
       setLoading(false);
     }
