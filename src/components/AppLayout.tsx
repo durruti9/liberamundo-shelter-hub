@@ -179,6 +179,10 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                 <span className="hidden sm:inline">{t.employeeTasks}</span>
               </TabsTrigger>
             )}
+            <TabsTrigger value="sugerencias" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
+              <MessageSquarePlus className="w-4 h-4" />
+              <span className="hidden sm:inline">Buzón</span>
+            </TabsTrigger>
           </TabsList>
 
           {(role === 'admin' || role === 'gestor') && (
