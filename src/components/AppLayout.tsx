@@ -226,6 +226,11 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               <SugerenciasTab role={role} albergueId={albergueId} />
             </TabsContent>
           )}
+          {role === 'admin' && (
+            <TabsContent value="notas">
+              <NotasTab />
+            </TabsContent>
+          )}
         </Tabs>
       </main>
 
