@@ -111,7 +111,9 @@ CREATE TABLE IF NOT EXISTS tareas_dia (
   turno TEXT NOT NULL DEFAULT 'mañana',
   hecho_por TEXT NOT NULL DEFAULT '',
   observacion TEXT NOT NULL DEFAULT '',
-  orden INTEGER NOT NULL DEFAULT 0
+  orden INTEGER NOT NULL DEFAULT 0,
+  admin_obs TEXT NOT NULL DEFAULT '',
+  respuesta_empleado TEXT NOT NULL DEFAULT ''
 );
 
 CREATE INDEX IF NOT EXISTS idx_tareas_dia_albergue_fecha ON tareas_dia(albergue_id, fecha);
