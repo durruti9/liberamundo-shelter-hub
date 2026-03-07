@@ -354,7 +354,7 @@ const es: Translations = {
   observations: 'Observaciones',
   paused: 'Pausado',
   foodPlaceholder: 'Alimentación preferiblemente...',
-  observationsPlaceholder: 'Ramadán, etc.',
+  observationsPlaceholder: 'Anotaciones, información extra, Ramadán, etc.',
   downloadWeeklyPdf: 'Descargar PDF semanal',
   weekOf: 'Semana del',
   all: 'Todas',
