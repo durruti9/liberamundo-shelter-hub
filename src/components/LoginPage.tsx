@@ -71,13 +71,13 @@ export default function LoginPage({ onLogin }: Props) {
           onLogin(result.role as UserRole, result.albergueIds);
           return;
         } catch (err: any) {
-          // If server error (DB down), fall through to localStorage
-          if (err.message && (err.message.includes('password authentication') || err.message.includes('500'))) {
-            console.warn('API login failed with server error, trying localStorage fallback');
-          } else {
+          // If server error (500 = DB issue), fall through to localStorage
+          // If auth error (401 = wrong credentials), show error immediately
+          if (err.status === 401) {
             setError(t.wrongCredentials);
             return;
           }
+          console.warn('API login failed with server error, trying localStorage fallback:', err.message);
         }
       }
 
