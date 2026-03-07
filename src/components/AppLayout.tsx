@@ -271,7 +271,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t.email}</TableHead>
+                  <TableHead>Usuario</TableHead>
                   <TableHead>{t.role}</TableHead>
                   <TableHead className="w-24"></TableHead>
                 </TableRow>
