@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ChevronLeft, ChevronRight, ClipboardList, Plus, Save, X, Unlock, MessageCircle, Send } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ClipboardList, Plus, Save, X, Unlock, MessageCircle, Send, Pencil } from 'lucide-react';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
 import { api } from '@/lib/api';
