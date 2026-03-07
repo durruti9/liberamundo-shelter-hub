@@ -58,8 +58,8 @@ export type IncidentType = 'behavioral' | 'medical' | 'administrative' | 'social
 
 export interface Incidencia {
   id: string;
-  huespedId: string;
-  huespedNombre: string;
+  huespedId: string; // empty string for general incidents
+  huespedNombre: string; // 'General' for general incidents
   tipo: IncidentType;
   descripcion: string;
   fecha: string;
