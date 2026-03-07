@@ -99,13 +99,31 @@ const Index = () => {
           </Card>
         </div>
       ) : (
-        <AppLayout
-          key={albergueId || 'default'}
-          onLogout={handleLogout}
-          role={role}
-          albergueId={albergueId || availableAlbergues[0]?.id || 'default'}
-          onSwitchAlbergue={selectAlbergue}
-        />
+        <>
+          {showDefaultWarning && (
+            <div className="fixed top-0 left-0 right-0 z-50 bg-destructive text-destructive-foreground px-4 py-3 flex items-center justify-center gap-3 shadow-lg">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+              <p className="text-sm font-medium text-center">
+                ⚠️ Estás usando la cuenta por defecto (admin/admin). Crea otro usuario administrador y elimina esta cuenta.
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 text-destructive-foreground hover:bg-destructive-foreground/20 flex-shrink-0"
+                onClick={() => setShowDefaultWarning(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+          <AppLayout
+            key={albergueId || 'default'}
+            onLogout={handleLogout}
+            role={role}
+            albergueId={albergueId || availableAlbergues[0]?.id || 'default'}
+            onSwitchAlbergue={selectAlbergue}
+          />
+        </>
       )}
     </I18nProvider>
   );
