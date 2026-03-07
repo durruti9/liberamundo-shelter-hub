@@ -94,15 +94,23 @@ export default function SugerenciasTab({ role, albergueId, userName }: Props) {
     }
   };
 
+  const updateSugerenciaLocal = (id: string, updates: Partial<Sugerencia>) => {
+    const key = `sugerencias_${albergueId}`;
+    const existing: Sugerencia[] = JSON.parse(localStorage.getItem(key) || '[]');
+    const updated = existing.map(s => s.id === id ? { ...s, ...updates } : s);
+    localStorage.setItem(key, JSON.stringify(updated));
+  };
+
   const handleTranslate = async (id: string, text: string) => {
     setTranslatingId(id);
     try {
-      // Use browser's built-in translation hint or a simple approach
-      // For now we store a flag - admin can use browser translate
       const sug = sugerencias.find(s => s.id === id);
       if (sug && !sug.traduccion) {
-        // Mark as "needs translation" - in production you'd call a translation API
-        await api.updateSugerencia(id, { traduccion: '__pending__' });
+        try {
+          await api.updateSugerencia(id, { traduccion: '__pending__' });
+        } catch {
+          updateSugerenciaLocal(id, { traduccion: '__pending__' });
+        }
         await loadSugerencias();
       }
     } finally {
@@ -114,19 +122,21 @@ export default function SugerenciasTab({ role, albergueId, userName }: Props) {
     if (!replyText.trim()) return;
     try {
       await api.updateSugerencia(id, { respuesta: replyText, leida: true });
-      setReplyText('');
-      setExpandedId(null);
-      await loadSugerencias();
-    } catch (err) {
-      console.error('Error replying:', err);
+    } catch {
+      updateSugerenciaLocal(id, { respuesta: replyText, leida: true });
     }
+    setReplyText('');
+    setExpandedId(null);
+    await loadSugerencias();
   };
 
   const markAsRead = async (id: string) => {
     try {
       await api.updateSugerencia(id, { leida: true });
-      await loadSugerencias();
-    } catch { }
+    } catch {
+      updateSugerenciaLocal(id, { leida: true });
+    }
+    await loadSugerencias();
   };
 
   // GUEST VIEW - Simple, accessible suggestion form
