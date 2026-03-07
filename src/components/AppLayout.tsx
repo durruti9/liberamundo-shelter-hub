@@ -313,7 +313,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             <p className="text-sm text-muted-foreground">{changingPasswordFor}</p>
             <div className="space-y-2">
               <Label>{t.newPassword}</Label>
-              <Input type="password" value={newPasswordValue} onChange={e => setNewPasswordValue(e.target.value)} placeholder="••••••" autoFocus />
+              <PasswordInput value={newPasswordValue} onChange={e => setNewPasswordValue(e.target.value)} placeholder="••••••" autoFocus />
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setChangingPasswordFor(null)}>{t.cancel}</Button>
