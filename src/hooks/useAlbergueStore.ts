@@ -48,8 +48,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
   const [incidencias, setIncidencias] = useState<Incidencia[]>(() => loadFromStorage(`${prefix}_incidencias`, []));
   const [boardMessages, setBoardMessages] = useState<BoardMessage[]>(() => loadFromStorage(`${prefix}_board`, []));
   const [users, setUsers] = useState<UserAccount[]>(() => {
-    const stored = loadFromStorage<UserAccount[]>('users', DEFAULT_USERS);
-    return stored.map(u => ({ ...u, albergueIds: u.albergueIds || ['default'] }));
+    return loadFromStorage<UserAccount[]>('users', DEFAULT_USERS);
   });
 
   // ── Load from API ──
