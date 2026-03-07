@@ -788,7 +788,7 @@ const ar: Translations = {
   observations: 'ملاحظات',
   paused: 'متوقف',
   foodPlaceholder: 'تغذية مفضلة...',
-  observationsPlaceholder: 'رمضان، إلخ.',
+  observationsPlaceholder: 'ملاحظات، معلومات إضافية، رمضان، إلخ.',
   downloadWeeklyPdf: 'تحميل PDF أسبوعي',
   weekOf: 'أسبوع',
   all: 'الكل',
