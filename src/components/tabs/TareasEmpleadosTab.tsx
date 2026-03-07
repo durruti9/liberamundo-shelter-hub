@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ChevronLeft, ChevronRight, ClipboardList, Plus, Save, X, Unlock, MessageCircle, Send, Pencil, Trash2 } from 'lucide-react';
+import ExportButton from '@/components/ExportButton';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
 import { api } from '@/lib/api';
@@ -288,6 +289,13 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
             {format(dateObj, "EEEE d 'de' MMMM yyyy", { locale: es })}
           </h2>
           <div className="flex gap-2">
+            <ExportButton type="tareas" getData={() => tareas.map(t => ({
+              tarea: t.tareaNombre,
+              estado: t.estado,
+              turno: t.turno,
+              responsable: t.hechoPor,
+              observaciones: t.observacion,
+            }))} />
             {isAdmin && isPastDay && !reopenedDays.has(selectedDate) && (
               <Button variant="outline" size="sm" onClick={handleReopen} className="gap-1">
                 <Unlock className="w-4 h-4" /> Reabrir día
