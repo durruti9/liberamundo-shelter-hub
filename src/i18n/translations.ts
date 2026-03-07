@@ -1,4 +1,4 @@
-export type Language = 'es' | 'fr' | 'ar' | 'en';
+export type Language = 'es' | 'fr' | 'ar' | 'en' | 'ru';
 
 export interface Translations {
   // General
