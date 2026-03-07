@@ -169,12 +169,23 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     setObsDialogIdx(null);
   };
 
+  const clearAdminObs = () => {
+    if (obsDialogIdx === null) return;
+    handleUpdateTarea(obsDialogIdx, 'adminObs', '');
+    setObsText('');
+  };
+
   const saveEmployeeReply = () => {
     if (obsDialogIdx === null || !replyText.trim()) return;
     const current = tareas[obsDialogIdx].respuestaEmpleado;
     const newReply = current ? `${current}\n---\n${replyText}` : replyText;
     handleUpdateTarea(obsDialogIdx, 'respuestaEmpleado', newReply);
     setReplyText('');
+  };
+
+  const clearEmployeeReply = () => {
+    if (obsDialogIdx === null) return;
+    handleUpdateTarea(obsDialogIdx, 'respuestaEmpleado', '');
   };
 
   // Calendar grid
