@@ -347,7 +347,7 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
                 return llegadas;
               case 'comedor':
                 return huespedActivos.map(h => {
-                  const ce = store.comedorEntries.find(c => c.huespedId === h.id);
+                  const ce = store.comedor.find(c => c.huespedId === h.id);
                   return {
                     nombre: h.nombre,
                     dieta: h.dieta,
