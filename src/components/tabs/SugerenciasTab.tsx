@@ -42,6 +42,9 @@ interface Sugerencia {
   respuesta: string;
   traduccion: string;
   resuelta: boolean;
+  adjunto?: string;
+  adjuntoNombre?: string;
+  adjuntoTipo?: string;
 }
 
 export default function SugerenciasTab({ role, albergueId, userName }: Props) {
