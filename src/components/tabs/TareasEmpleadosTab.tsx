@@ -446,7 +446,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
               const dateStr = format(day, 'yyyy-MM-dd');
               const inMonth = isSameMonth(day, currentMonth);
               const today = isToday(day);
-              const future = isFuture(day) && !today;
+              const future = dateStr > todayStr;
               const hasTareas = !!allTareasDates[dateStr]?.length;
               const allDone = hasTareas && allTareasDates[dateStr].every(t => t.estado === 'hecha' || t.estado === 'no procede');
 
