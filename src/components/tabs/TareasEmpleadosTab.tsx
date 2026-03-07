@@ -105,7 +105,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
   };
 
   const handleSelectDay = (dateStr: string) => {
-    if (isFuture(new Date(dateStr + 'T12:00:00'))) return;
+    if (dateStr > todayStr) return; // Block future days, allow today
     const existing = allTareasDates[dateStr];
     if (existing && existing.length > 0) {
       setTareas(existing.map(t => ({ ...t, adminObs: t.adminObs || '', respuestaEmpleado: t.respuestaEmpleado || '' })));
