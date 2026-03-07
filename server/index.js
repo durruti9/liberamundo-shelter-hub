@@ -13,6 +13,7 @@ import userRoutes from './routes/users.js';
 import tareasRoutes from './routes/tareas.js';
 import sugerenciasRoutes from './routes/sugerencias.js';
 import notasRoutes from './routes/notas.js';
+import recoveryRoutes from './routes/recovery.js';
 
 const app = express();
 app.use(cors());
