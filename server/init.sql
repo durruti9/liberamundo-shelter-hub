@@ -133,6 +133,19 @@ CREATE TABLE IF NOT EXISTS sugerencias (
   resuelta BOOLEAN NOT NULL DEFAULT false
 );
 
+CREATE TABLE IF NOT EXISTS notas (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  user_email TEXT NOT NULL REFERENCES users(email) ON DELETE CASCADE,
+  titulo TEXT NOT NULL DEFAULT '',
+  contenido TEXT NOT NULL DEFAULT '',
+  color TEXT NOT NULL DEFAULT 'default',
+  pinned BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notas_user ON notas(user_email);
+
 -- Seed default albergue and admin user
 INSERT INTO albergues (id, nombre) VALUES ('default', 'Albergue LiberaMundo') ON CONFLICT DO NOTHING;
 
