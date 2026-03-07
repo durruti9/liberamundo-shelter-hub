@@ -252,12 +252,12 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                 <Unlock className="w-4 h-4" /> Reabrir día
               </Button>
             )}
-            <Button variant="outline" size="sm" onClick={() => setSelectedDate(null)}>
+            <Button variant="outline" size="sm" onClick={() => { setSelectedDate(null); setEditingIdx(new Set()); setOriginalTareas({}); }}>
               <X className="w-4 h-4 mr-1" /> {t.cancel}
             </Button>
             {editable && (
               <Button size="sm" onClick={handleSave} className="bg-[hsl(142,60%,40%)] hover:bg-[hsl(142,60%,35%)] text-white gap-1">
-                <Save className="w-4 h-4" /> {t.save}
+                <Save className="w-4 h-4" /> Guardar todo
               </Button>
             )}
           </div>
