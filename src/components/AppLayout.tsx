@@ -186,6 +186,12 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                 <span className="hidden sm:inline">Buzón</span>
               </TabsTrigger>
             )}
+            {role === 'admin' && (
+              <TabsTrigger value="notas" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
+                <StickyNote className="w-4 h-4" />
+                <span className="hidden sm:inline">Notas</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {(role === 'admin' || role === 'gestor') && (
