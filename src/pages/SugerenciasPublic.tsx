@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useRef } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Globe, Send, EyeOff, User, Mail, Phone, ArrowLeft, MapPin, Clock, CalendarDays } from 'lucide-react';
+import { Globe, Send, EyeOff, User, Mail, Phone, ArrowLeft, MapPin, Clock, CalendarDays, Paperclip, X, ImageIcon, Video } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { api, isApiAvailable } from '@/lib/api';
 import buzonImg from '@/assets/buzon-sugerencias.png';
@@ -17,7 +17,9 @@ type Lang = 'es' | 'fr' | 'ar' | 'en' | 'ru';
 const LANG_FLAGS: Record<Lang, string> = { es: '🇪🇸', fr: '🇫🇷', ar: '🇸🇦', en: '🇬🇧', ru: '🇷🇺' };
 const LANG_LABELS: Record<Lang, string> = { es: 'Español', fr: 'Français', ar: 'العربية', en: 'English', ru: 'Русский' };
 
-const TERMS: Record<Lang, { title: string; subtitle: string; terms: string; fields: Record<string, string>; submit: string; success: string; another: string; back: string; contact_note: string; optional: string }> = {
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+const TERMS: Record<Lang, { title: string; subtitle: string; terms: string; fields: Record<string, string>; submit: string; success: string; another: string; back: string; contact_note: string; optional: string; attachment: string; attachmentHint: string; fileTooLarge: string }> = {
   es: {
     title: 'Buzón de sugerencias',
     subtitle: 'Tu opinión nos importa',
@@ -41,6 +43,9 @@ const TERMS: Record<Lang, { title: string; subtitle: string; terms: string; fiel
     back: 'Volver al inicio',
     contact_note: 'Si deseas una respuesta, deja un medio de contacto',
     optional: 'Todos los campos son opcionales',
+    attachment: 'Adjuntar foto o vídeo',
+    attachmentHint: 'Máximo 10 MB. Formatos: imagen o vídeo.',
+    fileTooLarge: 'El archivo supera los 10 MB',
   },
   fr: {
     title: 'Boîte à suggestions',
@@ -65,6 +70,9 @@ const TERMS: Record<Lang, { title: string; subtitle: string; terms: string; fiel
     back: 'Retour à l\'accueil',
     contact_note: 'Si vous souhaitez une réponse, laissez un moyen de contact',
     optional: 'Tous les champs sont facultatifs',
+    attachment: 'Joindre photo ou vidéo',
+    attachmentHint: 'Maximum 10 Mo. Formats : image ou vidéo.',
+    fileTooLarge: 'Le fichier dépasse 10 Mo',
   },
   ar: {
     title: 'صندوق الاقتراحات',
@@ -89,6 +97,9 @@ const TERMS: Record<Lang, { title: string; subtitle: string; terms: string; fiel
     back: 'العودة إلى الصفحة الرئيسية',
     contact_note: 'إذا كنت تريد رداً، اترك وسيلة اتصال',
     optional: 'جميع الحقول اختيارية',
+    attachment: 'إرفاق صورة أو فيديو',
+    attachmentHint: 'الحد الأقصى 10 ميغابايت. التنسيقات: صورة أو فيديو.',
+    fileTooLarge: 'الملف يتجاوز 10 ميغابايت',
   },
   en: {
     title: 'Suggestion Box',
@@ -113,6 +124,9 @@ const TERMS: Record<Lang, { title: string; subtitle: string; terms: string; fiel
     back: 'Back to home',
     contact_note: 'If you want a response, please leave contact information',
     optional: 'All fields are optional',
+    attachment: 'Attach photo or video',
+    attachmentHint: 'Maximum 10 MB. Formats: image or video.',
+    fileTooLarge: 'File exceeds 10 MB',
   },
   ru: {
     title: 'Ящик предложений',
@@ -137,8 +151,20 @@ const TERMS: Record<Lang, { title: string; subtitle: string; terms: string; fiel
     back: 'На главную',
     contact_note: 'Если хотите получить ответ, оставьте контактные данные',
     optional: 'Все поля необязательны',
+    attachment: 'Прикрепить фото или видео',
+    attachmentHint: 'Максимум 10 МБ. Форматы: изображение или видео.',
+    fileTooLarge: 'Файл превышает 10 МБ',
   },
 };
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function SugerenciasPublic() {
   const [lang, setLang] = useState<Lang>('es');
@@ -156,11 +182,50 @@ export default function SugerenciasPublic() {
   const [telefono, setTelefono] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [adjunto, setAdjunto] = useState<string | null>(null);
+  const [adjuntoNombre, setAdjuntoNombre] = useState('');
+  const [adjuntoTipo, setAdjuntoTipo] = useState('');
+  const [fileError, setFileError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFileError('');
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.size > MAX_FILE_SIZE) {
+      setFileError(t.fileTooLarge);
+      e.target.value = '';
+      return;
+    }
+
+    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+      setFileError('Formato no soportado');
+      e.target.value = '';
+      return;
+    }
+
+    try {
+      const base64 = await fileToBase64(file);
+      setAdjunto(base64);
+      setAdjuntoNombre(file.name);
+      setAdjuntoTipo(file.type);
+    } catch {
+      setFileError('Error al leer el archivo');
+    }
+  };
+
+  const removeFile = () => {
+    setAdjunto(null);
+    setAdjuntoNombre('');
+    setAdjuntoTipo('');
+    setFileError('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const handleSubmit = async () => {
     setSending(true);
     try {
-      // Build message with context info
       let fullMsg = mensaje;
       const extras: string[] = [];
       if (habitacion) extras.push(`Habitación: ${habitacion}`);
@@ -169,7 +234,7 @@ export default function SugerenciasPublic() {
       if (fecha) extras.push(`Fecha: ${fecha}`);
       if (extras.length > 0) fullMsg = `${fullMsg}\n\n---\n${extras.join(' | ')}`;
 
-      const sugerencia = {
+      const sugerencia: any = {
         id: crypto.randomUUID(),
         nombre: anonimo ? '' : nombre,
         anonimo,
@@ -180,13 +245,19 @@ export default function SugerenciasPublic() {
         leida: false,
         respuesta: '',
         traduccion: '',
+        resuelta: false,
       };
+
+      if (adjunto) {
+        sugerencia.adjunto = adjunto;
+        sugerencia.adjuntoNombre = adjuntoNombre;
+        sugerencia.adjuntoTipo = adjuntoTipo;
+      }
 
       const apiAvailable = await isApiAvailable();
       if (apiAvailable) {
         await api.addSugerencia('default', sugerencia);
       } else {
-        // Fallback: save to localStorage
         const existing = JSON.parse(localStorage.getItem('sugerencias_default') || '[]');
         existing.unshift(sugerencia);
         localStorage.setItem('sugerencias_default', JSON.stringify(existing));
@@ -194,20 +265,25 @@ export default function SugerenciasPublic() {
       setSubmitted(true);
     } catch (err) {
       console.error('Error:', err);
-      // Even on API error, save to localStorage as fallback
       try {
-        const sugerencia = {
+        const sugerencia: any = {
           id: crypto.randomUUID(),
           nombre: anonimo ? '' : nombre,
           anonimo,
           email,
           telefono,
-          mensaje: mensaje,
+          mensaje,
           fecha: new Date().toISOString(),
           leida: false,
           respuesta: '',
           traduccion: '',
+          resuelta: false,
         };
+        if (adjunto) {
+          sugerencia.adjunto = adjunto;
+          sugerencia.adjuntoNombre = adjuntoNombre;
+          sugerencia.adjuntoTipo = adjuntoTipo;
+        }
         const existing = JSON.parse(localStorage.getItem('sugerencias_default') || '[]');
         existing.unshift(sugerencia);
         localStorage.setItem('sugerencias_default', JSON.stringify(existing));
@@ -229,6 +305,7 @@ export default function SugerenciasPublic() {
     setEmail('');
     setTelefono('');
     setSubmitted(false);
+    removeFile();
   };
 
   return (
@@ -263,7 +340,7 @@ export default function SugerenciasPublic() {
         <p className="text-muted-foreground text-sm">{t.subtitle}</p>
       </div>
 
-      {/* Terms - always visible, compact */}
+      {/* Terms */}
       <Card className="w-full max-w-lg mb-4 border-primary/20 bg-primary/5">
         <CardContent className="p-4">
           <p className="text-xs text-muted-foreground leading-relaxed">{t.terms}</p>
@@ -284,7 +361,6 @@ export default function SugerenciasPublic() {
       ) : (
         <Card className="w-full max-w-lg">
           <CardContent className="p-5 space-y-4">
-            {/* Optional notice */}
             <p className="text-xs text-center text-muted-foreground italic">{t.optional}</p>
 
             {/* Anonymous toggle */}
@@ -307,13 +383,54 @@ export default function SugerenciasPublic() {
             {/* Message */}
             <div className="space-y-1.5">
               <Label className="text-sm">{t.fields.message}</Label>
-              <Textarea
-                value={mensaje}
-                onChange={e => setMensaje(e.target.value)}
-                rows={4}
-                placeholder={t.fields.messagePlaceholder}
-                className="resize-none"
-              />
+              <Textarea value={mensaje} onChange={e => setMensaje(e.target.value)} rows={4} placeholder={t.fields.messagePlaceholder} className="resize-none" />
+            </div>
+
+            {/* File attachment */}
+            <div className="space-y-2">
+              <Label className="text-sm flex items-center gap-1">
+                <Paperclip className="w-3.5 h-3.5" /> {t.attachment}
+              </Label>
+              {!adjunto ? (
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className="flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors text-muted-foreground text-sm"
+                  >
+                    <ImageIcon className="w-5 h-5" />
+                    <Video className="w-5 h-5" />
+                    <span>{t.attachmentHint}</span>
+                  </label>
+                </div>
+              ) : (
+                <div className="relative rounded-lg border overflow-hidden bg-muted/30">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={removeFile}
+                    className="absolute top-2 right-2 z-10 h-7 w-7 p-0 rounded-full"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </Button>
+                  {adjuntoTipo.startsWith('image/') ? (
+                    <img src={adjunto} alt={adjuntoNombre} className="w-full max-h-48 object-contain" />
+                  ) : (
+                    <video src={adjunto} controls className="w-full max-h-48" />
+                  )}
+                  <p className="text-xs text-muted-foreground p-2 truncate">{adjuntoNombre}</p>
+                </div>
+              )}
+              {fileError && (
+                <p className="text-xs text-destructive font-medium">{fileError}</p>
+              )}
             </div>
 
             {/* Context info */}
