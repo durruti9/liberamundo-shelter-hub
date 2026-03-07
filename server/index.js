@@ -10,6 +10,7 @@ import llegadaRoutes from './routes/llegadas.js';
 import incidenciaRoutes from './routes/incidencias.js';
 import boardRoutes from './routes/board.js';
 import userRoutes from './routes/users.js';
+import tareasRoutes from './routes/tareas.js';
 
 const app = express();
 app.use(cors());
