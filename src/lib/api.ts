@@ -93,6 +93,15 @@ export const api = {
   saveTareasDia: (albergueId: string, fecha: string, tareas: any[]) =>
     request<any>(`/tareas/${albergueId}/${fecha}`, { method: 'POST', body: JSON.stringify({ tareas }) }),
 
+  // Notas
+  getNotas: (userEmail: string) => request<any[]>(`/notas/${encodeURIComponent(userEmail)}`),
+  addNota: (userEmail: string, data: any) =>
+    request<any>(`/notas/${encodeURIComponent(userEmail)}`, { method: 'POST', body: JSON.stringify(data) }),
+  updateNota: (id: string, data: any) =>
+    request<any>(`/notas/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteNota: (id: string) =>
+    request<any>(`/notas/${id}`, { method: 'DELETE' }),
+
   // Sugerencias
   getSugerencias: (albergueId: string) => request<any[]>(`/sugerencias/${albergueId}`),
   addSugerencia: (albergueId: string, data: any) =>
