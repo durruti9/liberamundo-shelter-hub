@@ -69,6 +69,8 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
   const [allTareasDates, setAllTareasDates] = useState<Record<string, TareaDia[]>>({});
   const [loading, setLoading] = useState(false);
   const [reopenedDays, setReopenedDays] = useState<Set<string>>(new Set());
+  const [editingIdx, setEditingIdx] = useState<Set<number>>(new Set());
+  const [originalTareas, setOriginalTareas] = useState<Record<number, TareaDia>>({});
   const [obsDialogIdx, setObsDialogIdx] = useState<number | null>(null);
   const [obsText, setObsText] = useState('');
   const [replyText, setReplyText] = useState('');
