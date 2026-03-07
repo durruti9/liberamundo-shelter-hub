@@ -42,21 +42,14 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
   const [tab, setTab] = useState('dashboard');
   const [showUsers, setShowUsers] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [newUser, setNewUser] = useState({ email: '', password: '', nombre: '', role: 'personal_albergue' as UserRole, albergueIds: [albergueId] });
+  const [newUser, setNewUser] = useState({ email: '', password: '', role: 'personal_albergue' as UserRole });
   const [changingPasswordFor, setChangingPasswordFor] = useState<string | null>(null);
   const [newPasswordValue, setNewPasswordValue] = useState('');
 
   const handleAddUser = () => {
-    if (!newUser.email || !newUser.password || !newUser.nombre) return;
+    if (!newUser.email || !newUser.password) return;
     store.addUser(newUser);
-    setNewUser({ email: '', password: '', nombre: '', role: 'personal_albergue', albergueIds: [albergueId] });
-  };
-
-  const toggleUserAlbergue = (aId: string) => {
-    setNewUser(prev => {
-      const has = prev.albergueIds.includes(aId);
-      return { ...prev, albergueIds: has ? prev.albergueIds.filter(id => id !== aId) : [...prev.albergueIds, aId] };
-    });
+    setNewUser({ email: '', password: '', role: 'personal_albergue' });
   };
 
   const roleLabel: Record<UserRole, string> = {
