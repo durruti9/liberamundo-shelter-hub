@@ -101,6 +101,21 @@ CREATE TABLE IF NOT EXISTS board_replies (
   texto TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS tareas_dia (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  albergue_id TEXT NOT NULL REFERENCES albergues(id) ON DELETE CASCADE,
+  fecha TEXT NOT NULL,
+  tarea_id TEXT NOT NULL,
+  tarea_nombre TEXT NOT NULL,
+  estado TEXT NOT NULL DEFAULT 'pendiente',
+  turno TEXT NOT NULL DEFAULT 'mañana',
+  hecho_por TEXT NOT NULL DEFAULT '',
+  observacion TEXT NOT NULL DEFAULT '',
+  orden INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_tareas_dia_albergue_fecha ON tareas_dia(albergue_id, fecha);
+
 -- Seed default albergue and admin user
 INSERT INTO albergues (id, nombre) VALUES ('default', 'Albergue LiberaMundo') ON CONFLICT DO NOTHING;
 

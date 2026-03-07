@@ -28,6 +28,7 @@ app.use('/api/llegadas', llegadaRoutes);
 app.use('/api/incidencias', incidenciaRoutes);
 app.use('/api/board', boardRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/tareas', tareasRoutes);
 
 // Serve static frontend
 app.use(express.static('/app/public'));
