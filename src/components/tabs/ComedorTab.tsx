@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { UtensilsCrossed, Clock, Download } from 'lucide-react';
+import ExportButton from '@/components/ExportButton';
 import { UserRole } from '@/types';
 import { formatDistanceToNow, startOfWeek, endOfWeek, format } from 'date-fns';
 import { es } from 'date-fns/locale';
