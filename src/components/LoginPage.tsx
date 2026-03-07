@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Globe, MessageSquarePlus } from 'lucide-react';
+import { Globe, MessageSquarePlus, HelpCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import logo from '@/assets/Logo2Liberamundo.png';
 import buzonImg from '@/assets/buzon-sugerencias.png';
 import { UserRole, UserAccount } from '@/types';
@@ -25,7 +26,6 @@ function loadUsers(): UserAccount[] {
   try {
     const data = localStorage.getItem('users');
     const users = data ? (JSON.parse(data) as UserAccount[]) : [];
-    // Only add default admin if no users exist at all
     if (users.length === 0) {
       users.push({ email: 'admin', password: 'admin123', role: 'admin' });
     }
@@ -41,12 +41,16 @@ export default function LoginPage({ onLogin }: Props) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showRecovery, setShowRecovery] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState('');
+  const [recoveryStatus, setRecoveryStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [recoveryError, setRecoveryError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    
+
     try {
       const apiAvailable = await isApiAvailable();
       if (apiAvailable) {
@@ -62,7 +66,7 @@ export default function LoginPage({ onLogin }: Props) {
           return;
         }
       }
-      
+
       const users = loadUsers();
       const user = users.find(u => u.email === email && u.password === password);
       if (user) {
@@ -75,6 +79,18 @@ export default function LoginPage({ onLogin }: Props) {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRecovery = async () => {
+    setRecoveryStatus('sending');
+    setRecoveryError('');
+    try {
+      await api.sendRecovery(recoveryEmail);
+      setRecoveryStatus('sent');
+    } catch {
+      setRecoveryStatus('error');
+      setRecoveryError('No se pudo enviar. Verifica el email o contacta al administrador.');
     }
   };
 
@@ -122,6 +138,17 @@ export default function LoginPage({ onLogin }: Props) {
                 {loading ? 'Entrando...' : t.login}
               </Button>
             </form>
+            {/* Recovery "?" */}
+            <div className="flex justify-center mt-3">
+              <button
+                type="button"
+                onClick={() => { setShowRecovery(true); setRecoveryStatus('idle'); setRecoveryEmail(''); setRecoveryError(''); }}
+                className="text-muted-foreground hover:text-foreground transition-colors text-xs flex items-center gap-1"
+              >
+                <HelpCircle className="w-3 h-3" />
+                <span>?</span>
+              </button>
+            </div>
           </CardContent>
         </Card>
 
@@ -148,6 +175,37 @@ export default function LoginPage({ onLogin }: Props) {
           </Card>
         </Link>
       </div>
+
+      {/* Recovery Dialog */}
+      <Dialog open={showRecovery} onOpenChange={setShowRecovery}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">¿Mail?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {recoveryStatus === 'sent' ? (
+              <p className="text-sm text-primary">✅ Credenciales enviadas al correo indicado.</p>
+            ) : (
+              <>
+                <Input
+                  value={recoveryEmail}
+                  onChange={e => setRecoveryEmail(e.target.value)}
+                  placeholder="Introduce tu email"
+                  type="email"
+                />
+                {recoveryError && <p className="text-sm text-destructive">{recoveryError}</p>}
+                <Button
+                  className="w-full"
+                  disabled={!recoveryEmail || recoveryStatus === 'sending'}
+                  onClick={handleRecovery}
+                >
+                  {recoveryStatus === 'sending' ? 'Enviando...' : 'Enviar'}
+                </Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
