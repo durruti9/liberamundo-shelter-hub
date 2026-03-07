@@ -349,9 +349,16 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                         placeholder="Escribe tus observaciones..."
                         className="border-destructive/30 focus:border-destructive"
                       />
-                      <Button size="sm" onClick={saveAdminObs} className="bg-destructive hover:bg-destructive/90 text-white gap-1">
-                        <Save className="w-3 h-3" /> Guardar observación
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={saveAdminObs} className="bg-destructive hover:bg-destructive/90 text-white gap-1">
+                          <Save className="w-3 h-3" /> Guardar observación
+                        </Button>
+                        {obsText && (
+                          <Button size="sm" variant="outline" onClick={clearAdminObs} className="text-destructive border-destructive/30 gap-1">
+                            <X className="w-3 h-3" /> Borrar
+                          </Button>
+                        )}
+                      </div>
                     </>
                   ) : (
                     <div className="p-3 rounded bg-destructive/10 border border-destructive/20">
