@@ -56,12 +56,12 @@ router.get('/:albergueId', async (req, res) => {
 // Add a suggestion (guest)
 router.post('/:albergueId', async (req, res) => {
   try {
-    const { nombre, anonimo, email, telefono, mensaje } = req.body;
+    const { nombre, anonimo, email, telefono, mensaje, adjunto, adjuntoNombre, adjuntoTipo } = req.body;
     const { rows } = await pool.query(
-      `INSERT INTO sugerencias (albergue_id, nombre, anonimo, email, telefono, mensaje, fecha)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      `INSERT INTO sugerencias (albergue_id, nombre, anonimo, email, telefono, mensaje, fecha, adjunto, adjunto_nombre, adjunto_tipo)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8, $9)
        RETURNING id`,
-      [req.params.albergueId, nombre || '', anonimo || false, email || '', telefono || '', mensaje]
+      [req.params.albergueId, nombre || '', anonimo || false, email || '', telefono || '', mensaje, adjunto || '', adjuntoNombre || '', adjuntoTipo || '']
     );
     res.json({ id: rows[0].id });
   } catch (err) {

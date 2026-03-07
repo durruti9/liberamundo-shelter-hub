@@ -130,7 +130,10 @@ CREATE TABLE IF NOT EXISTS sugerencias (
   leida BOOLEAN NOT NULL DEFAULT false,
   respuesta TEXT NOT NULL DEFAULT '',
   traduccion TEXT NOT NULL DEFAULT '',
-  resuelta BOOLEAN NOT NULL DEFAULT false
+  resuelta BOOLEAN NOT NULL DEFAULT false,
+  adjunto TEXT DEFAULT '',
+  adjunto_nombre TEXT DEFAULT '',
+  adjunto_tipo TEXT DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS notas (
