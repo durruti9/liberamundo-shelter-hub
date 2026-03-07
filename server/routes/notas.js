@@ -19,14 +19,26 @@ router.get('/:userEmail', async (req, res) => {
 // POST /api/notas/:userEmail
 router.post('/:userEmail', async (req, res) => {
   try {
+    const userEmail = req.params.userEmail;
     const { titulo, contenido, color, pinned } = req.body;
+    console.log(`📝 Creating nota for user: "${userEmail}"`);
+
+    // Verify user exists (foreign key requirement)
+    const userCheck = await pool.query('SELECT email FROM users WHERE email = $1', [userEmail]);
+    if (userCheck.rows.length === 0) {
+      console.error(`❌ User "${userEmail}" not found in users table`);
+      return res.status(400).json({ error: `User "${userEmail}" not found. Please log out and log in again.` });
+    }
+
     const { rows } = await pool.query(
       `INSERT INTO notas (user_email, titulo, contenido, color, pinned)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [req.params.userEmail, titulo || '', contenido || '', color || 'default', pinned || false]
+      [userEmail, titulo || '', contenido || '', color || 'default', pinned || false]
     );
+    console.log(`✅ Nota created: ${rows[0].id}`);
     res.json(rows[0]);
   } catch (err) {
+    console.error(`❌ Error creating nota:`, err.message);
     res.status(500).json({ error: err.message });
   }
 });
