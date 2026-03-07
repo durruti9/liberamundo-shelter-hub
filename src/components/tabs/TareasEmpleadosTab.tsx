@@ -290,11 +290,11 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
           </h2>
           <div className="flex gap-2">
             <ExportButton type="tareas" getData={() => tareas.map(t => ({
-              tarea: t.tarea,
+              tarea: t.tareaNombre,
               estado: t.estado,
               turno: t.turno,
-              responsable: t.responsable,
-              observaciones: t.observaciones,
+              responsable: t.hechoPor,
+              observaciones: t.observacion,
             }))} />
             {isAdmin && isPastDay && !reopenedDays.has(selectedDate) && (
               <Button variant="outline" size="sm" onClick={handleReopen} className="gap-1">
