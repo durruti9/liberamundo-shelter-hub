@@ -33,7 +33,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/tareas', tareasRoutes);
 app.use('/api/sugerencias', sugerenciasRoutes);
 app.use('/api/notas', notasRoutes);
-app.use('/api/recovery', recoveryRoutes);
 
 // Serve static frontend
 app.use(express.static('/app/public'));
