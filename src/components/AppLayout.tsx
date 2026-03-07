@@ -65,7 +65,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
     personal_albergue: t.shelterStaff,
   };
 
-  const tabCount = role === 'admin' ? 9 : role === 'gestor' ? 7 : 6;
+  const tabCount = role === 'admin' ? 10 : role === 'gestor' ? 7 : 6;
 
   const handleAlbergueDeleted = (deletedId: string) => {
     if (deletedId === albergueId && store.albergues.length > 0) {
