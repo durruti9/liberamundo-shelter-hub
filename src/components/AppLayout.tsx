@@ -176,7 +176,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             </TabsTrigger>
             {(role === 'admin' || role === 'personal_albergue') && (
               <TabsTrigger value="tareas" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-                <ClipboardList className="w-4 h-4" />
+                <ListChecks className="w-4 h-4" />
                 <span className="hidden sm:inline">{t.employeeTasks}</span>
               </TabsTrigger>
             )}
