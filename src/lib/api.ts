@@ -99,6 +99,12 @@ export const api = {
     request<any>(`/sugerencias/${albergueId}`, { method: 'POST', body: JSON.stringify(data) }),
   updateSugerencia: (id: string, data: any) =>
     request<any>(`/sugerencias/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteSugerencia: (id: string) =>
+    request<any>(`/sugerencias/${id}`, { method: 'DELETE' }),
+  bulkDeleteSugerencias: (ids: string[]) =>
+    request<any>(`/sugerencias/bulk-delete`, { method: 'POST', body: JSON.stringify({ ids }) }),
+  clearSugerencias: (albergueId: string) =>
+    request<any>(`/sugerencias/clear/${albergueId}`, { method: 'DELETE' }),
 };
 
 // Check if API is available

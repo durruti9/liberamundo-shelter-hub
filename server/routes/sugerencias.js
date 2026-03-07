@@ -21,6 +21,7 @@ router.get('/:albergueId', async (req, res) => {
       leida: r.leida,
       respuesta: r.respuesta,
       traduccion: r.traduccion,
+      resuelta: r.resuelta ?? false,
     })));
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -43,10 +44,10 @@ router.post('/:albergueId', async (req, res) => {
   }
 });
 
-// Update suggestion (admin reply, mark read, translation)
+// Update suggestion (admin reply, mark read, translation, resolved)
 router.put('/:id', async (req, res) => {
   try {
-    const { respuesta, leida, traduccion } = req.body;
+    const { respuesta, leida, traduccion, resuelta } = req.body;
     const updates = [];
     const values = [];
     let idx = 1;
@@ -54,6 +55,7 @@ router.put('/:id', async (req, res) => {
     if (respuesta !== undefined) { updates.push(`respuesta = $${idx++}`); values.push(respuesta); }
     if (leida !== undefined) { updates.push(`leida = $${idx++}`); values.push(leida); }
     if (traduccion !== undefined) { updates.push(`traduccion = $${idx++}`); values.push(traduccion); }
+    if (resuelta !== undefined) { updates.push(`resuelta = $${idx++}`); values.push(resuelta); }
 
     if (updates.length === 0) return res.json({ ok: true });
 
@@ -62,6 +64,38 @@ router.put('/:id', async (req, res) => {
       `UPDATE sugerencias SET ${updates.join(', ')} WHERE id = $${idx}`,
       values
     );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a single suggestion
+router.delete('/:id', async (req, res) => {
+  try {
+    await pool.query(`DELETE FROM sugerencias WHERE id = $1`, [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Bulk delete suggestions
+router.post('/bulk-delete', async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!ids || !ids.length) return res.json({ ok: true });
+    await pool.query(`DELETE FROM sugerencias WHERE id = ANY($1::uuid[])`, [ids]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Clear all suggestions for an albergue
+router.delete('/clear/:albergueId', async (req, res) => {
+  try {
+    await pool.query(`DELETE FROM sugerencias WHERE albergue_id = $1`, [req.params.albergueId]);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
