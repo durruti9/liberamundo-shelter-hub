@@ -158,7 +158,7 @@ INSERT INTO rooms (id, albergue_id, nombre, camas) VALUES
   ('2.3', 'default', 'Habitación 2.3', 4)
 ON CONFLICT DO NOTHING;
 
--- Default admin: albergue@liberamundo.com / admin123 (bcrypt hash)
+-- Default admin: admin / admin123 (bcrypt hash)
 INSERT INTO users (email, password_hash, role, nombre)
-VALUES ('albergue@liberamundo.com', '$2b$10$8K1p/a0dL1LXMIgoEDFrwOfMQkf7SbKqvBqpG2jFMGo5e4VsJYzWq', 'admin', 'Administrador')
+VALUES ('admin', '$2b$10$8K1p/a0dL1LXMIgoEDFrwOfMQkf7SbKqvBqpG2jFMGo5e4VsJYzWq', 'admin', '')
 ON CONFLICT DO NOTHING;
