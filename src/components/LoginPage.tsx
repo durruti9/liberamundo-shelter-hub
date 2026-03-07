@@ -24,12 +24,11 @@ function loadUsers(): UserAccount[] {
   try {
     const data = localStorage.getItem('users');
     if (data) {
-      const users = JSON.parse(data) as UserAccount[];
-      return users.map(u => ({ ...u, albergueIds: u.albergueIds || ['default'] }));
+      return JSON.parse(data) as UserAccount[];
     }
-    return [{ email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin', nombre: 'Administrador', albergueIds: [] }];
+    return [{ email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin' }];
   } catch {
-    return [{ email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin', nombre: 'Administrador', albergueIds: [] }];
+    return [{ email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin' }];
   }
 }
 
