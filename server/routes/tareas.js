@@ -21,6 +21,8 @@ router.get('/:albergueId', async (req, res) => {
       hechoPor: r.hecho_por,
       observacion: r.observacion,
       orden: r.orden,
+      adminObs: r.admin_obs || '',
+      respuestaEmpleado: r.respuesta_empleado || '',
     })));
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -39,9 +41,9 @@ router.post('/:albergueId/:fecha', async (req, res) => {
 
     for (const t of tareas) {
       await client.query(
-        `INSERT INTO tareas_dia (albergue_id, fecha, tarea_id, tarea_nombre, estado, turno, hecho_por, observacion, orden)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [albergueId, fecha, t.tareaId, t.tareaNombre, t.estado, t.turno, t.hechoPor || '', t.observacion || '', t.orden]
+        `INSERT INTO tareas_dia (albergue_id, fecha, tarea_id, tarea_nombre, estado, turno, hecho_por, observacion, orden, admin_obs, respuesta_empleado)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        [albergueId, fecha, t.tareaId, t.tareaNombre, t.estado, t.turno, t.hechoPor || '', t.observacion || '', t.orden, t.adminObs || '', t.respuestaEmpleado || '']
       );
     }
 

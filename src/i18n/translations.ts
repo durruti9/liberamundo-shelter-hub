@@ -155,8 +155,11 @@ export interface Translations {
     medical: string;
     administrative: string;
     social: string;
+    general: string;
     other: string;
   };
+  generalIncident: string;
+  generalIncidentLabel: string;
   resolved: string;
   pending: string;
   toggleResolved: string;
@@ -383,8 +386,11 @@ const es: Translations = {
     medical: 'Médica',
     administrative: 'Administrativa',
     social: 'Social',
+    general: 'General (edificio)',
     other: 'Otra',
   },
+  generalIncident: 'Incidencia general (edificio/albergue)',
+  generalIncidentLabel: 'General (edificio/albergue)',
   resolved: 'Resuelta',
   pending: 'Pendiente',
   toggleResolved: 'Marcar como resuelta',
@@ -600,8 +606,11 @@ const fr: Translations = {
     medical: 'Médical',
     administrative: 'Administratif',
     social: 'Social',
+    general: 'Général (bâtiment)',
     other: 'Autre',
   },
+  generalIncident: 'Incident général (bâtiment/hébergement)',
+  generalIncidentLabel: 'Général (bâtiment/hébergement)',
   resolved: 'Résolu',
   pending: 'En attente',
   toggleResolved: 'Marquer comme résolu',
@@ -817,8 +826,11 @@ const ar: Translations = {
     medical: 'طبي',
     administrative: 'إداري',
     social: 'اجتماعي',
+    general: 'عام (المبنى)',
     other: 'أخرى',
   },
+  generalIncident: 'حادثة عامة (المبنى/الملجأ)',
+  generalIncidentLabel: 'عام (المبنى/الملجأ)',
   resolved: 'تم الحل',
   pending: 'قيد الانتظار',
   toggleResolved: 'وضع علامة كمحلول',
@@ -1034,8 +1046,11 @@ const en: Translations = {
     medical: 'Medical',
     administrative: 'Administrative',
     social: 'Social',
+    general: 'General (building)',
     other: 'Other',
   },
+  generalIncident: 'General incident (building/shelter)',
+  generalIncidentLabel: 'General (building/shelter)',
   resolved: 'Resolved',
   pending: 'Pending',
   toggleResolved: 'Mark as resolved',
@@ -1251,8 +1266,11 @@ const ru: Translations = {
     medical: 'Медицинский',
     administrative: 'Административный',
     social: 'Социальный',
+    general: 'Общий (здание)',
     other: 'Другой',
   },
+  generalIncident: 'Общий инцидент (здание/приют)',
+  generalIncidentLabel: 'Общий (здание/приют)',
   resolved: 'Решено',
   pending: 'Ожидание',
   toggleResolved: 'Отметить как решённый',
