@@ -191,11 +191,11 @@ export default function ComedorTab({ store, role }: Props) {
         </div>
         <div className="flex items-center gap-2">
           <ExportButton type="comedor" getData={() => entries.map(e => ({
-            nombre: e.nombre,
-            dieta: e.dieta,
-            estado: e.estado,
-            particularidades: e.particularidades,
-            observaciones: e.observaciones,
+            nombre: e.huesped.nombre,
+            dieta: e.huesped.dieta,
+            estado: e.comedor.estado,
+            particularidades: e.comedor.particularidades,
+            observaciones: e.comedor.observaciones,
           }))} />
           <Button variant="outline" size="sm" onClick={downloadWeeklyPdf} disabled={entries.length === 0} className="flex items-center gap-2">
             <Download className="w-4 h-4" /> {t.downloadWeeklyPdf}
