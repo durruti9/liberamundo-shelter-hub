@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ChevronLeft, ChevronRight, ClipboardList, Plus, Save, X, Unlock, MessageCircle, Send, Pencil, Trash2 } from 'lucide-react';
+import ExportButton from '@/components/ExportButton';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
 import { api } from '@/lib/api';
