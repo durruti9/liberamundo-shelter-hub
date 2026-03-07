@@ -155,8 +155,11 @@ export interface Translations {
     medical: string;
     administrative: string;
     social: string;
+    general: string;
     other: string;
   };
+  generalIncident: string;
+  generalIncidentLabel: string;
   resolved: string;
   pending: string;
   toggleResolved: string;
