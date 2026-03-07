@@ -51,7 +51,7 @@ function getColorClasses(color: string) {
 }
 
 export default function NotasTab({ userEmail }: Props) {
-  const [notas, setNotas] = useState<Nota[]>([]);
+  const [notas, setNotas] = useState<Nota[]>(() => loadLocal(userEmail));
   const [search, setSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
@@ -59,41 +59,93 @@ export default function NotasTab({ userEmail }: Props) {
   const [newContenido, setNewContenido] = useState('');
   const [newColor, setNewColor] = useState('default');
   const newInputRef = useRef<HTMLTextAreaElement>(null);
+  const useApiRef = useRef(false);
+
+  const syncLocal = useCallback((updated: Nota[]) => {
+    saveLocal(userEmail, updated);
+  }, [userEmail]);
 
   const fetchNotas = useCallback(async () => {
     if (!userEmail) return;
-    try {
-      const data = await api.getNotas(userEmail);
-      setNotas(data);
-    } catch {
-      // fallback silencioso
+    const available = await isApiAvailable();
+    useApiRef.current = available;
+    if (available) {
+      try {
+        const data = await api.getNotas(userEmail);
+        setNotas(data);
+        syncLocal(data);
+      } catch {
+        // use local
+        setNotas(loadLocal(userEmail));
+      }
+    } else {
+      setNotas(loadLocal(userEmail));
     }
-  }, [userEmail]);
+  }, [userEmail, syncLocal]);
 
   useEffect(() => { fetchNotas(); }, [fetchNotas]);
 
   const addNota = async () => {
     if (!newTitulo.trim() && !newContenido.trim()) { setShowNew(false); return; }
-    try {
-      const nota = await api.addNota(userEmail, { titulo: newTitulo, contenido: newContenido, color: newColor, pinned: false });
-      setNotas(prev => [nota, ...prev]);
-      setNewTitulo(''); setNewContenido(''); setNewColor('default'); setShowNew(false);
-    } catch { toast.error('Error al guardar nota'); }
+    const newNotaLocal: Nota = {
+      id: crypto.randomUUID(),
+      titulo: newTitulo,
+      contenido: newContenido,
+      color: newColor,
+      pinned: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    if (useApiRef.current) {
+      try {
+        const nota = await api.addNota(userEmail, { titulo: newTitulo, contenido: newContenido, color: newColor, pinned: false });
+        const updated = [nota, ...notas];
+        setNotas(updated);
+        syncLocal(updated);
+      } catch {
+        // fallback local
+        const updated = [newNotaLocal, ...notas];
+        setNotas(updated);
+        syncLocal(updated);
+        toast.info('Nota guardada localmente');
+      }
+    } else {
+      const updated = [newNotaLocal, ...notas];
+      setNotas(updated);
+      syncLocal(updated);
+    }
+    setNewTitulo(''); setNewContenido(''); setNewColor('default'); setShowNew(false);
   };
 
   const updateNota = async (id: string, updates: Partial<Nota>) => {
-    try {
-      const updated = await api.updateNota(id, updates);
-      setNotas(prev => prev.map(n => n.id === id ? updated : n));
-    } catch { toast.error('Error al actualizar nota'); }
+    if (useApiRef.current) {
+      try {
+        const updated = await api.updateNota(id, updates);
+        const newNotas = notas.map(n => n.id === id ? updated : n);
+        setNotas(newNotas);
+        syncLocal(newNotas);
+      } catch {
+        const newNotas = notas.map(n => n.id === id ? { ...n, ...updates, updated_at: new Date().toISOString() } : n);
+        setNotas(newNotas);
+        syncLocal(newNotas);
+      }
+    } else {
+      const newNotas = notas.map(n => n.id === id ? { ...n, ...updates, updated_at: new Date().toISOString() } : n);
+      setNotas(newNotas);
+      syncLocal(newNotas);
+    }
   };
 
   const deleteNota = async (id: string) => {
-    try {
-      await api.deleteNota(id);
-      setNotas(prev => prev.filter(n => n.id !== id));
-      if (editingId === id) setEditingId(null);
-    } catch { toast.error('Error al eliminar nota'); }
+    if (useApiRef.current) {
+      try {
+        await api.deleteNota(id);
+      } catch { /* continue locally */ }
+    }
+    const newNotas = notas.filter(n => n.id !== id);
+    setNotas(newNotas);
+    syncLocal(newNotas);
+    if (editingId === id) setEditingId(null);
   };
 
   const togglePin = (id: string) => {
