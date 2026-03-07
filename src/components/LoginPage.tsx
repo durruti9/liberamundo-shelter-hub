@@ -63,7 +63,7 @@ export default function LoginPage({ onLogin }: Props) {
       localStorage.setItem('auth', 'true');
       localStorage.setItem('authRole', user.role);
       localStorage.setItem('authEmail', email);
-      onLogin(user.role, user.albergueIds);
+      onLogin(user.role, []);
     } else {
       setError(t.wrongCredentials);
     }
