@@ -61,19 +61,6 @@ export default function HistorialTab({ store, role }: Props) {
     setSelectedBed('');
   };
 
-  const exportCSV = () => {
-    const headers = ['Nombre', 'Habitación', 'Cama', 'Check-in', 'Check-out', 'Dieta', 'NIE', 'Nacionalidad', 'Estado'];
-    const rows = sorted.map(h => [
-      h.nombre, h.habitacion, h.cama, h.fechaEntrada, h.fechaCheckout || '-', h.dieta, h.nie, h.nacionalidad, h.activo ? t.active : t.historic
-    ]);
-    const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `historial_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click(); URL.revokeObjectURL(url);
-  };
-
   const bedsForRoom = freeBeds.filter(fb => fb.habitacion === selectedRoom);
 
   return (
