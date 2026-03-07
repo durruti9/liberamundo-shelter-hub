@@ -87,6 +87,10 @@ export const api = {
   changePassword: (email: string, newPassword: string) =>
     request<any>(`/users/${encodeURIComponent(email)}/password`, { method: 'PUT', body: JSON.stringify({ password: newPassword }) }),
 
+  // Recovery
+  sendRecovery: (email: string) =>
+    request<any>('/recovery', { method: 'POST', body: JSON.stringify({ email }) }),
+
   // Tareas Empleados
   getTareasDia: (albergueId: string, start: string, end: string) =>
     request<any[]>(`/tareas/${albergueId}?start=${start}&end=${end}`),
