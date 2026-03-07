@@ -146,6 +146,17 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
             <p className="text-xs text-muted-foreground mt-1">{t.activeIncidents}</p>
           </CardContent>
         </Card>
+        {isAdmin && (
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <div className="flex items-center justify-center gap-2">
+                <MessageSquarePlus className={`w-5 h-5 ${pendingSugerencias > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
+                <span className={`text-3xl font-bold ${pendingSugerencias > 0 ? 'text-primary' : ''}`}>{pendingSugerencias}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Sugerencias pendientes</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Charts row */}
