@@ -6,12 +6,9 @@ const router = Router();
 
 router.get('/', async (_, res) => {
   try {
-    const { rows } = await pool.query('SELECT email, role, nombre FROM users ORDER BY email');
-    // Get albergue assignments
-    const { rows: assignments } = await pool.query('SELECT * FROM user_albergues');
+    const { rows } = await pool.query('SELECT email, role FROM users ORDER BY email');
     const result = rows.map(u => ({
-      email: u.email, role: u.role, nombre: u.nombre, password: '',
-      albergueIds: assignments.filter(a => a.user_email === u.email).map(a => a.albergue_id),
+      email: u.email, role: u.role, password: '',
     }));
     res.json(result);
   } catch (err) {
