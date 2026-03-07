@@ -135,7 +135,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                 </Button>
               </>
             )}
-            <Button variant="ghost" size="sm" onClick={() => { localStorage.removeItem('auth'); localStorage.removeItem('authRole'); localStorage.removeItem('currentAlbergueId'); onLogout(); }}>
+            <Button variant="ghost" size="sm" onClick={() => { localStorage.removeItem('auth'); localStorage.removeItem('authRole'); localStorage.removeItem('authEmail'); localStorage.removeItem('currentAlbergueId'); onLogout(); }}>
               <LogOut className="w-4 h-4 mr-2" />
               <span className="hidden sm:inline">{t.logout}</span>
             </Button>
@@ -228,7 +228,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
           )}
           {role === 'admin' && (
             <TabsContent value="notas">
-              <NotasTab />
+              <NotasTab userEmail={localStorage.getItem('authEmail') || ''} />
             </TabsContent>
           )}
         </Tabs>

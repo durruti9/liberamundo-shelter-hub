@@ -12,6 +12,7 @@ import boardRoutes from './routes/board.js';
 import userRoutes from './routes/users.js';
 import tareasRoutes from './routes/tareas.js';
 import sugerenciasRoutes from './routes/sugerencias.js';
+import notasRoutes from './routes/notas.js';
 
 const app = express();
 app.use(cors());
@@ -31,6 +32,7 @@ app.use('/api/board', boardRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tareas', tareasRoutes);
 app.use('/api/sugerencias', sugerenciasRoutes);
+app.use('/api/notas', notasRoutes);
 
 // Serve static frontend
 app.use(express.static('/app/public'));

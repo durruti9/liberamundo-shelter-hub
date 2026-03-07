@@ -49,6 +49,7 @@ export default function LoginPage({ onLogin }: Props) {
         const result = await api.login(email, password);
         localStorage.setItem('auth', 'true');
         localStorage.setItem('authRole', result.role);
+        localStorage.setItem('authEmail', email);
         onLogin(result.role as UserRole, result.albergueIds);
         return;
       } catch {
@@ -62,6 +63,7 @@ export default function LoginPage({ onLogin }: Props) {
     if (user) {
       localStorage.setItem('auth', 'true');
       localStorage.setItem('authRole', user.role);
+      localStorage.setItem('authEmail', email);
       onLogin(user.role, user.albergueIds);
     } else {
       setError(t.wrongCredentials);
