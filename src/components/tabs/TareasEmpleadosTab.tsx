@@ -146,7 +146,34 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     try {
       await api.saveTareasDia(albergueId, selectedDate, tareas);
       await loadMonth();
+      setEditingIdx(new Set());
+      setOriginalTareas({});
       setSelectedDate(null);
+    } catch (err) {
+      console.error('Error saving tareas:', err);
+    }
+  };
+
+  const startEditing = (idx: number) => {
+    setOriginalTareas(prev => ({ ...prev, [idx]: { ...tareas[idx] } }));
+    setEditingIdx(prev => new Set(prev).add(idx));
+  };
+
+  const cancelEditing = (idx: number) => {
+    if (originalTareas[idx]) {
+      setTareas(prev => prev.map((t, i) => i === idx ? originalTareas[idx] : t));
+    }
+    setEditingIdx(prev => { const s = new Set(prev); s.delete(idx); return s; });
+    setOriginalTareas(prev => { const c = { ...prev }; delete c[idx]; return c; });
+  };
+
+  const registerTarea = async (idx: number) => {
+    if (!selectedDate) return;
+    try {
+      await api.saveTareasDia(albergueId, selectedDate, tareas);
+      await loadMonth();
+      setEditingIdx(prev => { const s = new Set(prev); s.delete(idx); return s; });
+      setOriginalTareas(prev => { const c = { ...prev }; delete c[idx]; return c; });
     } catch (err) {
       console.error('Error saving tareas:', err);
     }
