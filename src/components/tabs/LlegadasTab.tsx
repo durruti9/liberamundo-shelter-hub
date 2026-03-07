@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { CalendarPlus, Check, Trash2, Pencil } from 'lucide-react';
+import ExportButton from '@/components/ExportButton';
 import { DIETAS, Dieta, UserRole, ProximaLlegada } from '@/types';
 import { formatDateES } from '@/lib/dateFormat';
 import { useI18n } from '@/i18n/I18nContext';
