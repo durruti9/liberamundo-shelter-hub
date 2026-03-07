@@ -70,12 +70,18 @@ export default function LoginPage({ onLogin }: Props) {
           localStorage.setItem('authEmail', email);
           onLogin(result.role as UserRole, result.albergueIds);
           return;
-        } catch {
-          setError(t.wrongCredentials);
-          return;
+        } catch (err: any) {
+          // If server error (DB down), fall through to localStorage
+          if (err.message && (err.message.includes('password authentication') || err.message.includes('500'))) {
+            console.warn('API login failed with server error, trying localStorage fallback');
+          } else {
+            setError(t.wrongCredentials);
+            return;
+          }
         }
       }
 
+      // localStorage fallback
       const users = loadUsers();
       const user = users.find(u => u.email === email && u.password === password);
       if (user) {
