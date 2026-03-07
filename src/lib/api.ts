@@ -92,6 +92,13 @@ export const api = {
     request<any[]>(`/tareas/${albergueId}?start=${start}&end=${end}`),
   saveTareasDia: (albergueId: string, fecha: string, tareas: any[]) =>
     request<any>(`/tareas/${albergueId}/${fecha}`, { method: 'POST', body: JSON.stringify({ tareas }) }),
+
+  // Sugerencias
+  getSugerencias: (albergueId: string) => request<any[]>(`/sugerencias/${albergueId}`),
+  addSugerencia: (albergueId: string, data: any) =>
+    request<any>(`/sugerencias/${albergueId}`, { method: 'POST', body: JSON.stringify(data) }),
+  updateSugerencia: (id: string, data: any) =>
+    request<any>(`/sugerencias/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 };
 
 // Check if API is available
