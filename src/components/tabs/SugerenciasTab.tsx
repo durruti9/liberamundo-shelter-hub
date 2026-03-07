@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { MessageSquarePlus, Send, Languages, User, EyeOff, Mail, Phone, Clock, ChevronDown, ChevronUp, Reply, Trash2, CheckCircle2, CircleDot, AlertTriangle } from 'lucide-react';
+import { MessageSquarePlus, Send, Languages, User, EyeOff, Mail, Phone, Clock, ChevronDown, ChevronUp, Reply, Trash2, CheckCircle2, CircleDot, AlertTriangle, Paperclip } from 'lucide-react';
 import { UserRole } from '@/types';
 import { api } from '@/lib/api';
 import { format } from 'date-fns';
