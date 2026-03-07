@@ -178,6 +178,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                 <span className="hidden sm:inline">{t.employeeTasks}</span>
               </TabsTrigger>
             )}
+          </TabsList>
 
           {(role === 'admin' || role === 'gestor') && (
             <TabsContent value="dashboard">
