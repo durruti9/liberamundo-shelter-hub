@@ -30,11 +30,11 @@ function loadUsers(): UserAccount[] {
     const data = localStorage.getItem('users');
     const users = data ? (JSON.parse(data) as UserAccount[]) : [];
     if (users.length === 0) {
-      users.push({ email: 'admin', password: 'admin123', role: 'admin' });
+      users.push({ email: 'admin', password: 'admin', role: 'admin' });
     }
     return users;
   } catch {
-    return [{ email: 'admin', password: 'admin123', role: 'admin' }];
+    return [{ email: 'admin', password: 'admin', role: 'admin' }];
   }
 }
 

@@ -161,7 +161,4 @@ INSERT INTO rooms (id, albergue_id, nombre, camas) VALUES
   ('2.3', 'default', 'Habitación 2.3', 4)
 ON CONFLICT DO NOTHING;
 
--- Default admin: admin / admin123 (bcrypt hash)
-INSERT INTO users (email, password_hash, role, nombre)
-VALUES ('admin', '$2b$10$8K1p/a0dL1LXMIgoEDFrwOfMQkf7SbKqvBqpG2jFMGo5e4VsJYzWq', 'admin', '')
-ON CONFLICT DO NOTHING;
+-- Default admin user is created dynamically by server/index.js on startup (admin/admin)
