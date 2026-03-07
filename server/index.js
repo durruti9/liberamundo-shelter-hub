@@ -19,8 +19,15 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '15mb' }));
 
-// Health check
-app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
+// Health check (tests DB connection)
+app.get('/api/health', async (_, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ status: 'ok' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', error: err.message });
+  }
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
