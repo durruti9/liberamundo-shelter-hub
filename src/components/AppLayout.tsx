@@ -245,8 +245,8 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               <h3 className="text-sm font-semibold">{t.inviteNewUser}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs">{t.email}</Label>
-                  <Input type="email" value={newUser.email} onChange={e => setNewUser(p => ({ ...p, email: e.target.value }))} placeholder="email@ejemplo.com" />
+                  <Label className="text-xs">Usuario</Label>
+                  <Input value={newUser.email} onChange={e => setNewUser(p => ({ ...p, email: e.target.value }))} placeholder="usuario@ejemplo.com" />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">{t.password}</Label>
