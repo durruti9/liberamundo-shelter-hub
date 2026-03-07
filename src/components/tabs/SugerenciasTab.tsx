@@ -337,7 +337,7 @@ export default function SugerenciasTab({ role, albergueId, userName }: Props) {
                 )}
               </CardContent>
             </Card>
-          )))}
+          ))}
         </div>
       )}
     </div>
