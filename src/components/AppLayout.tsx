@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Checkbox } from '@/components/ui/checkbox';
+
 import HabitacionesTab from './tabs/HabitacionesTab';
 import HistorialTab from './tabs/HistorialTab';
 import LlegadasTab from './tabs/LlegadasTab';
@@ -42,21 +42,14 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
   const [tab, setTab] = useState('dashboard');
   const [showUsers, setShowUsers] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [newUser, setNewUser] = useState({ email: '', password: '', nombre: '', role: 'personal_albergue' as UserRole, albergueIds: [albergueId] });
+  const [newUser, setNewUser] = useState({ email: '', password: '', role: 'personal_albergue' as UserRole });
   const [changingPasswordFor, setChangingPasswordFor] = useState<string | null>(null);
   const [newPasswordValue, setNewPasswordValue] = useState('');
 
   const handleAddUser = () => {
-    if (!newUser.email || !newUser.password || !newUser.nombre) return;
+    if (!newUser.email || !newUser.password) return;
     store.addUser(newUser);
-    setNewUser({ email: '', password: '', nombre: '', role: 'personal_albergue', albergueIds: [albergueId] });
-  };
-
-  const toggleUserAlbergue = (aId: string) => {
-    setNewUser(prev => {
-      const has = prev.albergueIds.includes(aId);
-      return { ...prev, albergueIds: has ? prev.albergueIds.filter(id => id !== aId) : [...prev.albergueIds, aId] };
-    });
+    setNewUser({ email: '', password: '', role: 'personal_albergue' });
   };
 
   const roleLabel: Record<UserRole, string> = {
@@ -250,11 +243,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
           <div className="space-y-6">
             <div className="space-y-3 p-4 border rounded-lg">
               <h3 className="text-sm font-semibold">{t.inviteNewUser}</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">{t.name}</Label>
-                  <Input value={newUser.nombre} onChange={e => setNewUser(p => ({ ...p, nombre: e.target.value }))} placeholder={t.name} />
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs">{t.email}</Label>
                   <Input type="email" value={newUser.email} onChange={e => setNewUser(p => ({ ...p, email: e.target.value }))} placeholder="email@ejemplo.com" />
@@ -274,22 +263,6 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                   </Select>
                 </div>
               </div>
-              {store.albergues.length > 1 && (
-                <div className="space-y-2">
-                  <Label className="text-xs">{t.assignedShelters}</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {store.albergues.map(a => (
-                      <label key={a.id} className="flex items-center gap-1.5 text-xs cursor-pointer">
-                        <Checkbox
-                          checked={newUser.albergueIds.includes(a.id)}
-                          onCheckedChange={() => toggleUserAlbergue(a.id)}
-                        />
-                        {a.nombre}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
               <Button size="sm" onClick={handleAddUser} className="w-full">
                 <Plus className="w-4 h-4 mr-1" /> {t.createUser}
               </Button>
@@ -298,7 +271,6 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t.name}</TableHead>
                   <TableHead>{t.email}</TableHead>
                   <TableHead>{t.role}</TableHead>
                   <TableHead className="w-24"></TableHead>
@@ -307,7 +279,6 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               <TableBody>
                 {store.users.map(u => (
                   <TableRow key={u.email}>
-                    <TableCell className="text-sm">{u.nombre}</TableCell>
                     <TableCell className="text-sm">{u.email}</TableCell>
                     <TableCell><Badge variant="outline" className="text-xs">{roleLabel[u.role]}</Badge></TableCell>
                     <TableCell className="space-x-1">

@@ -14,7 +14,7 @@ function saveToStorage(key: string, data: unknown) {
 }
 
 const DEFAULT_USERS: UserAccount[] = [
-  { email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin', nombre: 'Administrador', albergueIds: [] },
+  { email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin' },
 ];
 
 export function useAlbergueStore(albergueId: string = 'default') {
@@ -48,8 +48,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
   const [incidencias, setIncidencias] = useState<Incidencia[]>(() => loadFromStorage(`${prefix}_incidencias`, []));
   const [boardMessages, setBoardMessages] = useState<BoardMessage[]>(() => loadFromStorage(`${prefix}_board`, []));
   const [users, setUsers] = useState<UserAccount[]>(() => {
-    const stored = loadFromStorage<UserAccount[]>('users', DEFAULT_USERS);
-    return stored.map(u => ({ ...u, albergueIds: u.albergueIds || ['default'] }));
+    return loadFromStorage<UserAccount[]>('users', DEFAULT_USERS);
   });
 
   // ── Load from API ──
