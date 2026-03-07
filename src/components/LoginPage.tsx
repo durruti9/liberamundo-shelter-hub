@@ -26,9 +26,9 @@ function loadUsers(): UserAccount[] {
     if (data) {
       return JSON.parse(data) as UserAccount[];
     }
-    return [{ email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin' }];
+    return [{ email: 'admin', password: 'admin123', role: 'admin' }];
   } catch {
-    return [{ email: 'albergue@liberamundo.com', password: 'admin123', role: 'admin' }];
+    return [{ email: 'admin', password: 'admin123', role: 'admin' }];
   }
 }
 
