@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Check, Trash2, FileWarning } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Check, Trash2, FileWarning, Building2 } from 'lucide-react';
 import { UserRole, IncidentType } from '@/types';
 import { formatDateES } from '@/lib/dateFormat';
 import { useI18n } from '@/i18n/I18nContext';
@@ -18,13 +19,14 @@ interface Props {
   role: UserRole;
 }
 
-const INCIDENT_TYPES: IncidentType[] = ['behavioral', 'medical', 'administrative', 'social', 'other'];
+const INCIDENT_TYPES: IncidentType[] = ['behavioral', 'medical', 'administrative', 'social', 'general', 'other'];
 
 const TYPE_COLORS: Record<IncidentType, string> = {
   behavioral: 'bg-[hsl(38,92%,90%)] text-[hsl(38,92%,30%)]',
   medical: 'bg-[hsl(0,72%,92%)] text-destructive',
   administrative: 'bg-[hsl(212,72%,90%)] text-[hsl(212,72%,35%)]',
   social: 'bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)]',
+  general: 'bg-[hsl(270,60%,90%)] text-[hsl(270,60%,30%)]',
   other: 'bg-secondary text-secondary-foreground',
 };
 
@@ -32,29 +34,30 @@ export default function IncidenciasTab({ store, role }: Props) {
   const { incidencias, huespedActivos, huespedes, addIncidencia, toggleIncidenciaResuelta, deleteIncidencia } = store;
   const { t } = useI18n();
   const [showForm, setShowForm] = useState(false);
+  const [isGeneral, setIsGeneral] = useState(false);
   const [form, setForm] = useState({
     huespedId: '', tipo: 'other' as IncidentType, descripcion: '', fecha: new Date().toISOString().split('T')[0],
   });
 
-  // Anyone can create incidents; only admin/gestor can resolve/delete
   const canResolve = role === 'admin' || role === 'gestor';
-
   const sorted = [...incidencias].sort((a, b) => b.fecha.localeCompare(a.fecha));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.huespedId || !form.descripcion.trim()) return;
-    const huesped = huespedes.find(h => h.id === form.huespedId);
+    if (!isGeneral && !form.huespedId) return;
+    if (!form.descripcion.trim()) return;
+    const huesped = !isGeneral ? huespedes.find(h => h.id === form.huespedId) : null;
     addIncidencia({
-      huespedId: form.huespedId,
-      huespedNombre: huesped?.nombre || '',
-      tipo: form.tipo,
+      huespedId: isGeneral ? '' : form.huespedId,
+      huespedNombre: isGeneral ? (t.generalIncidentLabel || 'General') : (huesped?.nombre || ''),
+      tipo: isGeneral ? 'general' : form.tipo,
       descripcion: form.descripcion,
       fecha: form.fecha,
       resuelta: false,
       creadoPor: role,
     });
     setForm({ huespedId: '', tipo: 'other', descripcion: '', fecha: new Date().toISOString().split('T')[0] });
+    setIsGeneral(false);
     setShowForm(false);
   };
 
@@ -64,7 +67,6 @@ export default function IncidenciasTab({ store, role }: Props) {
         <h2 className="text-xl font-bold flex items-center gap-2">
           <FileWarning className="w-5 h-5 text-primary" /> {t.incidentRegistry}
         </h2>
-        {/* All roles can create incidents */}
         <Button onClick={() => setShowForm(true)}>{t.newIncident}</Button>
       </div>
 
@@ -110,7 +112,14 @@ export default function IncidenciasTab({ store, role }: Props) {
                   {sorted.map(inc => (
                     <TableRow key={inc.id} className={inc.resuelta ? 'opacity-60' : ''}>
                       <TableCell className="whitespace-nowrap text-sm">{formatDateES(inc.fecha)}</TableCell>
-                      <TableCell className="font-medium">{inc.huespedNombre}</TableCell>
+                      <TableCell className="font-medium">
+                        {!inc.huespedId ? (
+                          <span className="flex items-center gap-1 text-[hsl(270,60%,40%)]">
+                            <Building2 className="w-3.5 h-3.5" />
+                            {inc.huespedNombre}
+                          </span>
+                        ) : inc.huespedNombre}
+                      </TableCell>
                       <TableCell>
                         <Badge className={`text-xs ${TYPE_COLORS[inc.tipo]}`} variant="secondary">
                           {t.incidentTypes[inc.tipo]}
@@ -153,29 +162,44 @@ export default function IncidenciasTab({ store, role }: Props) {
             <DialogTitle>{t.newIncident}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* General incident toggle */}
+            <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+              <Switch checked={isGeneral} onCheckedChange={setIsGeneral} />
+              <div>
+                <p className="text-sm font-medium flex items-center gap-1.5">
+                  <Building2 className="w-4 h-4 text-[hsl(270,60%,40%)]" />
+                  {t.generalIncident || 'Incidencia general (edificio/albergue)'}
+                </p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t.incidentGuest} *</Label>
-                <Select value={form.huespedId} onValueChange={v => setForm(p => ({ ...p, huespedId: v }))}>
-                  <SelectTrigger><SelectValue placeholder="..." /></SelectTrigger>
-                  <SelectContent>
-                    {huespedActivos.map(h => (
-                      <SelectItem key={h.id} value={h.id}>{h.nombre}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t.incidentType}</Label>
-                <Select value={form.tipo} onValueChange={v => setForm(p => ({ ...p, tipo: v as IncidentType }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {INCIDENT_TYPES.map(tp => (
-                      <SelectItem key={tp} value={tp}>{t.incidentTypes[tp]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {!isGeneral && (
+                <div className="space-y-2">
+                  <Label>{t.incidentGuest} *</Label>
+                  <Select value={form.huespedId} onValueChange={v => setForm(p => ({ ...p, huespedId: v }))}>
+                    <SelectTrigger><SelectValue placeholder="..." /></SelectTrigger>
+                    <SelectContent>
+                      {huespedActivos.map(h => (
+                        <SelectItem key={h.id} value={h.id}>{h.nombre}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {!isGeneral && (
+                <div className="space-y-2">
+                  <Label>{t.incidentType}</Label>
+                  <Select value={form.tipo} onValueChange={v => setForm(p => ({ ...p, tipo: v as IncidentType }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {INCIDENT_TYPES.filter(tp => tp !== 'general').map(tp => (
+                        <SelectItem key={tp} value={tp}>{t.incidentTypes[tp]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>{t.incidentDate}</Label>
                 <Input type="date" value={form.fecha} onChange={e => setForm(p => ({ ...p, fecha: e.target.value }))} />
