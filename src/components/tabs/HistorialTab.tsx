@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Download, History, Pencil, Trash2, UserPlus, AlertTriangle } from 'lucide-react';
+import { History, Pencil, Trash2, UserPlus, AlertTriangle } from 'lucide-react';
 import ExportButton from '@/components/ExportButton';
 import { DIETAS, Dieta, UserRole } from '@/types';
 import { formatDateES } from '@/lib/dateFormat';
