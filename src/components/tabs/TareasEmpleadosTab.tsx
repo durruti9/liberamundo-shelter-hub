@@ -105,7 +105,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
   };
 
   const handleSelectDay = (dateStr: string) => {
-    if (isFuture(new Date(dateStr + 'T12:00:00'))) return;
+    if (dateStr > todayStr) return; // Block future days, allow today
     const existing = allTareasDates[dateStr];
     if (existing && existing.length > 0) {
       setTareas(existing.map(t => ({ ...t, adminObs: t.adminObs || '', respuestaEmpleado: t.respuestaEmpleado || '' })));
@@ -169,12 +169,23 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     setObsDialogIdx(null);
   };
 
+  const clearAdminObs = () => {
+    if (obsDialogIdx === null) return;
+    handleUpdateTarea(obsDialogIdx, 'adminObs', '');
+    setObsText('');
+  };
+
   const saveEmployeeReply = () => {
     if (obsDialogIdx === null || !replyText.trim()) return;
     const current = tareas[obsDialogIdx].respuestaEmpleado;
     const newReply = current ? `${current}\n---\n${replyText}` : replyText;
     handleUpdateTarea(obsDialogIdx, 'respuestaEmpleado', newReply);
     setReplyText('');
+  };
+
+  const clearEmployeeReply = () => {
+    if (obsDialogIdx === null) return;
+    handleUpdateTarea(obsDialogIdx, 'respuestaEmpleado', '');
   };
 
   // Calendar grid
@@ -338,9 +349,16 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                         placeholder="Escribe tus observaciones..."
                         className="border-destructive/30 focus:border-destructive"
                       />
-                      <Button size="sm" onClick={saveAdminObs} className="bg-destructive hover:bg-destructive/90 text-white gap-1">
-                        <Save className="w-3 h-3" /> Guardar observación
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={saveAdminObs} className="bg-destructive hover:bg-destructive/90 text-white gap-1">
+                          <Save className="w-3 h-3" /> Guardar observación
+                        </Button>
+                        {obsText && (
+                          <Button size="sm" variant="outline" onClick={clearAdminObs} className="text-destructive border-destructive/30 gap-1">
+                            <X className="w-3 h-3" /> Borrar
+                          </Button>
+                        )}
+                      </div>
                     </>
                   ) : (
                     <div className="p-3 rounded bg-destructive/10 border border-destructive/20">
@@ -358,6 +376,11 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                     <div className="p-3 rounded bg-muted border">
                       <p className="text-sm whitespace-pre-wrap">{tareas[obsDialogIdx].respuestaEmpleado}</p>
                     </div>
+                    {editable && (
+                      <Button size="sm" variant="outline" onClick={clearEmployeeReply} className="text-muted-foreground gap-1">
+                        <X className="w-3 h-3" /> Borrar respuestas
+                      </Button>
+                    )}
                   </div>
                 )}
 
@@ -423,7 +446,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
               const dateStr = format(day, 'yyyy-MM-dd');
               const inMonth = isSameMonth(day, currentMonth);
               const today = isToday(day);
-              const future = isFuture(day) && !today;
+              const future = dateStr > todayStr;
               const hasTareas = !!allTareasDates[dateStr]?.length;
               const allDone = hasTareas && allTareasDates[dateStr].every(t => t.estado === 'hecha' || t.estado === 'no procede');
 
