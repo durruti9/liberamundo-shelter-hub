@@ -244,29 +244,30 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
           <DialogHeader><DialogTitle>{t.userManagement}</DialogTitle></DialogHeader>
           <div className="space-y-6">
             <div className="space-y-3 p-4 border rounded-lg">
-              <h3 className="text-sm font-semibold">{t.inviteNewUser}</h3>
+              <h3 className="text-sm font-semibold">Crear nuevo usuario</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs">Usuario</Label>
-                  <Input value={newUser.email} onChange={e => setNewUser(p => ({ ...p, email: e.target.value }))} placeholder="usuario@ejemplo.com" />
+                  <Input value={newUser.email} onChange={e => setNewUser(p => ({ ...p, email: e.target.value }))} placeholder="Nombre" />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">{t.password}</Label>
+                  <Label className="text-xs">Contraseña</Label>
                   <Input type="password" value={newUser.password} onChange={e => setNewUser(p => ({ ...p, password: e.target.value }))} placeholder="••••••" />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">{t.role}</Label>
+                  <Label className="text-xs">Rol</Label>
                   <Select value={newUser.role} onValueChange={v => setNewUser(p => ({ ...p, role: v as UserRole }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="gestor">{t.manager}</SelectItem>
-                      <SelectItem value="personal_albergue">{t.shelterStaff}</SelectItem>
+                      <SelectItem value="admin">Administración</SelectItem>
+                      <SelectItem value="gestor">Personal gestor</SelectItem>
+                      <SelectItem value="personal_albergue">Personal laboral</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <Button size="sm" onClick={handleAddUser} className="w-full">
-                <Plus className="w-4 h-4 mr-1" /> {t.createUser}
+                <Plus className="w-4 h-4 mr-1" /> Crear usuario
               </Button>
             </div>
 
@@ -274,7 +275,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               <TableHeader>
                 <TableRow>
                   <TableHead>Usuario</TableHead>
-                  <TableHead>{t.role}</TableHead>
+                  <TableHead>Rol</TableHead>
                   <TableHead className="w-24"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -284,10 +285,10 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                     <TableCell className="text-sm">{u.email}</TableCell>
                     <TableCell><Badge variant="outline" className="text-xs">{roleLabel[u.role]}</Badge></TableCell>
                     <TableCell className="space-x-1">
-                      <Button size="icon" variant="ghost" title={t.changePassword} onClick={() => { setChangingPasswordFor(u.email); setNewPasswordValue(''); }}>
+                      <Button size="icon" variant="ghost" title="Cambiar contraseña" onClick={() => { setChangingPasswordFor(u.email); setNewPasswordValue(''); }}>
                         <KeyRound className="w-4 h-4" />
                       </Button>
-                      {u.role !== 'admin' && (
+                      {!(u.role === 'admin' && adminCount <= 1) && (
                         <Button size="icon" variant="ghost" onClick={() => store.removeUser(u.email)}>
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
