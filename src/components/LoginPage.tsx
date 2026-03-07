@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Globe, MessageSquarePlus, HelpCircle } from 'lucide-react';
+import { Globe, MessageSquarePlus, HelpCircle, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import logo from '@/assets/Logo2Liberamundo.png';
 import buzonImg from '@/assets/buzon-sugerencias.png';
 import { UserRole, UserAccount } from '@/types';
@@ -21,6 +22,8 @@ interface Props {
 
 const LANG_FLAGS: Record<Language, string> = { es: '🇪🇸', fr: '🇫🇷', ar: '🇸🇦', en: '🇬🇧', ru: '🇷🇺' };
 const LANG_LABELS: Record<Language, string> = { es: 'Español', fr: 'Français', ar: 'العربية', en: 'English', ru: 'Русский' };
+
+const SECRET_CODE = 'durruti9';
 
 function loadUsers(): UserAccount[] {
   try {
@@ -41,10 +44,16 @@ export default function LoginPage({ onLogin }: Props) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showRecovery, setShowRecovery] = useState(false);
-  const [recoveryEmail, setRecoveryEmail] = useState('');
-  const [recoveryStatus, setRecoveryStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
-  const [recoveryError, setRecoveryError] = useState('');
+
+  // Secret access
+  const [showSecret, setShowSecret] = useState(false);
+  const [secretInput, setSecretInput] = useState('');
+  const [secretUnlocked, setSecretUnlocked] = useState(false);
+
+  // User creation form
+  const [newUser, setNewUser] = useState({ email: '', password: '', role: 'personal_albergue' as UserRole });
+  const [createStatus, setCreateStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [createError, setCreateError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,16 +91,49 @@ export default function LoginPage({ onLogin }: Props) {
     }
   };
 
-  const handleRecovery = async () => {
-    setRecoveryStatus('sending');
-    setRecoveryError('');
-    try {
-      await api.sendRecovery(recoveryEmail);
-      setRecoveryStatus('sent');
-    } catch {
-      setRecoveryStatus('error');
-      setRecoveryError('No se pudo enviar. Verifica el email o contacta al administrador.');
+  const handleSecretInput = (value: string) => {
+    setSecretInput(value);
+    if (value === SECRET_CODE) {
+      setSecretUnlocked(true);
+      setSecretInput('');
     }
+  };
+
+  const handleCreateUser = async () => {
+    if (!newUser.email || !newUser.password) return;
+    setCreateStatus('saving');
+    setCreateError('');
+
+    try {
+      const apiAvailable = await isApiAvailable();
+      if (apiAvailable) {
+        await api.addUser(newUser);
+      } else {
+        // localStorage fallback
+        const users = loadUsers();
+        if (users.find(u => u.email === newUser.email)) {
+          setCreateError('Ese usuario ya existe');
+          setCreateStatus('error');
+          return;
+        }
+        users.push({ ...newUser });
+        localStorage.setItem('users', JSON.stringify(users));
+      }
+      setCreateStatus('saved');
+      setNewUser({ email: '', password: '', role: 'personal_albergue' });
+    } catch (err: any) {
+      setCreateError(err.message || 'Error al crear usuario');
+      setCreateStatus('error');
+    }
+  };
+
+  const closeSecretDialog = () => {
+    setShowSecret(false);
+    setSecretInput('');
+    setSecretUnlocked(false);
+    setCreateStatus('idle');
+    setCreateError('');
+    setNewUser({ email: '', password: '', role: 'personal_albergue' });
   };
 
   return (
@@ -138,17 +180,6 @@ export default function LoginPage({ onLogin }: Props) {
                 {loading ? 'Entrando...' : t.login}
               </Button>
             </form>
-            {/* Recovery "?" */}
-            <div className="flex justify-center mt-3">
-              <button
-                type="button"
-                onClick={() => { setShowRecovery(true); setRecoveryStatus('idle'); setRecoveryEmail(''); setRecoveryError(''); }}
-                className="text-muted-foreground hover:text-foreground transition-colors text-xs flex items-center gap-1"
-              >
-                <HelpCircle className="w-3 h-3" />
-                <span>?</span>
-              </button>
-            </div>
           </CardContent>
         </Card>
 
@@ -176,34 +207,79 @@ export default function LoginPage({ onLogin }: Props) {
         </Link>
       </div>
 
-      {/* Recovery Dialog */}
-      <Dialog open={showRecovery} onOpenChange={setShowRecovery}>
+      {/* Secret "?" button - bottom right */}
+      <button
+        type="button"
+        onClick={() => { setShowSecret(true); setSecretUnlocked(false); setSecretInput(''); setCreateStatus('idle'); }}
+        className="fixed bottom-4 right-4 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+      >
+        <HelpCircle className="w-4 h-4" />
+      </button>
+
+      {/* Secret Dialog */}
+      <Dialog open={showSecret} onOpenChange={closeSecretDialog}>
         <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-base">¿Mail?</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {recoveryStatus === 'sent' ? (
-              <p className="text-sm text-primary">✅ Credenciales enviadas al correo indicado.</p>
-            ) : (
-              <>
-                <Input
-                  value={recoveryEmail}
-                  onChange={e => setRecoveryEmail(e.target.value)}
-                  placeholder="Introduce tu email"
-                  type="email"
-                />
-                {recoveryError && <p className="text-sm text-destructive">{recoveryError}</p>}
-                <Button
-                  className="w-full"
-                  disabled={!recoveryEmail || recoveryStatus === 'sending'}
-                  onClick={handleRecovery}
-                >
-                  {recoveryStatus === 'sending' ? 'Enviando...' : 'Enviar'}
-                </Button>
-              </>
-            )}
-          </div>
+          {!secretUnlocked ? (
+            <div className="py-4">
+              <Input
+                value={secretInput}
+                onChange={e => handleSecretInput(e.target.value)}
+                placeholder=""
+                autoFocus
+                className="text-center"
+              />
+            </div>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-base">Crear usuario</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {createStatus === 'saved' ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-primary">✅ Usuario creado correctamente.</p>
+                    <Button variant="outline" className="w-full" onClick={() => setCreateStatus('idle')}>
+                      Crear otro
+                    </Button>
+                    <Button className="w-full" onClick={closeSecretDialog}>
+                      Cerrar
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Usuario</Label>
+                      <Input value={newUser.email} onChange={e => setNewUser(p => ({ ...p, email: e.target.value }))} placeholder="Nombre" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Contraseña</Label>
+                      <PasswordInput value={newUser.password} onChange={e => setNewUser(p => ({ ...p, password: e.target.value }))} placeholder="••••••" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Rol</Label>
+                      <Select value={newUser.role} onValueChange={v => setNewUser(p => ({ ...p, role: v as UserRole }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Administración</SelectItem>
+                          <SelectItem value="gestor">Personal gestor</SelectItem>
+                          <SelectItem value="personal_albergue">Personal laboral</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {createError && <p className="text-sm text-destructive">{createError}</p>}
+                    <Button
+                      className="w-full gap-2"
+                      disabled={!newUser.email || !newUser.password || createStatus === 'saving'}
+                      onClick={handleCreateUser}
+                    >
+                      <Plus className="w-4 h-4" />
+                      {createStatus === 'saving' ? 'Guardando...' : 'Crear usuario'}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
