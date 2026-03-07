@@ -129,7 +129,8 @@ CREATE TABLE IF NOT EXISTS sugerencias (
   fecha TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   leida BOOLEAN NOT NULL DEFAULT false,
   respuesta TEXT NOT NULL DEFAULT '',
-  traduccion TEXT NOT NULL DEFAULT ''
+  traduccion TEXT NOT NULL DEFAULT '',
+  resuelta BOOLEAN NOT NULL DEFAULT false
 );
 
 -- Seed default albergue and admin user
