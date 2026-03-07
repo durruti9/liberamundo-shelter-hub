@@ -1,12 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BedDouble, Users, Clock, AlertTriangle, TrendingUp, CalendarPlus } from 'lucide-react';
+import { BedDouble, Users, Clock, AlertTriangle, TrendingUp, CalendarPlus, MessageSquarePlus } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { useI18n } from '@/i18n/I18nContext';
 import { formatDateES } from '@/lib/dateFormat';
 import BoardPanel from '@/components/BoardPanel';
 import { UserRole } from '@/types';
+import { api } from '@/lib/api';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
@@ -22,6 +23,16 @@ const COLORS = [
 export default function DashboardTab({ store, role = 'personal_albergue' }: Props) {
   const { huespedActivos, huespedes, totalCamas, incidencias, llegadas, boardMessages, addBoardMessage, addBoardReply, resolveBoardMessage, deleteBoardMessage } = store;
   const { t } = useI18n();
+  const isAdmin = role === 'admin';
+
+  // Pending suggestions count (admin only)
+  const [pendingSugerencias, setPendingSugerencias] = useState(0);
+  useEffect(() => {
+    if (!isAdmin) return;
+    api.getSugerencias(store.currentAlbergue?.id || 'default')
+      .then(data => setPendingSugerencias(data.filter((s: any) => !s.respuesta).length))
+      .catch(() => {});
+  }, [isAdmin, store.currentAlbergue?.id]);
 
   const ocupadas = huespedActivos.length;
   const libres = totalCamas - ocupadas;
@@ -97,7 +108,7 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
       </h2>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className={`grid gap-4 ${isAdmin ? 'grid-cols-2 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'}`}>
         <Card>
           <CardContent className="pt-6 text-center">
             <div className="text-3xl font-bold text-primary">{porcentaje}%</div>
@@ -135,6 +146,17 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
             <p className="text-xs text-muted-foreground mt-1">{t.activeIncidents}</p>
           </CardContent>
         </Card>
+        {isAdmin && (
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <div className="flex items-center justify-center gap-2">
+                <MessageSquarePlus className={`w-5 h-5 ${pendingSugerencias > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
+                <span className={`text-3xl font-bold ${pendingSugerencias > 0 ? 'text-primary' : ''}`}>{pendingSugerencias}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Sugerencias pendientes</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Charts row */}

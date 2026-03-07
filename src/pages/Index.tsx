@@ -40,7 +40,6 @@ const Index = () => {
     ? albergues
     : albergues.filter(a => userAlbergueIds.includes(a.id));
 
-  // Auto-select if only one available
   useEffect(() => {
     if (authed && !albergueId) {
       if (availableAlbergues.length === 1) {
@@ -67,7 +66,6 @@ const Index = () => {
       {!authed ? (
         <LoginPage onLogin={handleLogin} />
       ) : !albergueId && availableAlbergues.length > 1 ? (
-        // Albergue selector for admin with multiple albergues
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
           <Card className="w-full max-w-md shadow-xl">
             <CardHeader className="text-center space-y-3">

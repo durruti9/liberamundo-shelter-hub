@@ -64,7 +64,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
     personal_albergue: t.shelterStaff,
   };
 
-  const tabCount = role === 'gestor' ? 7 : role === 'admin' ? 9 : 6;
+  const tabCount = role === 'admin' ? 9 : role === 'gestor' ? 7 : 6;
 
   const handleAlbergueDeleted = (deletedId: string) => {
     if (deletedId === albergueId && store.albergues.length > 0) {
@@ -179,10 +179,12 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                 <span className="hidden sm:inline">{t.employeeTasks}</span>
               </TabsTrigger>
             )}
-            <TabsTrigger value="sugerencias" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-              <MessageSquarePlus className="w-4 h-4" />
-              <span className="hidden sm:inline">Buzón</span>
-            </TabsTrigger>
+            {role === 'admin' && (
+              <TabsTrigger value="sugerencias" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
+                <MessageSquarePlus className="w-4 h-4" />
+                <span className="hidden sm:inline">Buzón</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {(role === 'admin' || role === 'gestor') && (
@@ -212,9 +214,11 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               <TareasEmpleadosTab role={role} albergueId={albergueId} />
             </TabsContent>
           )}
-          <TabsContent value="sugerencias">
-            <SugerenciasTab role={role} albergueId={albergueId} />
-          </TabsContent>
+          {role === 'admin' && (
+            <TabsContent value="sugerencias">
+              <SugerenciasTab role={role} albergueId={albergueId} />
+            </TabsContent>
+          )}
         </Tabs>
       </main>
 
