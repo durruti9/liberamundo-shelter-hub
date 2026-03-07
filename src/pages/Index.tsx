@@ -27,12 +27,18 @@ const Index = () => {
       return data ? JSON.parse(data) : [];
     } catch { return []; }
   });
+  const [showDefaultWarning, setShowDefaultWarning] = useState(false);
 
   const handleLogin = (userRole: UserRole, albergueIds: string[]) => {
     setAuthed(true);
     setRole(userRole);
     setUserAlbergueIds(albergueIds);
     localStorage.setItem('userAlbergueIds', JSON.stringify(albergueIds));
+    // Show warning if logging in with default admin account
+    const currentEmail = localStorage.getItem('authEmail');
+    if (currentEmail === 'admin') {
+      setShowDefaultWarning(true);
+    }
   };
 
   const albergues = loadAlbergues();
