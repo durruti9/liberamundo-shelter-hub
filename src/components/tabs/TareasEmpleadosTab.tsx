@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ChevronLeft, ChevronRight, ClipboardList, Plus, Save, X, Unlock, MessageCircle, Send, Pencil } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ClipboardList, Plus, Save, X, Unlock, MessageCircle, Send, Pencil, Trash2 } from 'lucide-react';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
 import { api } from '@/lib/api';
@@ -76,7 +76,6 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
   const [replyText, setReplyText] = useState('');
   const isAdmin = role === 'admin';
 
-  // Load tareas for current month
   const loadMonth = useCallback(async () => {
     try {
       setLoading(true);
@@ -101,13 +100,13 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
   const todayStr = format(new Date(), 'yyyy-MM-dd');
 
   const canEditDate = (dateStr: string): boolean => {
-    if (isAdmin) return true; // Admin can always edit
+    if (isAdmin) return true;
     if (reopenedDays.has(dateStr)) return true;
     return dateStr === todayStr;
   };
 
   const handleSelectDay = (dateStr: string) => {
-    if (dateStr > todayStr) return; // Block future days, allow today
+    if (dateStr > todayStr) return;
     const existing = allTareasDates[dateStr];
     if (existing && existing.length > 0) {
       setTareas(existing.map(t => ({ ...t, adminObs: t.adminObs || '', respuestaEmpleado: t.respuestaEmpleado || '' })));
@@ -115,6 +114,8 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
       setTareas(createBlankDay(dateStr));
     }
     setSelectedDate(dateStr);
+    setEditingIdx(new Set());
+    setOriginalTareas({});
   };
 
   const handleUpdateTarea = (idx: number, field: keyof TareaDia, value: string) => {
@@ -138,6 +139,32 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
       const copy = [...prev];
       copy.splice(idx + 1, 0, dup);
       return copy;
+    });
+    // Auto-start editing the new duplicate
+    setTimeout(() => {
+      setEditingIdx(prev => new Set(prev).add(idx + 1));
+    }, 0);
+  };
+
+  // Check if a task at index is a duplicate (not the first occurrence of its tareaId)
+  const isDuplicate = (idx: number): boolean => {
+    const tareaId = tareas[idx].tareaId;
+    for (let i = 0; i < idx; i++) {
+      if (tareas[i].tareaId === tareaId) return true;
+    }
+    return false;
+  };
+
+  const handleDeleteTarea = (idx: number) => {
+    if (!isDuplicate(idx)) return; // Safety: never delete the original
+    setTareas(prev => prev.filter((_, i) => i !== idx));
+    setEditingIdx(prev => {
+      const s = new Set<number>();
+      prev.forEach(i => {
+        if (i < idx) s.add(i);
+        else if (i > idx) s.add(i - 1);
+      });
+      return s;
     });
   };
 
@@ -170,10 +197,24 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
   const registerTarea = async (idx: number) => {
     if (!selectedDate) return;
     try {
+      // Save all current tareas state to persist
       await api.saveTareasDia(albergueId, selectedDate, tareas);
       await loadMonth();
+      // Update local state to reflect saved data
       setEditingIdx(prev => { const s = new Set(prev); s.delete(idx); return s; });
       setOriginalTareas(prev => { const c = { ...prev }; delete c[idx]; return c; });
+      // Refresh tareas from saved data
+      const start = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
+      const end = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
+      const data = await api.getTareasDia(albergueId, start, end);
+      const grouped: Record<string, TareaDia[]> = {};
+      for (const t of data) {
+        if (!grouped[t.fecha]) grouped[t.fecha] = [];
+        grouped[t.fecha].push(t);
+      }
+      if (grouped[selectedDate]) {
+        setTareas(grouped[selectedDate].map(t => ({ ...t, adminObs: t.adminObs || '', respuestaEmpleado: t.respuestaEmpleado || '' })));
+      }
     } catch (err) {
       console.error('Error saving tareas:', err);
     }
@@ -253,7 +294,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={() => { setSelectedDate(null); setEditingIdx(new Set()); setOriginalTareas({}); }}>
-              <X className="w-4 h-4 mr-1" /> {t.cancel}
+              <X className="w-4 h-4 mr-1" /> Cancelar
             </Button>
             {editable && (
               <Button size="sm" onClick={handleSave} className="bg-[hsl(142,60%,40%)] hover:bg-[hsl(142,60%,35%)] text-white gap-1">
@@ -267,6 +308,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
           {tareas.map((tarea, idx) => {
             const isEditing = editingIdx.has(idx);
             const taskEditable = editable && isEditing;
+            const canDelete = isDuplicate(idx);
 
             return (
             <Card key={idx} className={`border transition-colors ${isEditing ? 'border-primary/40 bg-primary/5' : 'hover:border-primary/30'}`}>
@@ -275,6 +317,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <p className="font-semibold text-sm">{tarea.tareaNombre}</p>
+                      {canDelete && <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-muted-foreground/30 text-muted-foreground">duplicado</Badge>}
                       {/* Edit pencil icon */}
                       {editable && !isEditing && (
                         <button
@@ -283,6 +326,16 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                           title="Editar tarea"
                         >
                           <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {/* Delete icon for duplicates when editing */}
+                      {editable && isEditing && canDelete && (
+                        <button
+                          onClick={() => handleDeleteTarea(idx)}
+                          className="p-1 rounded hover:bg-destructive/10 transition-colors text-destructive"
+                          title="Eliminar duplicado"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       )}
                       {/* Admin observation icon */}
@@ -438,7 +491,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                   </div>
                 )}
 
-                {/* Employee reply input (only if there's an admin observation and user is not admin, or admin can also reply) */}
+                {/* Employee reply input */}
                 {tareas[obsDialogIdx].adminObs && editable && (
                   <div className="space-y-2">
                     <label className="text-sm font-semibold">Responder</label>
@@ -458,7 +511,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                 )}
 
                 <p className="text-xs text-muted-foreground">
-                  ⚠️ Recuerda pulsar "Guardar" en la hoja del día para que los cambios se persistan.
+                  ⚠️ Recuerda pulsar "Guardar todo" para que los cambios se persistan.
                 </p>
               </div>
             )}

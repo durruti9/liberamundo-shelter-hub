@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound, ClipboardList } from 'lucide-react';
+import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound, ClipboardList, MessageSquarePlus } from 'lucide-react';
 import logo from '@/assets/Logo2Liberamundo.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,7 @@ import IncidenciasTab from './tabs/IncidenciasTab';
 import SettingsDialog from './SettingsDialog';
 import DashboardTab from './tabs/DashboardTab';
 import TareasEmpleadosTab from './tabs/TareasEmpleadosTab';
+import SugerenciasTab from './tabs/SugerenciasTab';
 import { useAlbergueStore } from '@/hooks/useAlbergueStore';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
@@ -63,7 +64,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
     personal_albergue: t.shelterStaff,
   };
 
-  const tabCount = role === 'gestor' ? 7 : role === 'admin' ? 8 : 5;
+  const tabCount = role === 'gestor' ? 7 : role === 'admin' ? 9 : 6;
 
   const handleAlbergueDeleted = (deletedId: string) => {
     if (deletedId === albergueId && store.albergues.length > 0) {
@@ -178,6 +179,10 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                 <span className="hidden sm:inline">{t.employeeTasks}</span>
               </TabsTrigger>
             )}
+            <TabsTrigger value="sugerencias" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
+              <MessageSquarePlus className="w-4 h-4" />
+              <span className="hidden sm:inline">Buzón</span>
+            </TabsTrigger>
           </TabsList>
 
           {(role === 'admin' || role === 'gestor') && (
@@ -207,6 +212,9 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               <TareasEmpleadosTab role={role} albergueId={albergueId} />
             </TabsContent>
           )}
+          <TabsContent value="sugerencias">
+            <SugerenciasTab role={role} albergueId={albergueId} />
+          </TabsContent>
         </Tabs>
       </main>
 
