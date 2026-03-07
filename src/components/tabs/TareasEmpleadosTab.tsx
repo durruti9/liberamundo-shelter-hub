@@ -289,6 +289,13 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
             {format(dateObj, "EEEE d 'de' MMMM yyyy", { locale: es })}
           </h2>
           <div className="flex gap-2">
+            <ExportButton type="tareas" getData={() => tareas.map(t => ({
+              tarea: t.tarea,
+              estado: t.estado,
+              turno: t.turno,
+              responsable: t.responsable,
+              observaciones: t.observaciones,
+            }))} />
             {isAdmin && isPastDay && !reopenedDays.has(selectedDate) && (
               <Button variant="outline" size="sm" onClick={handleReopen} className="gap-1">
                 <Unlock className="w-4 h-4" /> Reabrir día

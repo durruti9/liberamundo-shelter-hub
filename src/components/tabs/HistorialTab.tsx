@@ -84,9 +84,12 @@ export default function HistorialTab({ store, role }: Props) {
             <History className="w-5 h-5 text-primary" />
             {t.guestHistory}
           </CardTitle>
-          <Button variant="outline" size="sm" onClick={exportCSV}>
-            <Download className="w-4 h-4 mr-2" /> {t.exportCSV}
-          </Button>
+          <div className="flex items-center gap-2">
+            <ExportButton type="historial" getData={() => sorted.map(h => ({ ...h, estado: h.activo ? 'Activo' : 'Inactivo' }))} />
+            <Button variant="outline" size="sm" onClick={exportCSV}>
+              <Download className="w-4 h-4 mr-2" /> {t.exportCSV}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {sorted.length === 0 ? (
