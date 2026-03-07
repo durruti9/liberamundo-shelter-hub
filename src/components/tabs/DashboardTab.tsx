@@ -6,7 +6,6 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 import { useI18n } from '@/i18n/I18nContext';
 import { formatDateES } from '@/lib/dateFormat';
 import BoardPanel from '@/components/BoardPanel';
-import ExportPanel from '@/components/ExportPanel';
 import { UserRole } from '@/types';
 import { api } from '@/lib/api';
 
