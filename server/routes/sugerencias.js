@@ -3,6 +3,28 @@ import pool from '../db.js';
 
 const router = Router();
 
+// Bulk delete suggestions (must be before /:param routes)
+router.post('/bulk-delete', async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!ids || !ids.length) return res.json({ ok: true });
+    await pool.query(`DELETE FROM sugerencias WHERE id = ANY($1::text[])`, [ids]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Clear all suggestions for an albergue (must be before /:id DELETE)
+router.delete('/clear/:albergueId', async (req, res) => {
+  try {
+    await pool.query(`DELETE FROM sugerencias WHERE albergue_id = $1`, [req.params.albergueId]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Get all suggestions (admin only)
 router.get('/:albergueId', async (req, res) => {
   try {
@@ -74,28 +96,6 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     await pool.query(`DELETE FROM sugerencias WHERE id = $1`, [req.params.id]);
-    res.json({ ok: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Bulk delete suggestions
-router.post('/bulk-delete', async (req, res) => {
-  try {
-    const { ids } = req.body;
-    if (!ids || !ids.length) return res.json({ ok: true });
-    await pool.query(`DELETE FROM sugerencias WHERE id = ANY($1::uuid[])`, [ids]);
-    res.json({ ok: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Clear all suggestions for an albergue
-router.delete('/clear/:albergueId', async (req, res) => {
-  try {
-    await pool.query(`DELETE FROM sugerencias WHERE albergue_id = $1`, [req.params.albergueId]);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
