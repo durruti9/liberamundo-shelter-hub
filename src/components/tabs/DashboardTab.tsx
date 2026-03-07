@@ -23,6 +23,16 @@ const COLORS = [
 export default function DashboardTab({ store, role = 'personal_albergue' }: Props) {
   const { huespedActivos, huespedes, totalCamas, incidencias, llegadas, boardMessages, addBoardMessage, addBoardReply, resolveBoardMessage, deleteBoardMessage } = store;
   const { t } = useI18n();
+  const isAdmin = role === 'admin';
+
+  // Pending suggestions count (admin only)
+  const [pendingSugerencias, setPendingSugerencias] = useState(0);
+  useEffect(() => {
+    if (!isAdmin) return;
+    api.getSugerencias(store.currentAlbergue?.id || 'default')
+      .then(data => setPendingSugerencias(data.filter((s: any) => !s.respuesta).length))
+      .catch(() => {});
+  }, [isAdmin, store.currentAlbergue?.id]);
 
   const ocupadas = huespedActivos.length;
   const libres = totalCamas - ocupadas;
