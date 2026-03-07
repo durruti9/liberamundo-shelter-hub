@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { UserRole } from '@/types';
 import CheckInModal from '@/components/CheckInModal';
 import { BedDouble, MoreVertical, AlertTriangle } from 'lucide-react';
+import ExportButton from '@/components/ExportButton';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { stayDuration, formatDateES } from '@/lib/dateFormat';
