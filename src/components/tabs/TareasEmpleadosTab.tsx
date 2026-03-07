@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ChevronLeft, ChevronRight, ClipboardList, Plus, Save, X, Unlock, MessageCircle, Send } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ClipboardList, Plus, Save, X, Unlock, MessageCircle, Send, Pencil } from 'lucide-react';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
 import { api } from '@/lib/api';
@@ -69,6 +69,8 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
   const [allTareasDates, setAllTareasDates] = useState<Record<string, TareaDia[]>>({});
   const [loading, setLoading] = useState(false);
   const [reopenedDays, setReopenedDays] = useState<Set<string>>(new Set());
+  const [editingIdx, setEditingIdx] = useState<Set<number>>(new Set());
+  const [originalTareas, setOriginalTareas] = useState<Record<number, TareaDia>>({});
   const [obsDialogIdx, setObsDialogIdx] = useState<number | null>(null);
   const [obsText, setObsText] = useState('');
   const [replyText, setReplyText] = useState('');
@@ -144,7 +146,34 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     try {
       await api.saveTareasDia(albergueId, selectedDate, tareas);
       await loadMonth();
+      setEditingIdx(new Set());
+      setOriginalTareas({});
       setSelectedDate(null);
+    } catch (err) {
+      console.error('Error saving tareas:', err);
+    }
+  };
+
+  const startEditing = (idx: number) => {
+    setOriginalTareas(prev => ({ ...prev, [idx]: { ...tareas[idx] } }));
+    setEditingIdx(prev => new Set(prev).add(idx));
+  };
+
+  const cancelEditing = (idx: number) => {
+    if (originalTareas[idx]) {
+      setTareas(prev => prev.map((t, i) => i === idx ? originalTareas[idx] : t));
+    }
+    setEditingIdx(prev => { const s = new Set(prev); s.delete(idx); return s; });
+    setOriginalTareas(prev => { const c = { ...prev }; delete c[idx]; return c; });
+  };
+
+  const registerTarea = async (idx: number) => {
+    if (!selectedDate) return;
+    try {
+      await api.saveTareasDia(albergueId, selectedDate, tareas);
+      await loadMonth();
+      setEditingIdx(prev => { const s = new Set(prev); s.delete(idx); return s; });
+      setOriginalTareas(prev => { const c = { ...prev }; delete c[idx]; return c; });
     } catch (err) {
       console.error('Error saving tareas:', err);
     }
@@ -223,25 +252,39 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                 <Unlock className="w-4 h-4" /> Reabrir día
               </Button>
             )}
-            <Button variant="outline" size="sm" onClick={() => setSelectedDate(null)}>
+            <Button variant="outline" size="sm" onClick={() => { setSelectedDate(null); setEditingIdx(new Set()); setOriginalTareas({}); }}>
               <X className="w-4 h-4 mr-1" /> {t.cancel}
             </Button>
             {editable && (
               <Button size="sm" onClick={handleSave} className="bg-[hsl(142,60%,40%)] hover:bg-[hsl(142,60%,35%)] text-white gap-1">
-                <Save className="w-4 h-4" /> {t.save}
+                <Save className="w-4 h-4" /> Guardar todo
               </Button>
             )}
           </div>
         </div>
 
         <div className="space-y-3">
-          {tareas.map((tarea, idx) => (
-            <Card key={idx} className="border hover:border-primary/30 transition-colors">
+          {tareas.map((tarea, idx) => {
+            const isEditing = editingIdx.has(idx);
+            const taskEditable = editable && isEditing;
+
+            return (
+            <Card key={idx} className={`border transition-colors ${isEditing ? 'border-primary/40 bg-primary/5' : 'hover:border-primary/30'}`}>
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <p className="font-semibold text-sm">{tarea.tareaNombre}</p>
+                      {/* Edit pencil icon */}
+                      {editable && !isEditing && (
+                        <button
+                          onClick={() => startEditing(idx)}
+                          className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-primary"
+                          title="Editar tarea"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                       {/* Admin observation icon */}
                       <button
                         onClick={() => openObsDialog(idx)}
@@ -272,7 +315,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <div>
                         <label className="text-xs text-muted-foreground">Estado</label>
-                        <Select value={tarea.estado} onValueChange={v => handleUpdateTarea(idx, 'estado', v)} disabled={!editable}>
+                        <Select value={tarea.estado} onValueChange={v => handleUpdateTarea(idx, 'estado', v)} disabled={!taskEditable}>
                           <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="pendiente">Pendiente</SelectItem>
@@ -283,7 +326,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                       </div>
                       <div>
                         <label className="text-xs text-muted-foreground">Turno</label>
-                        <Select value={tarea.turno} onValueChange={v => handleUpdateTarea(idx, 'turno', v)} disabled={!editable}>
+                        <Select value={tarea.turno} onValueChange={v => handleUpdateTarea(idx, 'turno', v)} disabled={!taskEditable}>
                           <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="mañana">Mañana</SelectItem>
@@ -294,18 +337,28 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                       </div>
                       <div>
                         <label className="text-xs text-muted-foreground">Hecho por</label>
-                        <Input className="h-8 text-xs" value={tarea.hechoPor} onChange={e => handleUpdateTarea(idx, 'hechoPor', e.target.value)} readOnly={!editable} placeholder="Nombre..." />
+                        <Input className="h-8 text-xs" value={tarea.hechoPor} onChange={e => handleUpdateTarea(idx, 'hechoPor', e.target.value)} readOnly={!taskEditable} placeholder="Nombre..." />
                       </div>
                       <div>
                         <label className="text-xs text-muted-foreground">Observación</label>
-                        <Input className="h-8 text-xs" value={tarea.observacion} onChange={e => handleUpdateTarea(idx, 'observacion', e.target.value)} readOnly={!editable} placeholder="..." />
+                        <Input className="h-8 text-xs" value={tarea.observacion} onChange={e => handleUpdateTarea(idx, 'observacion', e.target.value)} readOnly={!taskEditable} placeholder="..." />
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-end gap-2">
                     <Badge className={`text-xs border ${ESTADO_COLORS[tarea.estado]}`} variant="outline">
                       {tarea.estado}
                     </Badge>
+                    {editable && isEditing && (
+                      <div className="flex gap-1">
+                        <Button variant="outline" size="sm" onClick={() => cancelEditing(idx)} className="text-xs gap-1">
+                          <X className="w-3 h-3" /> Cancelar
+                        </Button>
+                        <Button size="sm" onClick={() => registerTarea(idx)} className="text-xs gap-1 bg-[hsl(142,60%,40%)] hover:bg-[hsl(142,60%,35%)] text-white">
+                          <Save className="w-3 h-3" /> Registrar
+                        </Button>
+                      </div>
+                    )}
                     {editable && (
                       <Button variant="outline" size="sm" onClick={() => handleDuplicate(idx)} className="text-xs gap-1">
                         <Plus className="w-3 h-3" /> Añadir otra
@@ -315,13 +368,14 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
 
         {editable && (
           <div className="flex justify-end pt-4">
             <Button size="lg" onClick={handleSave} className="bg-[hsl(142,60%,40%)] hover:bg-[hsl(142,60%,35%)] text-white gap-2">
-              <Save className="w-5 h-5" /> {t.save}
+              <Save className="w-5 h-5" /> Guardar todo
             </Button>
           </div>
         )}
