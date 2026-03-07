@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound, ClipboardList, MessageSquarePlus, StickyNote } from 'lucide-react';
+import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound, ListChecks, Mailbox, StickyNote } from 'lucide-react';
 import logo from '@/assets/Logo2Liberamundo.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -176,13 +176,13 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             </TabsTrigger>
             {(role === 'admin' || role === 'personal_albergue') && (
               <TabsTrigger value="tareas" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-                <ClipboardList className="w-4 h-4" />
+                <ListChecks className="w-4 h-4" />
                 <span className="hidden sm:inline">{t.employeeTasks}</span>
               </TabsTrigger>
             )}
             {role === 'admin' && (
               <TabsTrigger value="sugerencias" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-                <MessageSquarePlus className="w-4 h-4" />
+                <Mailbox className="w-4 h-4" />
                 <span className="hidden sm:inline">Buzón</span>
               </TabsTrigger>
             )}
