@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, PinOff, Pin, Trash2, StickyNote, Search } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api, isApiAvailable } from '@/lib/api';
 import { toast } from 'sonner';
 
 interface Nota {
@@ -19,6 +19,19 @@ interface Nota {
 
 interface Props {
   userEmail: string;
+}
+
+const STORAGE_KEY = 'notas_local';
+
+function loadLocal(email: string): Nota[] {
+  try {
+    const data = localStorage.getItem(`${STORAGE_KEY}_${email}`);
+    return data ? JSON.parse(data) : [];
+  } catch { return []; }
+}
+
+function saveLocal(email: string, notas: Nota[]) {
+  localStorage.setItem(`${STORAGE_KEY}_${email}`, JSON.stringify(notas));
 }
 
 const NOTE_COLORS = [
