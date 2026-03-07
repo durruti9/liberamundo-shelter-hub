@@ -1,73 +1,49 @@
-# Welcome to your Lovable project
+# Descripción del Proyecto
 
-## Project info
+**Liberamundo Shelter Hub** es una plataforma web moderna para gestionar refugios comunitarios, albergues o centros de acopio. Construida con tecnologías de vanguardia, facilita la colaboración descentralizada y el acceso rápido a recursos esenciales.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Tecnologías Utilizadas
 
-## How can I edit this code?
+- **Vite** (herramienta de build rápida)
+- **TypeScript** (tipado seguro)
+- **React** (interfaz dinámica)
+- **shadcn-ui** (componentes UI accesibles)
+- **Tailwind CSS** (estilos utilitarios responsivos)
 
-There are several ways of editing your application.
+Estas herramientas aseguran un desarrollo eficiente, escalable y mantenible.
 
-**Use Lovable**
+## Instalación Local
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+Para trabajar en el proyecto con tu IDE preferido:
 
-Changes made via Lovable will be committed automatically to this repo.
+1. Clona el repositorio:  
+   `git clone https://github.com/durruti9/liberamundo-shelter-hub.git`
 
-**Use your preferred IDE**
+2. Entra en el directorio:  
+   `cd liberamundo-shelter-hub`
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+3. Instala dependencias (requiere Node.js y npm):  
+   `npm install`
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+4. Inicia el servidor de desarrollo:  
+   `npm run dev`
 
-Follow these steps:
+Los cambios locales se pueden pushear directamente al repo.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Edición Rápida
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- **En GitHub**: Edita archivos con el icono de lápiz y commitea.  
+- **Codespaces**: Crea un entorno cloud desde la pestaña `"Code" > "Codespaces"`.
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Despliegue
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+Despliega en plataformas como **Vercel**, **Netlify** o **Render** vinculando el repositorio de GitHub.  
+Para dominios personalizados, configura la sección de *domains* en los ajustes de la plataforma de hosting.
 
-**Edit a file directly in GitHub**
+## Contribuir
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+¡Forkea, crea *issues* o *PRs*!  
+Sigue **conventional commits** para un historial limpio y revisa el código para mantener estándares altos.
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Proyecto **open-source** bajo licencia **MIT**.  
+Contacto: **@durruti9**.
