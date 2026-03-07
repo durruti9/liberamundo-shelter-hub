@@ -253,7 +253,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Contraseña</Label>
-                  <Input type="password" value={newUser.password} onChange={e => setNewUser(p => ({ ...p, password: e.target.value }))} placeholder="••••••" />
+                  <PasswordInput value={newUser.password} onChange={e => setNewUser(p => ({ ...p, password: e.target.value }))} placeholder="••••••" />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Rol</Label>
