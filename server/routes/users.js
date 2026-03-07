@@ -18,15 +18,12 @@ router.get('/', async (_, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { email, password, role, nombre, albergueIds = [] } = req.body;
+    const { email, password, role } = req.body;
     const hash = await bcrypt.hash(password, 10);
     await pool.query(
       'INSERT INTO users (email, password_hash, role, nombre) VALUES ($1, $2, $3, $4)',
-      [email, hash, role, nombre]
+      [email, hash, role, '']
     );
-    for (const aid of albergueIds) {
-      await pool.query('INSERT INTO user_albergues (user_email, albergue_id) VALUES ($1, $2)', [email, aid]);
-    }
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
