@@ -376,6 +376,11 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                     <div className="p-3 rounded bg-muted border">
                       <p className="text-sm whitespace-pre-wrap">{tareas[obsDialogIdx].respuestaEmpleado}</p>
                     </div>
+                    {editable && (
+                      <Button size="sm" variant="outline" onClick={clearEmployeeReply} className="text-muted-foreground gap-1">
+                        <X className="w-3 h-3" /> Borrar respuestas
+                      </Button>
+                    )}
                   </div>
                 )}
 
