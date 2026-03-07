@@ -447,6 +447,22 @@ export default function SugerenciasTab({ role, albergueId, userName }: Props) {
                 {/* Message */}
                 <p className="text-sm whitespace-pre-wrap ml-9">{sug.mensaje}</p>
 
+                {/* Attachment */}
+                {sug.adjunto && (
+                  <div className="ml-9 mt-2">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
+                      <Paperclip className="w-3 h-3" /> {sug.adjuntoNombre || 'Adjunto'}
+                    </p>
+                    {sug.adjuntoTipo?.startsWith('image/') ? (
+                      <a href={sug.adjunto} target="_blank" rel="noopener noreferrer">
+                        <img src={sug.adjunto} alt={sug.adjuntoNombre} className="max-h-60 rounded-lg border object-contain cursor-pointer hover:opacity-90 transition-opacity" />
+                      </a>
+                    ) : sug.adjuntoTipo?.startsWith('video/') ? (
+                      <video src={sug.adjunto} controls className="max-h-60 rounded-lg border" />
+                    ) : null}
+                  </div>
+                )}
+
                 {/* Translation */}
                 {sug.traduccion && sug.traduccion !== '__pending__' && (
                   <div className="ml-9 p-2 rounded bg-muted/60 border">
