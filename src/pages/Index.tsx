@@ -5,7 +5,7 @@ import { UserRole, Albergue, DEFAULT_ALBERGUE } from '@/types';
 import { I18nProvider } from '@/i18n/I18nContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2 } from 'lucide-react';
+import { Building2, AlertTriangle, X } from 'lucide-react';
 import logo from '@/assets/Logo2Liberamundo.png';
 
 function loadAlbergues(): Albergue[] {
@@ -27,12 +27,18 @@ const Index = () => {
       return data ? JSON.parse(data) : [];
     } catch { return []; }
   });
+  const [showDefaultWarning, setShowDefaultWarning] = useState(false);
 
   const handleLogin = (userRole: UserRole, albergueIds: string[]) => {
     setAuthed(true);
     setRole(userRole);
     setUserAlbergueIds(albergueIds);
     localStorage.setItem('userAlbergueIds', JSON.stringify(albergueIds));
+    // Show warning if logging in with default admin account
+    const currentEmail = localStorage.getItem('authEmail');
+    if (currentEmail === 'admin') {
+      setShowDefaultWarning(true);
+    }
   };
 
   const albergues = loadAlbergues();
@@ -93,13 +99,31 @@ const Index = () => {
           </Card>
         </div>
       ) : (
-        <AppLayout
-          key={albergueId || 'default'}
-          onLogout={handleLogout}
-          role={role}
-          albergueId={albergueId || availableAlbergues[0]?.id || 'default'}
-          onSwitchAlbergue={selectAlbergue}
-        />
+        <>
+          {showDefaultWarning && (
+            <div className="fixed top-0 left-0 right-0 z-50 bg-destructive text-destructive-foreground px-4 py-3 flex items-center justify-center gap-3 shadow-lg">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+              <p className="text-sm font-medium text-center">
+                ⚠️ Estás usando la cuenta por defecto (admin/admin). Crea otro usuario administrador y elimina esta cuenta.
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 text-destructive-foreground hover:bg-destructive-foreground/20 flex-shrink-0"
+                onClick={() => setShowDefaultWarning(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+          <AppLayout
+            key={albergueId || 'default'}
+            onLogout={handleLogout}
+            role={role}
+            albergueId={albergueId || availableAlbergues[0]?.id || 'default'}
+            onSwitchAlbergue={selectAlbergue}
+          />
+        </>
       )}
     </I18nProvider>
   );

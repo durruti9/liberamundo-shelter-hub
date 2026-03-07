@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { readFileSync } from 'fs';
+import bcrypt from 'bcrypt';
 import pool from './db.js';
 import authRoutes from './routes/auth.js';
 import albergueRoutes from './routes/albergues.js';
@@ -45,6 +46,18 @@ async function start() {
   try {
     const initSQL = readFileSync(new URL('./init.sql', import.meta.url), 'utf8');
     await pool.query(initSQL);
+    
+    // Ensure default admin user exists with password "admin"
+    const { rows } = await pool.query("SELECT email FROM users WHERE email = 'admin'");
+    if (rows.length === 0) {
+      const hash = await bcrypt.hash('admin', 10);
+      await pool.query(
+        "INSERT INTO users (email, password_hash, role, nombre) VALUES ('admin', $1, 'admin', '')",
+        [hash]
+      );
+      console.log('✅ Default admin user created (admin/admin)');
+    }
+    
     console.log('✅ Database initialized');
   } catch (err) {
     console.error('❌ DB init error:', err.message);
