@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Checkbox } from '@/components/ui/checkbox';
+
 import HabitacionesTab from './tabs/HabitacionesTab';
 import HistorialTab from './tabs/HistorialTab';
 import LlegadasTab from './tabs/LlegadasTab';
