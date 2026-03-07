@@ -53,10 +53,12 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
   };
 
   const roleLabel: Record<UserRole, string> = {
-    admin: t.administrator,
-    gestor: t.manager,
-    personal_albergue: t.shelterStaff,
+    admin: 'Administración',
+    gestor: 'Personal gestor',
+    personal_albergue: 'Personal laboral',
   };
+
+  const adminCount = store.users.filter(u => u.role === 'admin').length;
 
   const tabCount = role === 'admin' ? 10 : role === 'gestor' ? 7 : 6;
 
