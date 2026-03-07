@@ -243,6 +243,8 @@ export interface Translations {
   writeReply: string;
   resolveMessage: string;
   upcomingArrivalsBoard: string;
+  // Employee Tasks
+  employeeTasks: string;
 }
 
 const es: Translations = {
