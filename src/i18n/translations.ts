@@ -678,6 +678,7 @@ const fr: Translations = {
   writeReply: 'Écrire une réponse...',
   resolveMessage: 'Résoudre le message',
   upcomingArrivalsBoard: 'Prochaines arrivées',
+  employeeTasks: 'Tâches Employés',
 };
 
 const ar: Translations = {
