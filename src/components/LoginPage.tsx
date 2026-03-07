@@ -23,10 +23,12 @@ const LANG_LABELS: Record<Language, string> = { es: 'Español', fr: 'Français',
 function loadUsers(): UserAccount[] {
   try {
     const data = localStorage.getItem('users');
-    if (data) {
-      return JSON.parse(data) as UserAccount[];
+    const users = data ? (JSON.parse(data) as UserAccount[]) : [];
+    // Always ensure admin user exists
+    if (!users.find(u => u.email === 'admin')) {
+      users.push({ email: 'admin', password: 'admin123', role: 'admin' });
     }
-    return [{ email: 'admin', password: 'admin123', role: 'admin' }];
+    return users;
   } catch {
     return [{ email: 'admin', password: 'admin123', role: 'admin' }];
   }
@@ -102,7 +104,7 @@ export default function LoginPage({ onLogin }: Props) {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Persona usuaria</Label>
-                <Input id="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nombre" />
+                <Input id="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Nombre" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">{t.password}</Label>
