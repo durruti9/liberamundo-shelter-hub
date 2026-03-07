@@ -1005,7 +1005,7 @@ const en: Translations = {
   observations: 'Observations',
   paused: 'Paused',
   foodPlaceholder: 'Preferably...',
-  observationsPlaceholder: 'Ramadan, etc.',
+  observationsPlaceholder: 'Notes, extra info, Ramadan, etc.',
   downloadWeeklyPdf: 'Download weekly PDF',
   weekOf: 'Week of',
   all: 'All',
