@@ -228,7 +228,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
           )}
           {role === 'admin' && (
             <TabsContent value="notas">
-              <NotasTab />
+              <NotasTab userEmail={localStorage.getItem('authEmail') || ''} />
             </TabsContent>
           )}
         </Tabs>
