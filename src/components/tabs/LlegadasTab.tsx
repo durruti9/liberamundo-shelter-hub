@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { CalendarPlus, Check, Trash2, Pencil } from 'lucide-react';
+import ExportButton from '@/components/ExportButton';
 import { DIETAS, Dieta, UserRole, ProximaLlegada } from '@/types';
 import { formatDateES } from '@/lib/dateFormat';
 import { useI18n } from '@/i18n/I18nContext';
@@ -154,7 +155,10 @@ export default function LlegadasTab({ store, role }: Props) {
         <h2 className="text-xl font-bold flex items-center gap-2">
           <CalendarPlus className="w-5 h-5 text-primary" /> {t.upcomingArrivals}
         </h2>
-        {canManage && <Button onClick={openNew}>{t.newArrival}</Button>}
+        <div className="flex items-center gap-2">
+          <ExportButton type="llegadas" getData={() => llegadas} />
+          {canManage && <Button onClick={openNew}>{t.newArrival}</Button>}
+        </div>
       </div>
 
       <Card>

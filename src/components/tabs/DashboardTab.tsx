@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BedDouble, Users, Clock, AlertTriangle, TrendingUp, CalendarPlus, MessageSquarePlus } from 'lucide-react';
@@ -6,7 +6,6 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 import { useI18n } from '@/i18n/I18nContext';
 import { formatDateES } from '@/lib/dateFormat';
 import BoardPanel from '@/components/BoardPanel';
-import ExportPanel from '@/components/ExportPanel';
 import { UserRole } from '@/types';
 import { api } from '@/lib/api';
 
@@ -319,48 +318,6 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
             )}
           </CardContent>
         </Card>
-
-        {/* Export panel - admin & gestor */}
-        {(isAdmin || role === 'gestor') && (
-          <ExportPanel getData={(type) => {
-            const alId = store.currentAlbergue?.id || 'default';
-            switch (type) {
-              case 'huespedes':
-                return huespedes.map(h => ({
-                  ...h,
-                  estado: h.activo ? 'Activo' : 'Inactivo',
-                }));
-              case 'incidencias':
-                return incidencias.map(i => ({
-                  ...i,
-                  resuelta: i.resuelta ? 'Sí' : 'No',
-                }));
-              case 'sugerencias': {
-                const local = JSON.parse(localStorage.getItem(`sugerencias_${alId}`) || '[]');
-                return local.map((s: any) => ({
-                  ...s,
-                  resuelta: s.resuelta ? 'Sí' : 'No',
-                  nombre: s.anonimo ? 'Anónimo' : (s.nombre || ''),
-                }));
-              }
-              case 'llegadas':
-                return llegadas;
-              case 'comedor':
-                return huespedActivos.map(h => {
-                  const ce = store.comedor.find(c => c.huespedId === h.id);
-                  return {
-                    nombre: h.nombre,
-                    dieta: h.dieta,
-                    estado: ce?.estado || 'Activo',
-                    particularidades: ce?.particularidades || '',
-                    observaciones: ce?.observaciones || '',
-                  };
-                });
-              default:
-                return [];
-            }
-          }} />
-        )}
       </div>
     </div>
   );

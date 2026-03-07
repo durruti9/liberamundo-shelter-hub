@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { UtensilsCrossed, Clock, Download } from 'lucide-react';
+import ExportButton from '@/components/ExportButton';
 import { UserRole } from '@/types';
 import { formatDistanceToNow, startOfWeek, endOfWeek, format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -188,9 +189,18 @@ export default function ComedorTab({ store, role }: Props) {
             <Badge variant="outline" className="text-xs">{entries.length} {t.diners}</Badge>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={downloadWeeklyPdf} disabled={entries.length === 0} className="flex items-center gap-2">
-          <Download className="w-4 h-4" /> {t.downloadWeeklyPdf}
-        </Button>
+        <div className="flex items-center gap-2">
+          <ExportButton type="comedor" getData={() => entries.map(e => ({
+            nombre: e.huesped.nombre,
+            dieta: e.huesped.dieta,
+            estado: e.comedor.estado,
+            particularidades: e.comedor.particularidades,
+            observaciones: e.comedor.observaciones,
+          }))} />
+          <Button variant="outline" size="sm" onClick={downloadWeeklyPdf} disabled={entries.length === 0} className="flex items-center gap-2">
+            <Download className="w-4 h-4" /> {t.downloadWeeklyPdf}
+          </Button>
+        </div>
       </div>
 
       <Card>

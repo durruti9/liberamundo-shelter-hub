@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { UserRole } from '@/types';
 import CheckInModal from '@/components/CheckInModal';
 import { BedDouble, MoreVertical, AlertTriangle } from 'lucide-react';
+import ExportButton from '@/components/ExportButton';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { stayDuration, formatDateES } from '@/lib/dateFormat';
@@ -105,6 +106,9 @@ export default function HabitacionesTab({ store, role }: Props) {
   return (
     <div className="space-y-6">
       {/* Summary */}
+      <div className="flex justify-end">
+        <ExportButton type="huespedes" getData={() => huespedActivos.map(h => ({ ...h, estado: h.activo ? 'Activo' : 'Inactivo' }))} />
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="pt-6">
