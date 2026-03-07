@@ -112,8 +112,6 @@ export interface UserAccount {
   email: string;
   password: string;
   role: UserRole;
-  nombre: string;
-  albergueIds: string[];
 }
 
 export type BoardType = 'instrucciones' | 'peticiones';
