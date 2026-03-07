@@ -184,7 +184,7 @@ export default function LoginPage({ onLogin }: Props) {
           </DialogHeader>
           <div className="space-y-4">
             {recoveryStatus === 'sent' ? (
-              <p className="text-sm text-green-600">✅ Credenciales enviadas al correo indicado.</p>
+              <p className="text-sm text-primary">✅ Credenciales enviadas al correo indicado.</p>
             ) : (
               <>
                 <Input
