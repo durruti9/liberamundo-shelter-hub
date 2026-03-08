@@ -44,14 +44,16 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
   const [tab, setTab] = useState('dashboard');
   const [showUsers, setShowUsers] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [newUser, setNewUser] = useState({ email: '', password: '', role: 'personal_albergue' as UserRole });
+  const [newUser, setNewUser] = useState({ email: '', password: '', role: 'personal_albergue' as UserRole, albergueIds: [] as string[] });
   const [changingPasswordFor, setChangingPasswordFor] = useState<string | null>(null);
   const [newPasswordValue, setNewPasswordValue] = useState('');
+  const [editingAlberguesFor, setEditingAlberguesFor] = useState<string | null>(null);
+  const [editAlbergueIds, setEditAlbergueIds] = useState<string[]>([]);
 
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     if (!newUser.email || !newUser.password) return;
-    store.addUser(newUser);
-    setNewUser({ email: '', password: '', role: 'personal_albergue' });
+    await store.addUser(newUser);
+    setNewUser({ email: '', password: '', role: 'personal_albergue', albergueIds: [] });
   };
 
   const roleLabel: Record<UserRole, string> = {
