@@ -135,10 +135,16 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
   };
 
   const handleUpdateTarea = (idx: number, field: keyof TareaDia, value: string) => {
-    setTareas(prev => prev.map((t, i) => i === idx ? { ...t, [field]: value } : t));
+    const updated = tareas.map((t, i) => i === idx ? { ...t, [field]: value } : t);
+    setTareas(updated);
+    // Auto-save when estado changes to 'hecha' or 'no procede' (task locks)
+    if (field === 'estado' && (value === 'hecha' || value === 'no procede') && selectedDate) {
+      api.saveTareasDia(albergueId, selectedDate, updated)
+        .then(() => loadMonth())
+        .then(() => toast.success('Tarea registrada'))
+        .catch(() => toast.error('Error al registrar'));
+    }
   };
-
-  
 
   // Check if a task at index is a duplicate (not the first occurrence of its tareaId)
   const isDuplicate = (idx: number): boolean => {
