@@ -485,7 +485,7 @@ const es: Translations = {
   writeReply: 'Escribe una respuesta...',
   resolveMessage: 'Resolver mensaje',
   upcomingArrivalsBoard: 'Próximas llegadas',
-  employeeTasks: 'Tareas Empleados',
+  employeeTasks: 'Tareas Diarias',
 };
 
 const fr: Translations = {
@@ -714,7 +714,7 @@ const fr: Translations = {
   writeReply: 'Écrire une réponse...',
   resolveMessage: 'Résoudre le message',
   upcomingArrivalsBoard: 'Prochaines arrivées',
-  employeeTasks: 'Tâches Employés',
+  employeeTasks: 'Tâches Quotidiennes',
 };
 
 const ar: Translations = {
@@ -943,7 +943,7 @@ const ar: Translations = {
   writeReply: 'اكتب رداً...',
   resolveMessage: 'حل الرسالة',
   upcomingArrivalsBoard: 'الوصول القادم',
-  employeeTasks: 'مهام الموظفين',
+  employeeTasks: 'المهام اليومية',
 };
 
 const en: Translations = {
@@ -1172,7 +1172,7 @@ const en: Translations = {
   writeReply: 'Write a reply...',
   resolveMessage: 'Resolve message',
   upcomingArrivalsBoard: 'Upcoming arrivals',
-  employeeTasks: 'Employee Tasks',
+  employeeTasks: 'Daily Tasks',
 };
 
 const ru: Translations = {
@@ -1401,7 +1401,7 @@ const ru: Translations = {
   writeReply: 'Написать ответ...',
   resolveMessage: 'Решить сообщение',
   upcomingArrivalsBoard: 'Ближайшие прибытия',
-  employeeTasks: 'Задачи сотрудников',
+  employeeTasks: 'Ежедневные задачи',
 };
 
 export const translations: Record<Language, Translations> = { es, fr, ar, en, ru };

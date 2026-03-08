@@ -150,7 +150,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               </TabsTrigger>
             )}
             <TabsTrigger value="habitaciones" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-              <BedDouble className="w-4 h-4" />
+              <BedDouble className="w-5 h-5" />
               <span className="hidden sm:inline">{t.rooms}</span>
             </TabsTrigger>
             {(role === 'admin' || role === 'gestor') && (
