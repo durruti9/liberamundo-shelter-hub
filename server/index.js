@@ -67,6 +67,28 @@ app.use('/api/menu', requireAuth, menuRoutes);
 app.use('/api/access-logs', requireAuth, accessLogRoutes);
 app.use('/api/registro-horario', requireAuth, registroHorarioRoutes);
 
+// Diagnostic endpoint (requires auth + admin)
+app.get('/api/debug/status', requireAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Solo admin' });
+  try {
+    const [albergues, users, userAlbergues, huespedesCount] = await Promise.all([
+      pool.query('SELECT id, nombre FROM albergues'),
+      pool.query('SELECT email, role, nombre FROM users'),
+      pool.query('SELECT user_email, albergue_id FROM user_albergues ORDER BY user_email'),
+      pool.query('SELECT albergue_id, COUNT(*) as total FROM huespedes GROUP BY albergue_id'),
+    ]);
+    res.json({
+      albergues: albergues.rows,
+      users: users.rows,
+      userAlbergues: userAlbergues.rows,
+      huespedesCount: huespedesCount.rows,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Catch-all for unknown API routes
 app.all('/api/*', (_, res) => {
   res.status(404).json({ error: 'API route not found' });

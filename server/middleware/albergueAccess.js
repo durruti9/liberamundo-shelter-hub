@@ -61,7 +61,11 @@ export function requireHuespedAccess(paramName = 'huespedId') {
       );
 
       if (rows.length === 0) {
-        return res.status(403).json({ error: 'Sin acceso a este huésped' });
+        console.warn(`[ACCESS DENIED] User ${user.email} (role: ${user.role}) tried to access huésped ${huespedId}`);
+        return res.status(403).json({ 
+          error: 'Sin acceso a este huésped',
+          debug: { userEmail: user.email, role: user.role, requestedHuespedId: huespedId }
+        });
       }
 
       next();
