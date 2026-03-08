@@ -288,6 +288,13 @@ export function useAlbergueStore(albergueId: string = 'default') {
     setAlbergues(prev => prev.map(a => a.id === albergueId ? { ...a, rooms: newRooms } : a));
   }, [useApi, albergueId, loadFromApi]);
 
+  const updateRoomCleaning = useCallback(async (roomId: string, ultimaLimpieza: string) => {
+    if (useApi) { await api.updateRoomCleaning(albergueId, roomId, ultimaLimpieza); await loadFromApi(); return; }
+    setAlbergues(prev => prev.map(a => a.id === albergueId ? {
+      ...a, rooms: a.rooms.map(r => r.id === roomId ? { ...r, ultimaLimpieza } : r)
+    } : a));
+  }, [useApi, albergueId, loadFromApi]);
+
   const addBoardMessage = useCallback(async (msg: Omit<BoardMessage, 'id' | 'resuelta' | 'respuestas'>) => {
     if (useApi) { await api.addBoardMessage(albergueId, msg); await loadFromApi(); return; }
     setBoardMessages(prev => [...prev, { ...msg, id: crypto.randomUUID(), resuelta: false, respuestas: [] }]);
