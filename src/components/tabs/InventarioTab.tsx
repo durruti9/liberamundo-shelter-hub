@@ -51,6 +51,11 @@ export default function InventarioTab({ role, albergueId }: Props) {
     categoria_id: '', nombre: '', unidad: 'unidades', stock_actual: 0, stock_minimo: 0, ubicacion: '', notas: '',
   });
   const [statsOpen, setStatsOpen] = useState(false);
+  const [consumoData, setConsumoData] = useState<any[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   const canManage = role === 'admin' || role === 'personal_albergue';
 
