@@ -295,6 +295,8 @@ export const api = {
     request<InventarioCategoria>(`/inventario/${albergueId}/categorias`, { method: 'POST', body: JSON.stringify(data) }),
   deleteInventarioCategoria: (id: string) =>
     request<OkResponse>(`/inventario/categorias/${id}`, { method: 'DELETE' }),
+  updateInventarioCategoria: (id: string, data: { nombre: string }) =>
+    request<InventarioCategoria>(`/inventario/categorias/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   getInventarioItems: (albergueId: string) => request<InventarioItem[]>(`/inventario/${albergueId}/items`),
   addInventarioItem: (albergueId: string, data: Partial<InventarioItem>) =>
     request<InventarioItem>(`/inventario/${albergueId}/items`, { method: 'POST', body: JSON.stringify(data) }),
