@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { History, Pencil, Trash2, UserPlus, AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
 import ExportButton from '@/components/ExportButton';
 import { DIETAS, Dieta, UserRole } from '@/types';
 import { formatDateES } from '@/lib/dateFormat';
@@ -47,18 +48,26 @@ export default function HistorialTab({ store, role }: Props) {
     setEditId(h.id);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editId) return;
-    editHuesped(editId, editForm);
-    setEditId(null);
+    try {
+      await editHuesped(editId, editForm);
+      setEditId(null);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al guardar');
+    }
   };
 
-  const handleReincorporar = () => {
+  const handleReincorporar = async () => {
     if (!reincorporarId || !selectedRoom || !selectedBed) return;
-    reincorporar(reincorporarId, selectedRoom, parseInt(selectedBed));
-    setReincorporarId(null);
-    setSelectedRoom('');
-    setSelectedBed('');
+    try {
+      await reincorporar(reincorporarId, selectedRoom, parseInt(selectedBed));
+      setReincorporarId(null);
+      setSelectedRoom('');
+      setSelectedBed('');
+    } catch (err: any) {
+      toast.error(err.message || 'Error al reincorporar');
+    }
   };
 
   const bedsForRoom = freeBeds.filter(fb => fb.habitacion === selectedRoom);
@@ -214,7 +223,12 @@ export default function HistorialTab({ store, role }: Props) {
           <p className="text-sm text-muted-foreground">{t.deleteConfirmMsg}</p>
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>{t.cancel}</Button>
-            <Button variant="destructive" onClick={() => { if (deleteConfirmId) deleteHuesped(deleteConfirmId); setDeleteConfirmId(null); }}>{t.delete}</Button>
+            <Button variant="destructive" onClick={async () => {
+              if (deleteConfirmId) {
+                try { await deleteHuesped(deleteConfirmId); } catch (err: any) { toast.error(err.message || 'Error al eliminar'); }
+              }
+              setDeleteConfirmId(null);
+            }}>{t.delete}</Button>
           </div>
         </DialogContent>
       </Dialog>
