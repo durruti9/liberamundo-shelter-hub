@@ -23,7 +23,7 @@ interface Props {
 }
 
 export default function HabitacionesTab({ store, role }: Props) {
-  const { huespedActivos, rooms, totalCamas, checkIn, checkOut, cambiarCama, editHuesped, deleteHuesped, getOccupant } = store;
+  const { huespedActivos, rooms, totalCamas, checkIn, checkOut, cambiarCama, editHuesped, deleteHuesped, getOccupant, updateRooms } = store;
   const { t } = useI18n();
   const [checkInTarget, setCheckInTarget] = useState<{ habitacion: string; cama: number } | null>(null);
   const [editTarget, setEditTarget] = useState<string | null>(null);
