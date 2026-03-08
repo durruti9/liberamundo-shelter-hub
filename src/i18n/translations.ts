@@ -1172,7 +1172,7 @@ const en: Translations = {
   writeReply: 'Write a reply...',
   resolveMessage: 'Resolve message',
   upcomingArrivalsBoard: 'Upcoming arrivals',
-  employeeTasks: 'Employee Tasks',
+  employeeTasks: 'Daily Tasks',
 };
 
 const ru: Translations = {
