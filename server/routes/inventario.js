@@ -234,6 +234,50 @@ router.get('/:albergueId/alertas', requireAlbergueAccess(), async (req, res) => 
   }
 });
 
+// GET global movements for albergue (with filters)
+router.get('/:albergueId/movimientos', requireAlbergueAccess(), async (req, res) => {
+  try {
+    const { start, end, categoria, usuario } = req.query;
+    let query = `
+      SELECT m.*, i.nombre as item_nombre, i.unidad, c.nombre as categoria_nombre
+      FROM inventario_movimientos m
+      JOIN inventario_items i ON m.item_id = i.id
+      JOIN inventario_categorias c ON i.categoria_id = c.id
+      WHERE i.albergue_id = $1
+    `;
+    const params = [req.params.albergueId];
+    let paramIdx = 2;
+
+    if (start) {
+      query += ` AND m.fecha >= $${paramIdx}`;
+      params.push(start);
+      paramIdx++;
+    }
+    if (end) {
+      query += ` AND m.fecha <= $${paramIdx}`;
+      params.push(end + ' 23:59:59');
+      paramIdx++;
+    }
+    if (categoria) {
+      query += ` AND c.id = $${paramIdx}`;
+      params.push(categoria);
+      paramIdx++;
+    }
+    if (usuario) {
+      query += ` AND m.usuario ILIKE $${paramIdx}`;
+      params.push(`%${usuario}%`);
+      paramIdx++;
+    }
+
+    query += ' ORDER BY m.fecha DESC LIMIT 500';
+
+    const { rows } = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET monthly consumption
 router.get('/:albergueId/consumo-mensual', requireAlbergueAccess(), async (req, res) => {
   try {

@@ -271,6 +271,18 @@ export const EXPORT_CONFIGS = {
       { key: 'notas', label: 'Notas' },
     ],
   },
+  movimientos: {
+    title: 'Historial de movimientos',
+    columns: [
+      { key: 'fecha', label: 'Fecha' },
+      { key: 'item_nombre', label: 'Artículo' },
+      { key: 'categoria_nombre', label: 'Categoría' },
+      { key: 'tipo', label: 'Tipo' },
+      { key: 'cantidad', label: 'Cantidad' },
+      { key: 'usuario', label: 'Usuario' },
+      { key: 'motivo', label: 'Motivo' },
+    ],
+  },
   informes: {
     title: 'Informe de ocupación',
     columns: [
