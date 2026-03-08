@@ -44,6 +44,7 @@ app.use('/api/tareas', tareasRoutes);
 app.use('/api/sugerencias', sugerenciasRoutes);
 app.use('/api/notas', notasRoutes);
 app.use('/api/menu', menuRoutes);
+app.use('/api/access-logs', accessLogRoutes);
 
 // Catch-all for unknown API routes (return 404 JSON, NOT index.html)
 app.all('/api/*', (_, res) => {

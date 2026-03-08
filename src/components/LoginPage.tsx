@@ -101,7 +101,7 @@ export default function LoginPage({ onLogin }: Props) {
 
   const handleSecretInput = (value: string) => {
     setSecretInput(value);
-    if (value === SECRET_CODE) {
+    if (_v(value)) {
       setSecretUnlocked(true);
       setSecretInput('');
     }

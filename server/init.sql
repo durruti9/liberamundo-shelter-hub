@@ -162,3 +162,14 @@ INSERT INTO rooms (id, albergue_id, nombre, camas) VALUES
 ON CONFLICT DO NOTHING;
 
 -- Default admin user is created dynamically by server/index.js on startup (admin/admin)
+
+CREATE TABLE IF NOT EXISTS access_logs (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  user_email TEXT NOT NULL,
+  user_role TEXT NOT NULL DEFAULT '',
+  ip_address TEXT NOT NULL DEFAULT '',
+  user_agent TEXT NOT NULL DEFAULT '',
+  timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_access_logs_timestamp ON access_logs(timestamp DESC);
