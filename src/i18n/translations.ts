@@ -943,7 +943,7 @@ const ar: Translations = {
   writeReply: 'اكتب رداً...',
   resolveMessage: 'حل الرسالة',
   upcomingArrivalsBoard: 'الوصول القادم',
-  employeeTasks: 'مهام الموظفين',
+  employeeTasks: 'المهام اليومية',
 };
 
 const en: Translations = {
