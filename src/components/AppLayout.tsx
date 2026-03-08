@@ -22,6 +22,7 @@ import DashboardTab from './tabs/DashboardTab';
 import TareasEmpleadosTab from './tabs/TareasEmpleadosTab';
 import SugerenciasTab from './tabs/SugerenciasTab';
 import NotasTab from './tabs/NotasTab';
+import RegistroHorarioTab from './tabs/RegistroHorarioTab';
 import { useAlbergueStore } from '@/hooks/useAlbergueStore';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
