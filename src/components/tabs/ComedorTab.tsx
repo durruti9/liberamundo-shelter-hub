@@ -391,9 +391,16 @@ export default function ComedorTab({ store, role }: Props) {
                           </Select>
                         </TableCell>
                         <TableCell>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1">
-                            <Clock className="w-3 h-3" /> {lastMod}
-                          </span>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1">
+                              <Clock className="w-3 h-3" /> {lastMod}
+                            </span>
+                            {c.ultimoUsuario && (
+                              <span className="text-[10px] text-muted-foreground/70 truncate max-w-[120px]" title={c.ultimoUsuario}>
+                                {c.ultimoUsuario}
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Input
