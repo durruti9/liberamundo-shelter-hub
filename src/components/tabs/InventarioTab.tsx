@@ -52,8 +52,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
   const [newItem, setNewItem] = useState({
     categoria_id: '', nombre: '', unidad: 'unidades', stock_actual: 0, stock_minimo: 0, ubicacion: '', notas: '',
   });
-  const [movAmount, setMovAmount] = useState(0);
-  const [movMotivo, setMovMotivo] = useState('');
 
   const isAdmin = role === 'admin';
 
