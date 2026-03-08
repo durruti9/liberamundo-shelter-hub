@@ -32,6 +32,7 @@ const SugerenciasTab = lazy(() => import('./tabs/SugerenciasTab'));
 const NotasTab = lazy(() => import('./tabs/NotasTab'));
 const RegistroHorarioTab = lazy(() => import('./tabs/RegistroHorarioTab'));
 const InventarioTab = lazy(() => import('./tabs/InventarioTab'));
+const InformesTab = lazy(() => import('./tabs/InformesTab'));
 
 interface Props {
   onLogout: () => void;
