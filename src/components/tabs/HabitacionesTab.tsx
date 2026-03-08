@@ -199,7 +199,9 @@ export default function HabitacionesTab({ store, role }: Props) {
                   </PopoverContent>
                 </Popover>
                 {room.ultimaLimpieza && (() => {
+                  try {
                   const days = differenceInDays(new Date(), new Date(room.ultimaLimpieza + 'T00:00:00'));
+                  if (isNaN(days)) return null;
                   return (
                     <span className={cn(
                       "text-[10px] font-medium",
