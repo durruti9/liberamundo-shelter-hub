@@ -5,7 +5,7 @@ import { generateToken } from '../middleware/auth.js';
 
 const router = Router();
 
-// --- Rate limiting: max 5 attempts per IP per 15 min ---
+// --- Rate limiting: max 5 FAILED attempts per IP per 15 min ---
 const loginAttempts = new Map();
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000;
 const RATE_LIMIT_MAX = 5;
@@ -14,12 +14,23 @@ function checkRateLimit(ip) {
   const now = Date.now();
   const record = loginAttempts.get(ip);
   if (!record || now - record.firstAttempt > RATE_LIMIT_WINDOW) {
-    loginAttempts.set(ip, { count: 1, firstAttempt: now });
-    return true;
+    return true; // No record or expired
   }
-  if (record.count >= RATE_LIMIT_MAX) return false;
-  record.count++;
-  return true;
+  return record.count < RATE_LIMIT_MAX;
+}
+
+function recordFailedAttempt(ip) {
+  const now = Date.now();
+  const record = loginAttempts.get(ip);
+  if (!record || now - record.firstAttempt > RATE_LIMIT_WINDOW) {
+    loginAttempts.set(ip, { count: 1, firstAttempt: now });
+  } else {
+    record.count++;
+  }
+}
+
+function clearAttempts(ip) {
+  loginAttempts.delete(ip);
 }
 
 setInterval(() => {
@@ -40,11 +51,20 @@ router.post('/login', async (req, res) => {
 
     const { email, password } = req.body;
     const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (rows.length === 0) return res.status(401).json({ error: 'Credenciales inválidas' });
+    if (rows.length === 0) {
+      recordFailedAttempt(ipStr);
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
 
     const user = rows[0];
     const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) return res.status(401).json({ error: 'Credenciales inválidas' });
+    if (!valid) {
+      recordFailedAttempt(ipStr);
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+
+    // Successful login — clear any failed attempts for this IP
+    clearAttempts(ipStr);
 
     // Get assigned albergues
     let { rows: albergueRows } = await pool.query(
