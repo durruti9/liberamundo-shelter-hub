@@ -256,7 +256,9 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
           </CardHeader>
           <CardContent>
             {dietData.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8 text-sm">{t.noActiveGuests}</p>
+              <p className="text-center text-muted-foreground py-8 text-sm">
+                No hay huéspedes activos. Registra el primer ingreso desde la pestaña <strong>Habitaciones</strong>.
+              </p>
             ) : (
               <div className="flex items-center gap-4">
                 <ResponsiveContainer width="50%" height={180}>
