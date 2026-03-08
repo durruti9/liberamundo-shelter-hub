@@ -304,16 +304,15 @@ export default function InventarioTab({ role, albergueId }: Props) {
                 <TableRow>
                   <TableHead>Artículo</TableHead>
                   <TableHead>Categoría</TableHead>
-                  <TableHead className="text-right">Stock</TableHead>
-                  <TableHead className="text-right">Mínimo</TableHead>
-                  <TableHead className="hidden sm:table-cell">Ubicación</TableHead>
+                  <TableHead className="text-right">Unidades</TableHead>
+                  <TableHead className="text-right">Aviso stock bajo</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredItems.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                       No hay artículos{selectedCategory !== 'all' ? ' en esta categoría' : ''}
                     </TableCell>
                   </TableRow>
@@ -330,10 +329,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                       {item.stock_actual} {item.unidad}
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
-                      {item.stock_minimo > 0 ? `${item.stock_minimo} ${item.unidad}` : '—'}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">
-                      {item.ubicacion || '—'}
+                      {item.stock_minimo > 0 ? item.stock_minimo : '—'}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
