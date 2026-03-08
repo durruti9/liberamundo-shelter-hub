@@ -192,4 +192,28 @@ router.get('/:albergueId/alertas', requireAlbergueAccess(), async (req, res) => 
   }
 });
 
+// GET monthly consumption (salidas) for albergue
+router.get('/:albergueId/consumo-mensual', requireAlbergueAccess(), async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT 
+         to_char(m.fecha, 'YYYY-MM') as mes,
+         i.nombre as item_nombre,
+         c.nombre as categoria_nombre,
+         SUM(CASE WHEN m.tipo = 'salida' THEN m.cantidad ELSE 0 END) as total_salidas,
+         SUM(CASE WHEN m.tipo = 'entrada' THEN m.cantidad ELSE 0 END) as total_entradas
+       FROM inventario_movimientos m
+       JOIN inventario_items i ON m.item_id = i.id
+       JOIN inventario_categorias c ON i.categoria_id = c.id
+       WHERE i.albergue_id = $1
+       GROUP BY to_char(m.fecha, 'YYYY-MM'), i.nombre, c.nombre
+       ORDER BY mes DESC, c.nombre, total_salidas DESC`,
+      [req.params.albergueId]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
