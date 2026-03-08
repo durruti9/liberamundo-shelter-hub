@@ -1,11 +1,14 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
-import { BarChart3, Users, TrendingUp, Globe, Clock, BedDouble, UtensilsCrossed } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Globe, Clock, BedDouble, UtensilsCrossed, FileDown } from 'lucide-react';
 import { UserRole } from '@/types';
 import ExportButton from '@/components/ExportButton';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
