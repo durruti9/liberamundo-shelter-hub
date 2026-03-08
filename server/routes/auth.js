@@ -138,7 +138,8 @@ function getEmergencySecret() {
 router.post('/verify-emergency', async (req, res) => {
   try {
     const { secretCode } = req.body;
-    if (!secretCode || secretCode !== getEmergencySecret()) {
+    const emergencySecret = getEmergencySecret();
+    if (!emergencySecret || !secretCode || secretCode !== emergencySecret) {
       return res.status(403).json({ error: 'Código inválido' });
     }
     res.json({ ok: true });
