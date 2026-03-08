@@ -293,7 +293,7 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
           <CardContent>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" className="opacity-50" />
                 <XAxis dataKey="month" className="text-xs" tick={{ fontSize: 11 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
                 <Tooltip content={<ChartTooltip />} />
