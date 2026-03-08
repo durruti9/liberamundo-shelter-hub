@@ -18,6 +18,7 @@ import notasRoutes from './routes/notas.js';
 import menuRoutes from './routes/menu.js';
 import accessLogRoutes from './routes/access-logs.js';
 import registroHorarioRoutes from './routes/registro-horario.js';
+import inventarioRoutes from './routes/inventario.js';
 
 const app = express();
 
