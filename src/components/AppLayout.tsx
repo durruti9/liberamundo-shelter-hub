@@ -175,6 +175,9 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               onNavigate={handleNotificationNavigate}
             />
 
+            {/* Connection indicator */}
+            <ConnectionIndicator />
+
             {/* Theme toggle */}
             <ThemeToggle />
 
