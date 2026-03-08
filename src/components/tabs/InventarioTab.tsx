@@ -559,13 +559,13 @@ export default function InventarioTab({ role, albergueId }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* Monthly stats collapsible */}
+      {/* Monthly consumption collapsible */}
       <Collapsible open={statsOpen} onOpenChange={setStatsOpen}>
         <CollapsibleTrigger asChild>
           <Button variant="outline" className="w-full flex items-center justify-between gap-2">
             <span className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
-              Estadísticas de inventario
+              Gasto mensual de productos
             </span>
             <ChevronDown className={`w-4 h-4 transition-transform ${statsOpen ? 'rotate-180' : ''}`} />
           </Button>
@@ -573,36 +573,55 @@ export default function InventarioTab({ role, albergueId }: Props) {
         <CollapsibleContent className="mt-3">
           <Card>
             <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-primary" />
-                Resumen por categoría
-              </CardTitle>
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-primary" />
+                  Consumo mensual (salidas)
+                </CardTitle>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger className="w-[140px] h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableMonths.map(m => (
+                      <SelectItem key={m} value={m}>
+                        {new Date(m + '-01').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
-              {monthlyStats.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">No hay datos</p>
+              {consumoMes.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No hay movimientos registrados en este mes
+                </p>
               ) : (
-                <div className="space-y-3">
-                  {monthlyStats.map(stat => (
-                    <div key={stat.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                      <div>
-                        <p className="font-medium text-sm">{stat.nombre}</p>
-                        <p className="text-xs text-muted-foreground">{stat.totalItems} artículo{stat.totalItems !== 1 ? 's' : ''}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold">{stat.totalStock} uds. en stock</p>
-                        {stat.lowStock > 0 && (
-                          <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1 justify-end">
-                            <AlertTriangle className="w-3 h-3" />
-                            {stat.lowStock} bajo mínimo
-                          </p>
-                        )}
+                <div className="space-y-4">
+                  {consumoMes.map(cat => (
+                    <div key={cat.categoria}>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{cat.categoria}</p>
+                      <div className="space-y-1.5">
+                        {cat.items.map(item => (
+                          <div key={item.nombre} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                            <span className="text-sm">{item.nombre}</span>
+                            <div className="flex items-center gap-3 text-sm">
+                              {item.entradas > 0 && (
+                                <span className="text-emerald-600 dark:text-emerald-400">+{item.entradas}</span>
+                              )}
+                              {item.salidas > 0 && (
+                                <span className="text-red-600 dark:text-red-400 font-medium">-{item.salidas}</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
                   <div className="border-t border-border pt-3 flex justify-between text-sm font-medium">
-                    <span>Total general</span>
-                    <span>{items.reduce((sum, i) => sum + i.stock_actual, 0)} unidades · {alertItems.length} alertas</span>
+                    <span>Total consumido este mes</span>
+                    <span className="text-red-600 dark:text-red-400">{totalSalidasMes} unidades</span>
                   </div>
                 </div>
               )}
