@@ -395,9 +395,10 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
     }
   };
 
-  // Delete employee
-  const handleDeleteEmployee = async (id: string) => {
-    if (!confirm('¿Eliminar empleado y todos sus registros?')) return;
+  // Delete employee (triggered from AlertDialog)
+  const confirmDeleteEmployee = async () => {
+    if (!deleteEmpTarget) return;
+    const id = deleteEmpTarget;
     try {
       await api.deleteEmpleadoHorario(id);
       setEmpleados(prev => prev.filter(e => e.id !== id));
@@ -408,6 +409,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
     } catch (err: any) {
       toast.error(err.message);
     }
+    setDeleteEmpTarget(null);
   };
 
   // Month totals
