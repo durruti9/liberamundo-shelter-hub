@@ -31,8 +31,15 @@ setInterval(() => {
 
 router.post('/login', async (req, res) => {
   try {
+    const ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.socket?.remoteAddress || '';
+    const ipStr = typeof ip === 'string' ? ip : String(ip);
+
+    // Rate limit check
+    if (!checkRateLimit(ipStr)) {
+      return res.status(429).json({ error: 'Demasiados intentos. Espera 15 minutos.' });
+    }
+
     const { email, password } = req.body;
-    const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (rows.length === 0) return res.status(401).json({ error: 'Credenciales inválidas' });
 
     const user = rows[0];
