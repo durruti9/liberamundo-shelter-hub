@@ -16,6 +16,7 @@ import { es } from 'date-fns/locale';
 import { useI18n } from '@/i18n/I18nContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { toast } from 'sonner';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
