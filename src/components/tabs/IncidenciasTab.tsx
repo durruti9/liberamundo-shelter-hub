@@ -42,23 +42,27 @@ export default function IncidenciasTab({ store, role }: Props) {
   const canResolve = role === 'admin' || role === 'gestor';
   const sorted = [...incidencias].sort((a, b) => b.fecha.localeCompare(a.fecha));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isGeneral && !form.huespedId) return;
     if (!form.descripcion.trim()) return;
     const huesped = !isGeneral ? huespedes.find(h => h.id === form.huespedId) : null;
-    addIncidencia({
-      huespedId: isGeneral ? '' : form.huespedId,
-      huespedNombre: isGeneral ? (t.generalIncidentLabel || 'General') : (huesped?.nombre || ''),
-      tipo: isGeneral ? 'general' : form.tipo,
-      descripcion: form.descripcion,
-      fecha: form.fecha,
-      resuelta: false,
-      creadoPor: role,
-    });
-    setForm({ huespedId: '', tipo: 'other', descripcion: '', fecha: new Date().toISOString().split('T')[0] });
-    setIsGeneral(false);
-    setShowForm(false);
+    try {
+      await addIncidencia({
+        huespedId: isGeneral ? '' : form.huespedId,
+        huespedNombre: isGeneral ? (t.generalIncidentLabel || 'General') : (huesped?.nombre || ''),
+        tipo: isGeneral ? 'general' : form.tipo,
+        descripcion: form.descripcion,
+        fecha: form.fecha,
+        resuelta: false,
+        creadoPor: role,
+      });
+      setForm({ huespedId: '', tipo: 'other', descripcion: '', fecha: new Date().toISOString().split('T')[0] });
+      setIsGeneral(false);
+      setShowForm(false);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al crear incidencia');
+    }
   };
 
   return (
