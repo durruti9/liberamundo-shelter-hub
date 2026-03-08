@@ -340,7 +340,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                       <Badge variant="outline" className="text-xs">{item.categoria_nombre}</Badge>
                     </TableCell>
                     <TableCell className={`text-right ${stockColor(item)}`}>
-                      {item.stock_actual} {item.unidad}
+                      {item.stock_actual}
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
                       {item.stock_minimo > 0 ? item.stock_minimo : '—'}
