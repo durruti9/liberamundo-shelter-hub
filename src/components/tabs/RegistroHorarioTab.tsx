@@ -505,6 +505,9 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 <Button size="sm" variant="outline" onClick={() => setShowAuditLog(!showAuditLog)}>
                   <HistoryIcon className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Auditoría</span>
                 </Button>
+                <Button size="sm" variant="outline" onClick={handleExportAllEmployees}>
+                  <FileDown className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Resumen horas</span>
+                </Button>
               </div>
             )}
           </div>
