@@ -12,6 +12,7 @@ import { api } from '@/lib/api';
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
   role?: UserRole;
+  onNavigate?: (tab: string) => void;
 }
 
 const COLORS = [
@@ -20,7 +21,8 @@ const COLORS = [
   'hsl(25, 80%, 55%)', 'hsl(0, 72%, 55%)',
 ];
 
-export default function DashboardTab({ store, role = 'personal_albergue' }: Props) {
+export default function DashboardTab({ store, role = 'personal_albergue', onNavigate }: Props) {
+  const nav = (tab: string) => onNavigate?.(tab);
   const { huespedActivos, huespedes, totalCamas, incidencias, llegadas, boardMessages, addBoardMessage, addBoardReply, resolveBoardMessage, deleteBoardMessage } = store;
   const { t } = useI18n();
   const isAdmin = role === 'admin';
@@ -151,7 +153,7 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
 
       {/* KPI Cards */}
       <div className={`grid gap-4 grid-cols-2 ${isAdmin ? 'md:grid-cols-6' : role === 'gestor' ? 'md:grid-cols-4' : 'md:grid-cols-5'}`}>
-        <Card>
+        <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => nav('habitaciones')}>
           <CardContent className="pt-6 text-center">
             <div className="text-3xl font-bold text-primary">{porcentaje}%</div>
             <p className="text-xs text-muted-foreground mt-1">{t.occupancyRate}</p>
@@ -160,7 +162,7 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => nav('habitaciones')}>
           <CardContent className="pt-6 text-center">
             <div className="flex items-center justify-center gap-2">
               <BedDouble className="w-5 h-5 text-muted-foreground" />
@@ -170,7 +172,7 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
             <p className="text-xs text-muted-foreground mt-1">{t.occupiedBeds} / {t.totalBeds}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => nav('habitaciones')}>
           <CardContent className="pt-6 text-center">
             <div className="flex items-center justify-center gap-2">
               <Clock className="w-5 h-5 text-muted-foreground" />
@@ -179,7 +181,7 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
             <p className="text-xs text-muted-foreground mt-1">{t.avgStayDays}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => nav('incidencias')}>
           <CardContent className="pt-6 text-center">
             <div className="flex items-center justify-center gap-2">
               <AlertTriangle className={`w-5 h-5 ${activeIncidentCount > 0 ? 'text-destructive' : 'text-muted-foreground'}`} />
@@ -189,7 +191,7 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
           </CardContent>
         </Card>
         {role !== 'gestor' && (
-          <Card>
+          <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => nav('tareas')}>
             <CardContent className="pt-6 text-center">
               <div className="flex items-center justify-center gap-2">
                 <ListChecks className={`w-5 h-5 ${completedTareas > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -210,7 +212,7 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
           </Card>
         )}
         {isAdmin && (
-          <Card>
+          <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => nav('sugerencias')}>
             <CardContent className="pt-6 text-center">
               <div className="flex items-center justify-center gap-2">
                 <MessageSquarePlus className={`w-5 h-5 ${pendingSugerencias > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
