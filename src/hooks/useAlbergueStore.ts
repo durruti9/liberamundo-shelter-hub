@@ -54,6 +54,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
   // ── Load from API ──
   const loadFromApi = useCallback(async () => {
     try {
+      console.log('[Store] Loading data for albergueId:', albergueId);
       // Core data — all roles can access these
       const [albs, huesps, com, llegs, incs, msgs] = await Promise.all([
         api.getAlbergues(),
@@ -63,6 +64,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
         api.getIncidencias(albergueId),
         api.getBoardMessages(albergueId),
       ]);
+      console.log('[Store] Loaded:', { albergues: albs.length, huespedes: huesps.length, comedor: com.length });
       setAlbergues(albs);
       setHuespedes(huesps);
       setComedor(com);
