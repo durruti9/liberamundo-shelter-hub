@@ -643,39 +643,89 @@ export default function InventarioTab({ role, albergueId }: Props) {
                   No hay movimientos registrados en este mes. Usa los botones +/- para registrar entradas y salidas.
                 </p>
               ) : (
-                <div className="space-y-2">
-                  {consumoMes.map(cat => (
-                    <div key={cat.categoria}>
-                      <button
-                        onClick={() => toggleCatExpand(cat.categoria)}
-                        className="w-full flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          <ChevronDown className={`w-4 h-4 transition-transform ${expandedCats.has(cat.categoria) ? 'rotate-180' : ''}`} />
-                          <span className="font-medium text-sm">{cat.categoria}</span>
-                          <Badge variant="secondary" className="text-[10px]">{cat.items.length} producto{cat.items.length !== 1 ? 's' : ''}</Badge>
-                        </div>
-                        <span className="text-sm font-semibold text-red-600 dark:text-red-400">-{cat.totalSalidas}</span>
-                      </button>
-                      {expandedCats.has(cat.categoria) && (
-                        <div className="ml-6 mt-1 space-y-1 mb-2">
-                          {cat.items.sort((a, b) => b.salidas - a.salidas).map(item => (
-                            <div key={item.nombre} className="flex items-center justify-between p-2 rounded-md bg-muted/30 text-sm">
-                              <span>{item.nombre}</span>
-                              <div className="flex items-center gap-3">
-                                {item.entradas > 0 && (
-                                  <span className="text-emerald-600 dark:text-emerald-400 text-xs">+{item.entradas}</span>
-                                )}
-                                {item.salidas > 0 && (
-                                  <span className="text-red-600 dark:text-red-400 font-medium">-{item.salidas}</span>
-                                )}
-                              </div>
+                <div className="space-y-6">
+                  {/* Bar chart - consumption by category */}
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Consumo por categoría</p>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <BarChart data={consumoMes.map(c => ({ name: c.categoria.length > 12 ? c.categoria.slice(0, 12) + '…' : c.categoria, salidas: c.totalSalidas }))} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                        <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                        <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                        <Tooltip formatter={(value: number) => [`${value} uds.`, 'Consumo']} />
+                        <Bar dataKey="salidas" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Pie chart - distribution */}
+                  {consumoMes.length > 1 && (
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Distribución del gasto</p>
+                      <div className="flex items-center gap-4">
+                        <ResponsiveContainer width="50%" height={180}>
+                          <PieChart>
+                            <Pie
+                              data={consumoMes.map(c => ({ name: c.categoria, value: c.totalSalidas }))}
+                              cx="50%" cy="50%" innerRadius={40} outerRadius={70}
+                              dataKey="value" paddingAngle={2}
+                            >
+                              {consumoMes.map((_, idx) => (
+                                <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip formatter={(value: number) => [`${value} uds.`]} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <div className="flex-1 space-y-1.5">
+                          {consumoMes.map((cat, idx) => (
+                            <div key={cat.categoria} className="flex items-center gap-2 text-xs">
+                              <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                              <span className="truncate">{cat.categoria}</span>
+                              <span className="ml-auto font-medium">{cat.totalSalidas}</span>
                             </div>
                           ))}
                         </div>
-                      )}
+                      </div>
                     </div>
-                  ))}
+                  )}
+
+                  {/* Category breakdown list */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Detalle por categoría</p>
+                    {consumoMes.map(cat => (
+                      <div key={cat.categoria}>
+                        <button
+                          onClick={() => toggleCatExpand(cat.categoria)}
+                          className="w-full flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                        >
+                          <div className="flex items-center gap-2">
+                            <ChevronDown className={`w-4 h-4 transition-transform ${expandedCats.has(cat.categoria) ? 'rotate-180' : ''}`} />
+                            <span className="font-medium text-sm">{cat.categoria}</span>
+                            <Badge variant="secondary" className="text-[10px]">{cat.items.length} producto{cat.items.length !== 1 ? 's' : ''}</Badge>
+                          </div>
+                          <span className="text-sm font-semibold text-red-600 dark:text-red-400">-{cat.totalSalidas}</span>
+                        </button>
+                        {expandedCats.has(cat.categoria) && (
+                          <div className="ml-6 mt-1 space-y-1 mb-2">
+                            {cat.items.sort((a, b) => b.salidas - a.salidas).map(item => (
+                              <div key={item.nombre} className="flex items-center justify-between p-2 rounded-md bg-muted/30 text-sm">
+                                <span>{item.nombre}</span>
+                                <div className="flex items-center gap-3">
+                                  {item.entradas > 0 && (
+                                    <span className="text-emerald-600 dark:text-emerald-400 text-xs">+{item.entradas}</span>
+                                  )}
+                                  {item.salidas > 0 && (
+                                    <span className="text-red-600 dark:text-red-400 font-medium">-{item.salidas}</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
                   <div className="border-t border-border pt-3 flex justify-between text-sm font-medium">
                     <span>Total consumido este mes</span>
                     <span className="text-red-600 dark:text-red-400">{totalSalidasMes} unidades</span>
