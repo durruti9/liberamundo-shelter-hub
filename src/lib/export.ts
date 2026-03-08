@@ -144,7 +144,6 @@ export const EXPORT_CONFIGS = {
       { key: 'observaciones', label: 'Observaciones' },
     ],
   },
-  },
   registroHorario: {
     title: 'Registro Horario',
     columns: [
