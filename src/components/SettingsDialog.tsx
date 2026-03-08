@@ -10,6 +10,7 @@ import { Plus, Trash2, Pencil, AlertTriangle, BedDouble, Building2, Download, Up
 import { Room, Albergue } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
 import { toast } from 'sonner';
+import { api, isApiAvailable } from '@/lib/api';
 
 interface Props {
   open: boolean;
