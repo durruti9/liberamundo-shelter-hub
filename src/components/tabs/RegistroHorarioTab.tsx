@@ -904,7 +904,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                     Jornada semanal: {emp.jornada_diaria_horas}h | Vacaciones: {emp.vacaciones_anuales} días
                   </p>
                 </div>
-                <Button size="icon" variant="ghost" onClick={() => handleDeleteEmployee(emp.id)}>
+                <Button size="icon" variant="ghost" onClick={() => setDeleteEmpTarget(emp.id)}>
                   <Trash2 className="w-4 h-4 text-destructive" />
                 </Button>
               </div>
