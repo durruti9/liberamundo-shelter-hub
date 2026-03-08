@@ -95,7 +95,7 @@ function parseTime(t: string | null): number {
   return h * 60 + (m || 0);
 }
 
-function calcHours(record: Partial<RegistroDia>, jornadaDiaria: number) {
+function calcHours(record: Partial<RegistroDia>, jornadaSemanal: number) {
   let totalMin = 0;
   if (record.entrada_manana && record.salida_manana) {
     totalMin += parseTime(record.salida_manana) - parseTime(record.entrada_manana);
@@ -110,6 +110,7 @@ function calcHours(record: Partial<RegistroDia>, jornadaDiaria: number) {
   totalMin = Math.max(0, totalMin);
   
   const totalHours = totalMin / 60;
+  const jornadaDiaria = jornadaSemanal / 5;
   const ordinarias = Math.min(totalHours, jornadaDiaria);
   const extra = Math.max(0, totalHours - jornadaDiaria);
   
