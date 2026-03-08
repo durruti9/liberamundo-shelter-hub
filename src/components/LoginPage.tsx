@@ -17,7 +17,7 @@ import { Link } from 'react-router-dom';
 import PasswordInput from '@/components/PasswordInput';
 
 interface Props {
-  onLogin: (role: UserRole, albergueIds: string[]) => void;
+  onLogin: (role: UserRole, albergueIds: string[], isDefaultAdmin?: boolean) => void;
 }
 
 const LANG_FLAGS: Record<Language, string> = { es: '🇪🇸', fr: '🇫🇷', ar: '🇸🇦', en: '🇬🇧', ru: '🇷🇺' };
@@ -70,13 +70,15 @@ export default function LoginPage({ onLogin }: Props) {
           localStorage.setItem('auth', 'true');
           localStorage.setItem('authRole', result.role);
           localStorage.setItem('authEmail', email);
-          onLogin(result.role as UserRole, result.albergueIds);
+          onLogin(result.role as UserRole, result.albergueIds, result.isDefaultAdmin);
           return;
         } catch (err: any) {
-          // If server error (500 = DB issue), fall through to localStorage
-          // If auth error (401 = wrong credentials), show error immediately
           if (err.status === 401) {
             setError(t.wrongCredentials);
+            return;
+          }
+          if (err.status === 429) {
+            setError('Demasiados intentos. Espera 15 minutos.');
             return;
           }
           console.warn('API login failed with server error, trying localStorage fallback:', err.message);

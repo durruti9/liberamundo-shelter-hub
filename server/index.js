@@ -69,20 +69,17 @@ async function initDB(retries = 10, delay = 3000) {
       const initSQL = readFileSync(new URL('./init.sql', import.meta.url), 'utf8');
       await pool.query(initSQL);
 
-      // Ensure default admin user exists with password "admin"
-      const { rows } = await pool.query("SELECT email FROM users WHERE email = 'admin'");
-      if (rows.length === 0) {
+      // Only create default admin on first install (no users exist at all)
+      const { rows: userCount } = await pool.query("SELECT COUNT(*) as cnt FROM users");
+      if (parseInt(userCount[0].cnt) === 0) {
         const hash = await bcrypt.hash('admin', 10);
         await pool.query(
           "INSERT INTO users (email, password_hash, role, nombre) VALUES ('admin', $1, 'admin', '')",
           [hash]
         );
-        console.log('✅ Default admin user created (admin/admin)');
+        console.log('✅ Default admin user created (first install)');
       } else {
-        // Reset admin password on every startup to ensure it always works
-        const hash = await bcrypt.hash('admin', 10);
-        await pool.query("UPDATE users SET password_hash = $1 WHERE email = 'admin'", [hash]);
-        console.log('✅ Default admin password reset');
+        console.log('✅ Users table already has data, skipping default admin');
       }
 
       console.log('✅ Database initialized');
