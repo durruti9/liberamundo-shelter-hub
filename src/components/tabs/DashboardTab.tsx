@@ -380,13 +380,13 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
       {isAdmin && (
         <Collapsible>
           <Card>
-            <CollapsibleTrigger className="w-full">
+            <CollapsibleTrigger className="w-full group">
               <CardHeader className="flex flex-row items-center justify-between py-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <BarChart3 className="w-4 h-4 text-primary" />
                   Informes y Estadísticas
                 </CardTitle>
-                <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform duration-200 [&[data-state=open]]:rotate-180" />
+                <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
