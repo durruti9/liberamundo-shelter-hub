@@ -23,23 +23,34 @@ router.get('/:albergueId', async (req, res) => {
 
 // Check in
 router.post('/:albergueId', async (req, res) => {
+  const client = await pool.connect();
   try {
     const { nombre, nie, nacionalidad, idioma, dieta, fechaEntrada, notas, habitacion, cama } = req.body;
+    if (!nombre || typeof nombre !== 'string' || nombre.trim().length === 0) {
+      return res.status(400).json({ error: 'Nombre requerido' });
+    }
     const id = crypto.randomUUID();
-    await pool.query(
+    
+    await client.query('BEGIN');
+    await client.query(
       `INSERT INTO huespedes (id, albergue_id, nombre, nie, nacionalidad, idioma, dieta, fecha_entrada, notas, habitacion, cama, activo)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,true)`,
-      [id, req.params.albergueId, nombre, nie, nacionalidad, idioma, dieta, fechaEntrada, notas, habitacion, cama]
+      [id, req.params.albergueId, nombre.trim(), nie || '', nacionalidad || '', idioma || '', dieta || 'Omnívora estándar', fechaEntrada, notas || '', habitacion, cama]
     );
     // Auto-create comedor entry
-    await pool.query(
+    await client.query(
       `INSERT INTO comedor (huesped_id, estado, separar_comidas, dias_separar, motivo_ausencia, observaciones, particularidades)
        VALUES ($1,'Activo',ARRAY['Todas'],ARRAY['Todos los días'],'','','')`,
       [id]
     );
-    res.json({ id, nombre, nie, nacionalidad, idioma, dieta, fechaEntrada, notas, habitacion, cama, activo: true });
+    await client.query('COMMIT');
+    
+    res.json({ id, nombre: nombre.trim(), nie: nie || '', nacionalidad: nacionalidad || '', idioma: idioma || '', dieta: dieta || 'Omnívora estándar', fechaEntrada, notas: notas || '', habitacion, cama, activo: true });
   } catch (err) {
+    await client.query('ROLLBACK');
     res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 
@@ -80,38 +91,54 @@ router.delete('/:id', async (req, res) => {
 
 // Check out
 router.post('/:id/checkout', async (req, res) => {
+  const client = await pool.connect();
   try {
     const { fecha } = req.body;
     const today = new Date().toISOString().split('T')[0];
+    
+    await client.query('BEGIN');
     if (fecha > today) {
-      await pool.query('UPDATE huespedes SET fecha_checkout = $1 WHERE id = $2', [fecha, req.params.id]);
+      await client.query('UPDATE huespedes SET fecha_checkout = $1 WHERE id = $2', [fecha, req.params.id]);
     } else {
-      await pool.query('UPDATE huespedes SET activo = false, fecha_checkout = $1 WHERE id = $2', [fecha, req.params.id]);
-      await pool.query('DELETE FROM comedor WHERE huesped_id = $1', [req.params.id]);
+      await client.query('UPDATE huespedes SET activo = false, fecha_checkout = $1 WHERE id = $2', [fecha, req.params.id]);
+      await client.query('DELETE FROM comedor WHERE huesped_id = $1', [req.params.id]);
     }
+    await client.query('COMMIT');
+    
     res.json({ ok: true });
   } catch (err) {
+    await client.query('ROLLBACK');
     res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 
 // Reincorporar
 router.post('/:id/reincorporar', async (req, res) => {
+  const client = await pool.connect();
   try {
     const { habitacion, cama } = req.body;
     const today = new Date().toISOString().split('T')[0];
-    await pool.query(
+    
+    await client.query('BEGIN');
+    await client.query(
       'UPDATE huespedes SET activo = true, habitacion = $1, cama = $2, fecha_checkout = NULL, fecha_entrada = $3 WHERE id = $4',
       [habitacion, cama, today, req.params.id]
     );
-    await pool.query(
+    await client.query(
       `INSERT INTO comedor (huesped_id, estado, separar_comidas, dias_separar, motivo_ausencia, observaciones, particularidades)
        VALUES ($1,'Activo',ARRAY['Todas'],ARRAY['Todos los días'],'','','') ON CONFLICT (huesped_id) DO NOTHING`,
       [req.params.id]
     );
+    await client.query('COMMIT');
+    
     res.json({ ok: true });
   } catch (err) {
+    await client.query('ROLLBACK');
     res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 

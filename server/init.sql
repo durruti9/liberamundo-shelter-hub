@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS rooms (
   albergue_id TEXT NOT NULL REFERENCES albergues(id) ON DELETE CASCADE,
   nombre TEXT NOT NULL,
   camas INTEGER NOT NULL DEFAULT 1,
+  ultima_limpieza DATE,
   PRIMARY KEY (id, albergue_id)
 );
 
