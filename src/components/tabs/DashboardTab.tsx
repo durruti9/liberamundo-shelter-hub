@@ -296,7 +296,7 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis dataKey="month" className="text-xs" tick={{ fontSize: 11 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <Tooltip content={<ChartTooltip />} />
                 <Bar dataKey="count" fill="hsl(212, 72%, 59%)" radius={[4, 4, 0, 0]} name={t.guestsOverTime} />
               </BarChart>
             </ResponsiveContainer>
