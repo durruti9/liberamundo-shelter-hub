@@ -36,14 +36,14 @@ function saveLocal(email: string, notas: Nota[]) {
 
 const NOTE_COLORS = [
   { name: 'Default', value: 'default', bg: 'bg-card', border: 'border-border' },
-  { name: 'Coral', value: 'coral', bg: 'bg-[hsl(0,80%,95%)]', border: 'border-[hsl(0,80%,85%)]' },
-  { name: 'Melocotón', value: 'peach', bg: 'bg-[hsl(25,90%,94%)]', border: 'border-[hsl(25,90%,84%)]' },
-  { name: 'Arena', value: 'sand', bg: 'bg-[hsl(40,80%,92%)]', border: 'border-[hsl(40,80%,82%)]' },
-  { name: 'Menta', value: 'mint', bg: 'bg-[hsl(150,50%,93%)]', border: 'border-[hsl(150,50%,83%)]' },
-  { name: 'Salvia', value: 'sage', bg: 'bg-[hsl(130,30%,91%)]', border: 'border-[hsl(130,30%,81%)]' },
-  { name: 'Niebla', value: 'fog', bg: 'bg-[hsl(210,30%,94%)]', border: 'border-[hsl(210,30%,84%)]' },
-  { name: 'Lavanda', value: 'lavender', bg: 'bg-[hsl(270,50%,94%)]', border: 'border-[hsl(270,50%,84%)]' },
-  { name: 'Rosa', value: 'pink', bg: 'bg-[hsl(330,60%,94%)]', border: 'border-[hsl(330,60%,84%)]' },
+  { name: 'Coral', value: 'coral', bg: 'bg-[hsl(0,80%,95%)] dark:bg-[hsl(0,40%,18%)]', border: 'border-[hsl(0,80%,85%)] dark:border-[hsl(0,40%,30%)]' },
+  { name: 'Melocotón', value: 'peach', bg: 'bg-[hsl(25,90%,94%)] dark:bg-[hsl(25,45%,18%)]', border: 'border-[hsl(25,90%,84%)] dark:border-[hsl(25,45%,30%)]' },
+  { name: 'Arena', value: 'sand', bg: 'bg-[hsl(40,80%,92%)] dark:bg-[hsl(40,40%,18%)]', border: 'border-[hsl(40,80%,82%)] dark:border-[hsl(40,40%,30%)]' },
+  { name: 'Menta', value: 'mint', bg: 'bg-[hsl(150,50%,93%)] dark:bg-[hsl(150,30%,16%)]', border: 'border-[hsl(150,50%,83%)] dark:border-[hsl(150,30%,28%)]' },
+  { name: 'Salvia', value: 'sage', bg: 'bg-[hsl(130,30%,91%)] dark:bg-[hsl(130,20%,16%)]', border: 'border-[hsl(130,30%,81%)] dark:border-[hsl(130,20%,28%)]' },
+  { name: 'Niebla', value: 'fog', bg: 'bg-[hsl(210,30%,94%)] dark:bg-[hsl(210,20%,18%)]', border: 'border-[hsl(210,30%,84%)] dark:border-[hsl(210,20%,28%)]' },
+  { name: 'Lavanda', value: 'lavender', bg: 'bg-[hsl(270,50%,94%)] dark:bg-[hsl(270,30%,18%)]', border: 'border-[hsl(270,50%,84%)] dark:border-[hsl(270,30%,28%)]' },
+  { name: 'Rosa', value: 'pink', bg: 'bg-[hsl(330,60%,94%)] dark:bg-[hsl(330,30%,18%)]', border: 'border-[hsl(330,60%,84%)] dark:border-[hsl(330,30%,28%)]' },
 ];
 
 function getColorClasses(color: string) {

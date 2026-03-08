@@ -43,8 +43,8 @@ const TAREAS_PLANTILLA = [
 ];
 
 const ESTADO_COLORS: Record<string, string> = {
-  pendiente: 'bg-[hsl(38,92%,90%)] text-[hsl(38,92%,30%)] border-[hsl(38,92%,70%)]',
-  hecha: 'bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)] border-[hsl(142,60%,70%)]',
+  pendiente: 'bg-[hsl(38,92%,90%)] dark:bg-[hsl(38,50%,18%)] text-[hsl(38,92%,30%)] dark:text-[hsl(38,80%,70%)] border-[hsl(38,92%,70%)] dark:border-[hsl(38,50%,35%)]',
+  hecha: 'bg-[hsl(142,60%,90%)] dark:bg-[hsl(142,35%,18%)] text-[hsl(142,60%,30%)] dark:text-[hsl(142,50%,65%)] border-[hsl(142,60%,70%)] dark:border-[hsl(142,35%,35%)]',
   'no procede': 'bg-secondary text-secondary-foreground border-border',
 };
 
@@ -382,10 +382,10 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
 
             // Card background based on estado
             const cardBg = isHecha
-              ? 'border-[hsl(142,60%,70%)] bg-[hsl(142,60%,95%)]'
+              ? 'border-[hsl(142,60%,70%)] dark:border-[hsl(142,35%,30%)] bg-[hsl(142,60%,95%)] dark:bg-[hsl(142,30%,14%)]'
               : tarea.estado === 'no procede'
                 ? 'border-border bg-muted/50'
-                : 'border-[hsl(38,92%,70%)] bg-[hsl(38,92%,95%)]';
+                : 'border-[hsl(38,92%,70%)] dark:border-[hsl(38,50%,30%)] bg-[hsl(38,92%,95%)] dark:bg-[hsl(38,40%,14%)]';
 
             return (
             <Card key={idx} className={`border transition-colors ${cardBg}`}>
@@ -647,7 +647,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                     relative h-14 sm:h-16 rounded-md text-sm font-medium transition-all
                     ${!inMonth ? 'opacity-20 cursor-default' : ''}
                     ${future && inMonth ? 'bg-muted/50 text-muted-foreground cursor-not-allowed' : ''}
-                    ${today ? 'ring-2 ring-[hsl(142,60%,40%)] bg-[hsl(142,60%,95%)]' : ''}
+                    ${today ? 'ring-2 ring-[hsl(142,60%,40%)] bg-[hsl(142,60%,95%)] dark:bg-[hsl(142,30%,15%)]' : ''}
                     ${!future && !today && inMonth && isPast(day) ? 'bg-muted hover:bg-accent cursor-pointer' : ''}
                     ${!future && inMonth && !today ? 'hover:bg-accent cursor-pointer' : ''}
                   `}
