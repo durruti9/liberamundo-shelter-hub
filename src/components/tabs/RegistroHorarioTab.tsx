@@ -410,6 +410,15 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
       {/* HEADER */}
       <Card>
         <CardContent className="p-4 space-y-4">
+          {/* Empresa header */}
+          {(empresaConfig.razon_social || empresaConfig.cif) && (
+            <div className="flex items-center gap-2 text-sm bg-muted/50 rounded-lg px-3 py-2">
+              <Building2 className="w-4 h-4 text-muted-foreground" />
+              <span className="font-medium">EMPRESA: {empresaConfig.razon_social}</span>
+              {empresaConfig.cif && <span className="text-muted-foreground">CIF: {empresaConfig.cif}</span>}
+            </div>
+          )}
+
           {/* Row 1: Title + employee selector */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex items-center gap-2">
@@ -435,6 +444,12 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setShowManageEmployees(true)}>
                   <Users className="w-4 h-4 mr-1" /> Gestionar
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => {
+                  setEditEmpresa({ ...empresaConfig });
+                  setShowEmpresaConfig(true);
+                }}>
+                  <Settings2 className="w-4 h-4" />
                 </Button>
               </div>
             )}
