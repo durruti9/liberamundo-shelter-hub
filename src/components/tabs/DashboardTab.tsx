@@ -54,7 +54,12 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
     api.getTareasDia(alId, today, today)
       .then(data => {
         if (Array.isArray(data)) {
-          const done = data.filter((t: any) => t.estado === 'hecha');
+          // Normalize fecha to YYYY-MM-DD for safety
+          const todayTasks = data.filter((t: any) => {
+            const f = typeof t.fecha === 'string' ? t.fecha.split('T')[0] : t.fecha;
+            return f === today;
+          });
+          const done = todayTasks.filter((t: any) => t.estado === 'hecha');
           setCompletedTareas(done.length);
           // Group by hechoPor
           const byPerson: Record<string, number> = {};
