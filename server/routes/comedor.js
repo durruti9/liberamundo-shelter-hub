@@ -30,7 +30,7 @@ router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
 router.put('/:huespedId', requireHuespedAccess('huespedId'), async (req, res) => {
   try {
     const { estado, separarComidas, diasSeparar, motivoAusencia, observaciones, particularidades } = req.body;
-    const ultimoUsuario = req.user?.email || 'desconocido';
+    const ultimoUsuario = req.user?.nombre || req.user?.email || 'desconocido';
     await pool.query(
       `INSERT INTO comedor (huesped_id, estado, separar_comidas, dias_separar, motivo_ausencia, observaciones, particularidades, ultima_modificacion, ultimo_usuario)
        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), $8)
