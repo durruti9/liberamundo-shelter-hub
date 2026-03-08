@@ -39,6 +39,17 @@ router.post('/:albergueId', requireAlbergueAccess(), requireRole('admin', 'gesto
 // Only admin and gestor can edit llegadas
 router.put('/:id', requireRole('admin', 'gestor'), async (req, res) => {
   try {
+    const user = req.user;
+    // Verify gestor has access to this llegada's albergue
+    if (user.role !== 'admin') {
+      const { rows: lleg } = await pool.query('SELECT albergue_id FROM llegadas WHERE id = $1', [req.params.id]);
+      if (lleg.length === 0) return res.status(404).json({ error: 'No encontrada' });
+      const { rows: access } = await pool.query(
+        'SELECT 1 FROM user_albergues WHERE user_email = $1 AND albergue_id = $2',
+        [user.email, lleg[0].albergue_id]
+      );
+      if (access.length === 0) return res.status(403).json({ error: 'Sin acceso a este albergue' });
+    }
     const { nombre, nie, nacionalidad, idioma, dieta, fechaLlegada, notas, habitacionAsignada, camaAsignada } = req.body;
     await pool.query(
       `UPDATE llegadas SET nombre=COALESCE($1,nombre), nie=COALESCE($2,nie), nacionalidad=COALESCE($3,nacionalidad),
