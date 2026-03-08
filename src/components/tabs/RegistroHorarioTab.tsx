@@ -643,7 +643,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Sin firmar</p>
-                  <p className={`text-lg font-bold ${monthTotals.unsigned > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                  <p className={`text-lg font-bold ${monthTotals.unsigned > 0 ? 'text-destructive' : 'text-[hsl(var(--success))]'}`}>
                     {monthTotals.unsigned > 0 ? `${monthTotals.unsigned} ⚠️` : '0 ✅'}
                   </p>
                 </div>
