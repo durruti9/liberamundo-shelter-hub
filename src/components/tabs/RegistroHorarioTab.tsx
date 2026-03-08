@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
@@ -172,6 +173,11 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
+  // Dialog states for replacing confirm()/prompt()
+  const [deleteEmpTarget, setDeleteEmpTarget] = useState<string | null>(null);
+  const [revisionDialog, setRevisionDialog] = useState<{ dayNum: number; motivo: string } | null>(null);
+  const [vacDialog, setVacDialog] = useState<{ value: string } | null>(null);
+
   // beforeunload when editing a day
   useBeforeUnload(showDayModal && !!editingDay);
 
@@ -310,18 +316,26 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
     if (!rec || !rec.estado) return;
 
     const newFlag = !rec.marcado_revision;
-    let motivo = rec.motivo_revision || '';
     if (newFlag) {
-      const reason = prompt('Motivo de la revisión (opcional):');
-      if (reason === null) return; // cancelled
-      motivo = reason;
-    } else {
-      motivo = '';
+      // Open revision dialog instead of prompt()
+      setRevisionDialog({ dayNum, motivo: '' });
+      return;
     }
-
-    const updated = { ...rec, marcado_revision: newFlag, motivo_revision: motivo };
+    // Unreview: clear directly
+    const updated = { ...rec, marcado_revision: false, motivo_revision: '' };
     await saveRecord(updated);
-    toast.success(newFlag ? 'Marcado para revisión' : 'Revisión resuelta');
+    toast.success('Revisión resuelta');
+  };
+
+  const confirmRevision = async () => {
+    if (!revisionDialog || !selectedEmpleado) return;
+    const fecha = formatDate(year, month, revisionDialog.dayNum);
+    const rec = records.get(fecha);
+    if (!rec) return;
+    const updated = { ...rec, marcado_revision: true, motivo_revision: revisionDialog.motivo };
+    await saveRecord(updated);
+    toast.success('Marcado para revisión');
+    setRevisionDialog(null);
   };
 
   // Save day from modal
@@ -381,9 +395,10 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
     }
   };
 
-  // Delete employee
-  const handleDeleteEmployee = async (id: string) => {
-    if (!confirm('¿Eliminar empleado y todos sus registros?')) return;
+  // Delete employee (triggered from AlertDialog)
+  const confirmDeleteEmployee = async () => {
+    if (!deleteEmpTarget) return;
+    const id = deleteEmpTarget;
     try {
       await api.deleteEmpleadoHorario(id);
       setEmpleados(prev => prev.filter(e => e.id !== id));
@@ -394,6 +409,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
     } catch (err: any) {
       toast.error(err.message);
     }
+    setDeleteEmpTarget(null);
   };
 
   // Month totals
@@ -472,12 +488,12 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
               </Select>
             </div>
             {isAdmin && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button size="sm" variant="outline" onClick={() => setShowAddEmployee(true)}>
-                  <UserPlus className="w-4 h-4 mr-1" /> Añadir
+                  <UserPlus className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Añadir</span>
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setShowManageEmployees(true)}>
-                  <Users className="w-4 h-4 mr-1" /> Gestionar
+                  <Users className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Gestionar</span>
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => {
                   setEditEmpresa({ ...empresaConfig });
@@ -486,7 +502,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                   <Settings2 className="w-4 h-4" />
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setShowAuditLog(!showAuditLog)}>
-                  <HistoryIcon className="w-4 h-4 mr-1" /> Auditoría
+                  <HistoryIcon className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Auditoría</span>
                 </Button>
               </div>
             )}
@@ -662,23 +678,16 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t flex flex-col sm:flex-row items-center justify-between gap-2">
-                <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-2 sm:gap-4 text-sm flex-wrap justify-center sm:justify-start">
                   <span>🏖 Vacaciones {year}:</span>
-                  <Badge variant="outline">{vacSaldo.asignadas} asignadas</Badge>
-                  <Badge variant="secondary">{vacSaldo.consumidas} consumidas</Badge>
-                  <Badge className={vacSaldo.asignadas - vacSaldo.consumidas > 0 ? 'bg-success text-success-foreground' : 'bg-destructive text-destructive-foreground'}>
+                  <Badge variant="outline" className="text-xs">{vacSaldo.asignadas} asignadas</Badge>
+                  <Badge variant="secondary" className="text-xs">{vacSaldo.consumidas} consumidas</Badge>
+                  <Badge className={`text-xs ${vacSaldo.asignadas - vacSaldo.consumidas > 0 ? 'bg-success text-success-foreground' : 'bg-destructive text-destructive-foreground'}`}>
                     {(vacSaldo.asignadas - vacSaldo.consumidas).toFixed(1)} pendientes
                   </Badge>
                 </div>
                 {isAdmin && (
-                  <Button size="sm" variant="outline" className="text-xs" onClick={async () => {
-                    const newVal = prompt('Días de vacaciones asignadas:', String(vacSaldo.asignadas));
-                    if (newVal && !isNaN(Number(newVal))) {
-                      await api.updateVacacionesSaldo(selectedEmpleado, year, { asignadas: Number(newVal), consumidas: vacSaldo.consumidas });
-                      setVacSaldo(prev => ({ ...prev, asignadas: Number(newVal) }));
-                      toast.success('Vacaciones actualizadas');
-                    }
-                  }}>
+                  <Button size="sm" variant="outline" className="text-xs" onClick={() => setVacDialog({ value: String(vacSaldo.asignadas) })}>
                     <Pencil className="w-3 h-3 mr-1" /> Editar saldo
                   </Button>
                 )}
@@ -718,11 +727,14 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
             <DialogTitle className="flex items-center gap-2">
               <CalendarDays className="w-5 h-5" />
               {editingDay && formatDisplayDate(editingDay.fecha)}
-              {editingDay && (
-                <span className="text-sm font-normal text-muted-foreground">
-                  ({DAYS_ES[new Date(editingDay.fecha).getDay()]})
-                </span>
-              )}
+              {editingDay && (() => {
+                const [y, m, d] = editingDay.fecha.split('-').map(Number);
+                return (
+                  <span className="text-sm font-normal text-muted-foreground">
+                    ({DAYS_ES[new Date(y, m - 1, d).getDay()]})
+                  </span>
+                );
+              })()}
             </DialogTitle>
           </DialogHeader>
           {editingDay && (
@@ -888,7 +900,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                     Jornada semanal: {emp.jornada_diaria_horas}h | Vacaciones: {emp.vacaciones_anuales} días
                   </p>
                 </div>
-                <Button size="icon" variant="ghost" onClick={() => handleDeleteEmployee(emp.id)}>
+                <Button size="icon" variant="ghost" onClick={() => setDeleteEmpTarget(emp.id)}>
                   <Trash2 className="w-4 h-4 text-destructive" />
                 </Button>
               </div>
@@ -932,6 +944,87 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
             }}>
               <Save className="w-4 h-4 mr-1" /> Guardar
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* DELETE EMPLOYEE CONFIRMATION */}
+      <AlertDialog open={!!deleteEmpTarget} onOpenChange={() => setDeleteEmpTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar empleado?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminarán todos sus registros horarios. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteEmployee} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* REVISION DIALOG */}
+      <Dialog open={!!revisionDialog} onOpenChange={() => setRevisionDialog(null)}>
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-destructive" /> Marcar para revisión
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label className="text-sm">Motivo (opcional)</Label>
+              <Textarea
+                value={revisionDialog?.motivo || ''}
+                onChange={e => setRevisionDialog(prev => prev ? { ...prev, motivo: e.target.value } : null)}
+                rows={2}
+                placeholder="Describe el motivo de la revisión..."
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setRevisionDialog(null)}>Cancelar</Button>
+              <Button variant="destructive" onClick={confirmRevision}>Marcar revisión</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* VACATION EDIT DIALOG */}
+      <Dialog open={!!vacDialog} onOpenChange={() => setVacDialog(null)}>
+        <DialogContent className="max-w-xs" aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle>Editar vacaciones asignadas</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label className="text-sm">Días de vacaciones asignadas</Label>
+              <Input
+                type="number"
+                min={0}
+                max={60}
+                value={vacDialog?.value || ''}
+                onChange={e => setVacDialog(prev => prev ? { ...prev, value: e.target.value } : null)}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setVacDialog(null)}>Cancelar</Button>
+              <Button onClick={async () => {
+                if (!vacDialog || !vacDialog.value || isNaN(Number(vacDialog.value))) return;
+                try {
+                  await api.updateVacacionesSaldo(selectedEmpleado, year, { asignadas: Number(vacDialog.value), consumidas: vacSaldo.consumidas });
+                  setVacSaldo(prev => ({ ...prev, asignadas: Number(vacDialog.value) }));
+                  toast.success('Vacaciones actualizadas');
+                  setVacDialog(null);
+                } catch (err: any) {
+                  toast.error(err.message);
+                }
+              }}>
+                <Save className="w-4 h-4 mr-1" /> Guardar
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
