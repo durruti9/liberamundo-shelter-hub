@@ -138,29 +138,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     setTareas(prev => prev.map((t, i) => i === idx ? { ...t, [field]: value } : t));
   };
 
-  const handleDuplicate = (idx: number) => {
-    const original = tareas[idx];
-    const dup: TareaDia = {
-      ...original,
-      id: undefined,
-      estado: 'pendiente',
-      turno: original.turno,
-      hechoPor: '',
-      observacion: '',
-      orden: tareas.length,
-      adminObs: '',
-      respuestaEmpleado: '',
-    };
-    setTareas(prev => {
-      const copy = [...prev];
-      copy.splice(idx + 1, 0, dup);
-      return copy;
-    });
-    // Auto-start editing the new duplicate
-    setTimeout(() => {
-      setEditingIdx(prev => new Set(prev).add(idx + 1));
-    }, 0);
-  };
+  // handleDuplicate is now handleDuplicateAndSave (defined below)
 
   // Check if a task at index is a duplicate (not the first occurrence of its tareaId)
   const isDuplicate = (idx: number): boolean => {
