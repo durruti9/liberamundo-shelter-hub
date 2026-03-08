@@ -296,14 +296,11 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   const handleEditCategory = async () => {
     if (!editCategory || !editCategory.nombre.trim()) return;
-    try {
-      throw new Error('mock');
-    } catch {
-      setCategories(prev => prev.map(c => c.id === editCategory.id ? { ...c, nombre: editCategory.nombre } : c));
-      setItems(prev => prev.map(i => i.categoria_id === editCategory.id ? { ...i, categoria_nombre: editCategory.nombre } : i));
-      toast.success('Categoría actualizada');
-      setEditCategory(null);
-    }
+    // Update locally (API endpoint for category update not yet implemented)
+    setCategories(prev => prev.map(c => c.id === editCategory.id ? { ...c, nombre: editCategory.nombre } : c));
+    setItems(prev => prev.map(i => i.categoria_id === editCategory.id ? { ...i, categoria_nombre: editCategory.nombre } : i));
+    toast.success('Categoría actualizada');
+    setEditCategory(null);
   };
 
   const stockColor = (item: Item) => {
