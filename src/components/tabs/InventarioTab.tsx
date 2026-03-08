@@ -49,6 +49,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editCategory, setEditCategory] = useState<Category | null>(null);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [newItem, setNewItem] = useState({
     categoria_id: '', nombre: '', unidad: 'unidades', stock_actual: 0, stock_minimo: 0, ubicacion: '', notas: '',
   });
