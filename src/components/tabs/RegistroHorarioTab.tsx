@@ -678,23 +678,16 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t flex flex-col sm:flex-row items-center justify-between gap-2">
-                <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-2 sm:gap-4 text-sm flex-wrap justify-center sm:justify-start">
                   <span>🏖 Vacaciones {year}:</span>
-                  <Badge variant="outline">{vacSaldo.asignadas} asignadas</Badge>
-                  <Badge variant="secondary">{vacSaldo.consumidas} consumidas</Badge>
-                  <Badge className={vacSaldo.asignadas - vacSaldo.consumidas > 0 ? 'bg-success text-success-foreground' : 'bg-destructive text-destructive-foreground'}>
+                  <Badge variant="outline" className="text-xs">{vacSaldo.asignadas} asignadas</Badge>
+                  <Badge variant="secondary" className="text-xs">{vacSaldo.consumidas} consumidas</Badge>
+                  <Badge className={`text-xs ${vacSaldo.asignadas - vacSaldo.consumidas > 0 ? 'bg-success text-success-foreground' : 'bg-destructive text-destructive-foreground'}`}>
                     {(vacSaldo.asignadas - vacSaldo.consumidas).toFixed(1)} pendientes
                   </Badge>
                 </div>
                 {isAdmin && (
-                  <Button size="sm" variant="outline" className="text-xs" onClick={async () => {
-                    const newVal = prompt('Días de vacaciones asignadas:', String(vacSaldo.asignadas));
-                    if (newVal && !isNaN(Number(newVal))) {
-                      await api.updateVacacionesSaldo(selectedEmpleado, year, { asignadas: Number(newVal), consumidas: vacSaldo.consumidas });
-                      setVacSaldo(prev => ({ ...prev, asignadas: Number(newVal) }));
-                      toast.success('Vacaciones actualizadas');
-                    }
-                  }}>
+                  <Button size="sm" variant="outline" className="text-xs" onClick={() => setVacDialog({ value: String(vacSaldo.asignadas) })}>
                     <Pencil className="w-3 h-3 mr-1" /> Editar saldo
                   </Button>
                 )}
