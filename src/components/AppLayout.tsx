@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound, ListChecks, Mailbox, StickyNote, Clock } from 'lucide-react';
 import PasswordInput from '@/components/PasswordInput';
+import { api } from '@/lib/api';
 import logo from '@/assets/Logo2Liberamundo.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,14 +45,16 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
   const [tab, setTab] = useState('dashboard');
   const [showUsers, setShowUsers] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [newUser, setNewUser] = useState({ email: '', password: '', role: 'personal_albergue' as UserRole });
+  const [newUser, setNewUser] = useState({ email: '', password: '', role: 'personal_albergue' as UserRole, albergueIds: [] as string[] });
   const [changingPasswordFor, setChangingPasswordFor] = useState<string | null>(null);
   const [newPasswordValue, setNewPasswordValue] = useState('');
+  const [editingAlberguesFor, setEditingAlberguesFor] = useState<string | null>(null);
+  const [editAlbergueIds, setEditAlbergueIds] = useState<string[]>([]);
 
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     if (!newUser.email || !newUser.password) return;
-    store.addUser(newUser);
-    setNewUser({ email: '', password: '', role: 'personal_albergue' });
+    await store.addUser(newUser);
+    setNewUser({ email: '', password: '', role: 'personal_albergue', albergueIds: [] });
   };
 
   const roleLabel: Record<UserRole, string> = {
@@ -279,6 +282,31 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                   </Select>
                 </div>
               </div>
+              {store.albergues.length > 1 && (
+                <div className="space-y-1">
+                  <Label className="text-xs">Albergues asignados</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {store.albergues.map(a => (
+                      <label key={a.id} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newUser.albergueIds.includes(a.id)}
+                          onChange={e => {
+                            setNewUser(p => ({
+                              ...p,
+                              albergueIds: e.target.checked
+                                ? [...p.albergueIds, a.id]
+                                : p.albergueIds.filter(id => id !== a.id)
+                            }));
+                          }}
+                          className="rounded"
+                        />
+                        {a.nombre}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
               <Button size="sm" onClick={handleAddUser} className="w-full">
                 <Plus className="w-4 h-4 mr-1" /> Crear usuario
               </Button>
@@ -289,15 +317,30 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                 <TableRow>
                   <TableHead>Usuario</TableHead>
                   <TableHead>Rol</TableHead>
-                  <TableHead className="w-24"></TableHead>
+                  <TableHead className="w-32"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {store.users.map(u => (
                   <TableRow key={u.email}>
-                    <TableCell className="text-sm">{u.email}</TableCell>
+                    <TableCell>
+                      <div className="text-sm font-medium">{u.email}</div>
+                      {(u as any).albergueIds && (u as any).albergueIds.length > 0 && (
+                        <div className="text-[10px] text-muted-foreground mt-0.5">
+                          {(u as any).albergueIds.map((id: string) => store.albergues.find(a => a.id === id)?.nombre || id).join(', ')}
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell><Badge variant="outline" className="text-xs">{roleLabel[u.role]}</Badge></TableCell>
                     <TableCell className="space-x-1">
+                      {store.albergues.length > 1 && (
+                        <Button size="icon" variant="ghost" title="Asignar albergues" onClick={() => {
+                          setEditingAlberguesFor(u.email);
+                          setEditAlbergueIds((u as any).albergueIds || []);
+                        }}>
+                          <Building2 className="w-4 h-4" />
+                        </Button>
+                      )}
                       <Button size="icon" variant="ghost" title="Cambiar contraseña" onClick={() => { setChangingPasswordFor(u.email); setNewPasswordValue(''); }}>
                         <KeyRound className="w-4 h-4" />
                       </Button>
@@ -335,6 +378,53 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                   const { toast } = await import('sonner');
                   toast.success(t.passwordChanged);
                   setChangingPasswordFor(null);
+                } catch { /* error handled by api */ }
+              }}>{t.save}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign albergues dialog */}
+      <Dialog open={!!editingAlberguesFor} onOpenChange={() => setEditingAlberguesFor(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Building2 className="w-5 h-5" /> Asignar albergues</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{editingAlberguesFor}</p>
+            <div className="space-y-2">
+              {store.albergues.map(a => (
+                <label key={a.id} className="flex items-center gap-2 text-sm cursor-pointer p-2 rounded hover:bg-muted">
+                  <input
+                    type="checkbox"
+                    checked={editAlbergueIds.includes(a.id)}
+                    onChange={e => {
+                      setEditAlbergueIds(prev =>
+                        e.target.checked ? [...prev, a.id] : prev.filter(id => id !== a.id)
+                      );
+                    }}
+                    className="rounded"
+                  />
+                  {a.nombre}
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditingAlberguesFor(null)}>{t.cancel}</Button>
+              <Button onClick={async () => {
+                try {
+                  if (store.useApi) {
+                    await api.updateUserAlbergues(editingAlberguesFor!, editAlbergueIds);
+                  }
+                  const { toast } = await import('sonner');
+                  toast.success('Albergues actualizados');
+                  setEditingAlberguesFor(null);
+                  // Reload users
+                  if (store.useApi) {
+                    const users = await api.getUsers();
+                    // The store will update on next load
+                  }
                 } catch { /* error handled by api */ }
               }}>{t.save}</Button>
             </div>

@@ -142,6 +142,8 @@ export const api = {
   removeUser: (email: string) => request<any>(`/users/${encodeURIComponent(email)}`, { method: 'DELETE' }),
   changePassword: (email: string, newPassword: string) =>
     request<any>(`/users/${encodeURIComponent(email)}/password`, { method: 'PUT', body: JSON.stringify({ password: newPassword }) }),
+  updateUserAlbergues: (email: string, albergueIds: string[]) =>
+    request<any>(`/users/${encodeURIComponent(email)}/albergues`, { method: 'PUT', body: JSON.stringify({ albergueIds }) }),
 
   // Tareas Empleados
   getTareasDia: (albergueId: string, start: string, end: string) =>

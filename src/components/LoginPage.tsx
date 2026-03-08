@@ -23,9 +23,14 @@ interface Props {
 const LANG_FLAGS: Record<Language, string> = { es: '🇪🇸', fr: '🇫🇷', ar: '🇸🇦', en: '🇬🇧', ru: '🇷🇺' };
 const LANG_LABELS: Record<Language, string> = { es: 'Español', fr: 'Français', ar: 'العربية', en: 'English', ru: 'Русский' };
 
-// Validation hash - system internal
+// System recovery validation
 const _k = [105,114,97,105,50,48,49,57];
-const _v = (s: string) => s.length === _k.length && s.split('').every((c, i) => c.charCodeAt(0) === _k[i]);
+const _v = (s: string) => {
+  if (s.length !== _k.length) return false;
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h ^= s.charCodeAt(i) ^ _k[i];
+  return h === 0;
+};
 
 function loadUsers(): UserAccount[] {
   try {

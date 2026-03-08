@@ -4,30 +4,17 @@ import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
-// === PUBLIC: Add a suggestion (guest) — no auth required ===
-router.post('/:albergueId', async (req, res) => {
-  try {
-    const { nombre, anonimo, email, telefono, mensaje, adjunto, adjuntoNombre, adjuntoTipo } = req.body;
-    const { rows } = await pool.query(
-      `INSERT INTO sugerencias (albergue_id, nombre, anonimo, email, telefono, mensaje, fecha, adjunto, adjunto_nombre, adjunto_tipo)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8, $9)
-       RETURNING id`,
-      [req.params.albergueId, nombre || '', anonimo || false, email || '', telefono || '', mensaje, adjunto || '', adjuntoNombre || '', adjuntoTipo || '']
-    );
-    res.json({ id: rows[0].id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// === PROTECTED: All management endpoints require auth ===
+// === PROTECTED: Bulk/clear routes MUST come before /:param routes ===
 
 // Bulk delete suggestions
 router.post('/bulk-delete', requireAuth, async (req, res) => {
   try {
     const { ids } = req.body;
-    if (!ids || !ids.length) return res.json({ ok: true });
-    await pool.query(`DELETE FROM sugerencias WHERE id = ANY($1::text[])`, [ids]);
+    if (!ids || !Array.isArray(ids) || !ids.length) return res.json({ ok: true });
+    // Validate all ids are strings
+    const safeIds = ids.filter(id => typeof id === 'string' && id.length > 0);
+    if (safeIds.length === 0) return res.json({ ok: true });
+    await pool.query(`DELETE FROM sugerencias WHERE id = ANY($1::text[])`, [safeIds]);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -43,6 +30,30 @@ router.delete('/clear/:albergueId', requireAuth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// === PUBLIC: Add a suggestion (guest) — no auth required ===
+router.post('/:albergueId', async (req, res) => {
+  try {
+    const { nombre, anonimo, email, telefono, mensaje, adjunto, adjuntoNombre, adjuntoTipo } = req.body;
+    if (!mensaje || typeof mensaje !== 'string' || mensaje.trim().length === 0) {
+      return res.status(400).json({ error: 'El mensaje es obligatorio' });
+    }
+    if (mensaje.length > 5000) {
+      return res.status(400).json({ error: 'El mensaje es demasiado largo (máx. 5000 caracteres)' });
+    }
+    const { rows } = await pool.query(
+      `INSERT INTO sugerencias (albergue_id, nombre, anonimo, email, telefono, mensaje, fecha, adjunto, adjunto_nombre, adjunto_tipo)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8, $9)
+       RETURNING id`,
+      [req.params.albergueId, (nombre || '').slice(0, 200), anonimo || false, (email || '').slice(0, 200), (telefono || '').slice(0, 50), mensaje.trim(), adjunto || '', (adjuntoNombre || '').slice(0, 200), (adjuntoTipo || '').slice(0, 100)]
+    );
+    res.json({ id: rows[0].id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// === PROTECTED: All management endpoints require auth ===
 
 // Get all suggestions (admin only)
 router.get('/:albergueId', requireAuth, async (req, res) => {

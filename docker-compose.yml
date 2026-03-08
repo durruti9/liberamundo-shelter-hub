@@ -27,6 +27,7 @@ services:
       DB_NAME: liberamundo
       DB_USER: liberamundo
       DB_PASSWORD: liberamundo
+      JWT_SECRET: lm_prod_s3cr3t_ch4ng3_th1s_t0_y0ur_0wn_k3y
       PORT: 3000
     depends_on:
       postgres:
