@@ -1,4 +1,3 @@
-import { forwardRef } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,7 +19,7 @@ interface Props {
   destructive?: boolean;
 }
 
-const ConfirmDialog = forwardRef<HTMLDivElement, Props>(function ConfirmDialog({
+export default function ConfirmDialog({
   open,
   onClose,
   onConfirm,
@@ -28,10 +27,10 @@ const ConfirmDialog = forwardRef<HTMLDivElement, Props>(function ConfirmDialog({
   description = 'Esta acción no se puede deshacer.',
   confirmLabel = 'Eliminar',
   destructive = true,
-}, ref) {
+}: Props) {
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent ref={ref}>
+      <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
@@ -48,6 +47,4 @@ const ConfirmDialog = forwardRef<HTMLDivElement, Props>(function ConfirmDialog({
       </AlertDialogContent>
     </AlertDialog>
   );
-});
-
-export default ConfirmDialog;
+}
