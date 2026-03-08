@@ -5,7 +5,7 @@ import { generateToken } from '../middleware/auth.js';
 
 const router = Router();
 
-// --- Rate limiting: max 5 attempts per IP per 15 min ---
+// --- Rate limiting: max 5 FAILED attempts per IP per 15 min ---
 const loginAttempts = new Map();
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000;
 const RATE_LIMIT_MAX = 5;
@@ -14,12 +14,23 @@ function checkRateLimit(ip) {
   const now = Date.now();
   const record = loginAttempts.get(ip);
   if (!record || now - record.firstAttempt > RATE_LIMIT_WINDOW) {
-    loginAttempts.set(ip, { count: 1, firstAttempt: now });
-    return true;
+    return true; // No record or expired
   }
-  if (record.count >= RATE_LIMIT_MAX) return false;
-  record.count++;
-  return true;
+  return record.count < RATE_LIMIT_MAX;
+}
+
+function recordFailedAttempt(ip) {
+  const now = Date.now();
+  const record = loginAttempts.get(ip);
+  if (!record || now - record.firstAttempt > RATE_LIMIT_WINDOW) {
+    loginAttempts.set(ip, { count: 1, firstAttempt: now });
+  } else {
+    record.count++;
+  }
+}
+
+function clearAttempts(ip) {
+  loginAttempts.delete(ip);
 }
 
 setInterval(() => {
