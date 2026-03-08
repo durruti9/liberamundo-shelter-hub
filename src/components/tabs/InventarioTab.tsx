@@ -54,6 +54,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
   });
 
   const isAdmin = role === 'admin';
+  const canManage = role === 'admin' || role === 'personal_albergue';
 
   // Example data for when API is not available
   const MOCK_CATEGORIES: Category[] = [
