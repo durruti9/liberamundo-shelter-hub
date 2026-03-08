@@ -43,8 +43,8 @@ const TAREAS_PLANTILLA = [
 ];
 
 const ESTADO_COLORS: Record<string, string> = {
-  pendiente: 'bg-[hsl(38,92%,90%)] text-[hsl(38,92%,30%)] border-[hsl(38,92%,70%)]',
-  hecha: 'bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)] border-[hsl(142,60%,70%)]',
+  pendiente: 'bg-[hsl(38,92%,90%)] dark:bg-[hsl(38,50%,18%)] text-[hsl(38,92%,30%)] dark:text-[hsl(38,80%,70%)] border-[hsl(38,92%,70%)] dark:border-[hsl(38,50%,35%)]',
+  hecha: 'bg-[hsl(142,60%,90%)] dark:bg-[hsl(142,35%,18%)] text-[hsl(142,60%,30%)] dark:text-[hsl(142,50%,65%)] border-[hsl(142,60%,70%)] dark:border-[hsl(142,35%,35%)]',
   'no procede': 'bg-secondary text-secondary-foreground border-border',
 };
 
