@@ -335,7 +335,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold flex items-center gap-2">
             <ClipboardList className="w-5 h-5 text-primary" />
-            {format(dateObj, "EEEE d 'de' MMMM yyyy", { locale: es })}
+            {format(dateObj, "EEEE dd-MM-yyyy", { locale: es })}
           </h2>
           <div className="flex gap-2">
             <ExportButton type="tareas" getData={() => tareas.map(t => ({
@@ -351,51 +351,57 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={() => { setSelectedDate(null); setEditingIdx(new Set()); setOriginalTareas({}); }}>
-              <X className="w-4 h-4 mr-1" /> Cancelar
+              <ArrowLeft className="w-4 h-4 mr-1" /> Volver
             </Button>
-            {editable && (
-              <Button size="sm" onClick={handleSave} className="bg-[hsl(142,60%,40%)] hover:bg-[hsl(142,60%,35%)] text-white gap-1">
-                <Save className="w-4 h-4" /> Guardar todo
-              </Button>
-            )}
           </div>
         </div>
 
         <div className="space-y-3">
           {tareas.map((tarea, idx) => {
+            const isHecha = tarea.estado === 'hecha';
             const isEditing = editingIdx.has(idx);
-            const taskEditable = editable && isEditing;
+            // Pendiente/no-procede: always editable if day is editable
+            // Hecha: locked, need pencil to edit
+            const taskEditable = editable && (isHecha ? isEditing : true);
             const canDelete = isDuplicate(idx);
 
+            // Card background based on estado
+            const cardBg = isHecha
+              ? 'border-[hsl(142,60%,70%)] bg-[hsl(142,60%,95%)]'
+              : tarea.estado === 'no procede'
+                ? 'border-border bg-muted/50'
+                : 'border-[hsl(38,92%,70%)] bg-[hsl(38,92%,95%)]';
+
             return (
-            <Card key={idx} className={`border transition-colors ${isEditing ? 'border-primary/40 bg-primary/5' : 'hover:border-primary/30'}`}>
+            <Card key={idx} className={`border transition-colors ${cardBg}`}>
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <p className="font-semibold text-sm">{tarea.tareaNombre}</p>
                       {canDelete && <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-muted-foreground/30 text-muted-foreground">duplicado</Badge>}
-                      {/* Edit pencil icon */}
-                      {editable && !isEditing && (
-                        <div className="flex items-center gap-0.5">
-                          <button
-                            onClick={() => startEditing(idx)}
-                            className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-primary"
-                            title="Editar tarea"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleResetTarea(idx)}
-                            className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-amber-600"
-                            title="Dejar en blanco"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                      {/* Pencil only for "hecha" tasks that need unlocking */}
+                      {editable && isHecha && !isEditing && (
+                        <button
+                          onClick={() => startEditing(idx)}
+                          className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-primary"
+                          title="Editar tarea"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
                       )}
-                      {/* Delete icon for duplicates when editing */}
-                      {editable && isEditing && canDelete && (
+                      {/* Reset button */}
+                      {editable && (isHecha || tarea.hechoPor || tarea.observacion) && (
+                        <button
+                          onClick={() => handleResetTarea(idx)}
+                          className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-amber-600"
+                          title="Dejar en blanco"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {/* Delete icon for duplicates */}
+                      {editable && canDelete && (
                         <button
                           onClick={() => handleDeleteTarea(idx)}
                           className="p-1 rounded hover:bg-destructive/10 transition-colors text-destructive"
@@ -475,15 +481,16 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                     <Badge className={`text-xs border ${ESTADO_COLORS[tarea.estado]}`} variant="outline">
                       {tarea.estado}
                     </Badge>
-                    {editable && isEditing && (
-                      <div className="flex gap-1">
-                        <Button variant="outline" size="sm" onClick={() => cancelEditing(idx)} className="text-xs gap-1">
-                          <X className="w-3 h-3" /> Cancelar
-                        </Button>
-                        <Button size="sm" onClick={() => registerTarea(idx)} className="text-xs gap-1 bg-[hsl(142,60%,40%)] hover:bg-[hsl(142,60%,35%)] text-white">
-                          <Save className="w-3 h-3" /> Registrar
-                        </Button>
-                      </div>
+                    {/* Registrar button: for pending tasks or when editing a hecha task */}
+                    {editable && ((!isHecha) || isEditing) && (
+                      <Button size="sm" onClick={() => registerTarea(idx)} className="text-xs gap-1 bg-[hsl(142,60%,40%)] hover:bg-[hsl(142,60%,35%)] text-white">
+                        <Save className="w-3 h-3" /> Registrar
+                      </Button>
+                    )}
+                    {editable && isEditing && isHecha && (
+                      <Button variant="outline" size="sm" onClick={() => cancelEditing(idx)} className="text-xs gap-1">
+                        <X className="w-3 h-3" /> Cancelar
+                      </Button>
                     )}
                     {editable && (
                       <Button variant="outline" size="sm" onClick={() => handleDuplicate(idx)} className="text-xs gap-1">
@@ -497,14 +504,6 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
             );
           })}
         </div>
-
-        {editable && (
-          <div className="flex justify-end pt-4">
-            <Button size="lg" onClick={handleSave} className="bg-[hsl(142,60%,40%)] hover:bg-[hsl(142,60%,35%)] text-white gap-2">
-              <Save className="w-5 h-5" /> Guardar todo
-            </Button>
-          </div>
-        )}
 
         {/* Admin observation dialog */}
         <Dialog open={obsDialogIdx !== null} onOpenChange={open => { if (!open) setObsDialogIdx(null); }}>
