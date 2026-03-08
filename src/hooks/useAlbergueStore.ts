@@ -54,14 +54,14 @@ export function useAlbergueStore(albergueId: string = 'default') {
   // ── Load from API ──
   const loadFromApi = useCallback(async () => {
     try {
-      const [albs, huesps, com, llegs, incs, msgs, usrs] = await Promise.all([
+      // Core data — all roles can access these
+      const [albs, huesps, com, llegs, incs, msgs] = await Promise.all([
         api.getAlbergues(),
         api.getHuespedes(albergueId),
         api.getComedor(albergueId),
         api.getLlegadas(albergueId),
         api.getIncidencias(albergueId),
         api.getBoardMessages(albergueId),
-        api.getUsers(),
       ]);
       setAlbergues(albs);
       setHuespedes(huesps);
@@ -69,7 +69,14 @@ export function useAlbergueStore(albergueId: string = 'default') {
       setLlegadas(llegs);
       setIncidencias(incs);
       setBoardMessages(msgs);
-      setUsers(usrs);
+
+      // Admin-only: user list (non-admins get 403, ignore gracefully)
+      try {
+        const usrs = await api.getUsers();
+        setUsers(usrs);
+      } catch {
+        // Non-admin users don't have access to user management
+      }
     } catch (err) {
       console.error('Error loading from API:', err);
     }
