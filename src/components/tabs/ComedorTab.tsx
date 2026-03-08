@@ -83,6 +83,44 @@ function MultiCheckbox({ options, selected, onChange, label }: { options: string
 export default function ComedorTab({ store, role }: Props) {
   const { huespedActivos, comedor, updateComedor, currentAlbergue } = store;
   const { t } = useI18n();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [menuInfo, setMenuInfo] = useState<{ exists: boolean; filename?: string; uploadedAt?: string; size?: number } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const albergueId = currentAlbergue?.id;
+
+  const loadMenuInfo = useCallback(() => {
+    if (!albergueId) return;
+    api.getMenuInfo(albergueId).then(setMenuInfo).catch(() => setMenuInfo({ exists: false }));
+  }, [albergueId]);
+
+  useEffect(() => { loadMenuInfo(); }, [loadMenuInfo]);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !albergueId) return;
+    setUploading(true);
+    try {
+      await api.uploadMenu(albergueId, file);
+      toast.success(t.menuUploaded);
+      loadMenuInfo();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteMenu = async () => {
+    if (!albergueId) return;
+    try {
+      await api.deleteMenu(albergueId);
+      toast.success(t.menuDeleted);
+      setMenuInfo({ exists: false });
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
 
   const canEdit = true;
 
