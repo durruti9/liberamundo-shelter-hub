@@ -181,6 +181,9 @@ export const api = {
   getAccessLogs: () => request<any[]>('/access-logs'),
   clearAccessLogs: () => request<any>('/access-logs', { method: 'DELETE' }),
 
+  // Debug
+  getDebugStatus: () => request<any>('/debug/status'),
+
   // Registro Horario
   getEmpleadosHorario: (albergueId: string) => request<any[]>(`/registro-horario/empleados/${albergueId}`),
   addEmpleadoHorario: (albergueId: string, data: any) =>
