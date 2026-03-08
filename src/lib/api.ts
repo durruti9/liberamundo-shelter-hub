@@ -242,6 +242,7 @@ export const api = {
     request<any>(`/inventario/items/${itemId}/movimiento`, { method: 'POST', body: JSON.stringify(data) }),
   getInventarioMovimientos: (itemId: string) => request<any[]>(`/inventario/items/${itemId}/movimientos`),
   getInventarioAlertas: (albergueId: string) => request<any[]>(`/inventario/${albergueId}/alertas`),
+  getInventarioConsumoMensual: (albergueId: string) => request<any[]>(`/inventario/${albergueId}/consumo-mensual`),
 };
 
 // Check if API is available
