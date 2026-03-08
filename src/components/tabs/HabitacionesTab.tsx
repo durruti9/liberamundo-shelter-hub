@@ -30,6 +30,7 @@ export default function HabitacionesTab({ store, role }: Props) {
   const dateFnsLocale = { es, fr, ar, en: enUS, ru }[lang] || es;
   const canClean = role === 'admin' || role === 'personal_albergue';
   const [checkInTarget, setCheckInTarget] = useState<{ habitacion: string; cama: number } | null>(null);
+  const [cleaningPopoverOpen, setCleaningPopoverOpen] = useState<string | null>(null);
   const [editTarget, setEditTarget] = useState<string | null>(null);
   const [checkoutTarget, setCheckoutTarget] = useState<string | null>(null);
   const [checkoutDate, setCheckoutDate] = useState<Date | undefined>(new Date());
@@ -172,7 +173,7 @@ export default function HabitacionesTab({ store, role }: Props) {
               {canClean && (
               <div className="flex items-center gap-1.5 mt-1">
                 <SprayCan className="w-3 h-3 text-muted-foreground shrink-0" />
-                <Popover>
+                <Popover open={cleaningPopoverOpen === room.id} onOpenChange={(open) => setCleaningPopoverOpen(open ? room.id : null)}>
                   <PopoverTrigger asChild>
                      <button className="text-[10px] text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted">
                       {room.ultimaLimpieza
@@ -186,6 +187,7 @@ export default function HabitacionesTab({ store, role }: Props) {
                       selected={room.ultimaLimpieza ? new Date(room.ultimaLimpieza + 'T00:00:00') : undefined}
                       onSelect={async (date) => {
                         if (date) {
+                          setCleaningPopoverOpen(null);
                           const year = date.getFullYear();
                           const month = String(date.getMonth() + 1).padStart(2, '0');
                           const day = String(date.getDate()).padStart(2, '0');
