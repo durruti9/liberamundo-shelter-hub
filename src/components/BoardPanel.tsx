@@ -35,6 +35,7 @@ export default function BoardPanel({ title, icon, tipo, messages, role, onAdd, o
   const [replyAutor, setReplyAutor] = useState('');
   const [resolveId, setResolveId] = useState<string | null>(null);
   const [resolveData, setResolveData] = useState({ autor: '', descripcion: '' });
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Role-based visibility: only show messages the user's role can see
   const canSee = (msg: BoardMessage) => {
