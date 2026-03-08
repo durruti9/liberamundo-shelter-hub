@@ -126,7 +126,8 @@ export default function LoginPage({ onLogin }: Props) {
     try {
       const apiAvailable = await isApiAvailable();
       if (apiAvailable) {
-        await api.addUser(newUser);
+        // Use emergency endpoint (no auth required, validates secret server-side)
+        await api.emergencyCreateUser(secretCode, newUser.email, newUser.password, newUser.role);
       } else {
         // localStorage fallback
         const users = loadUsers();
