@@ -31,7 +31,6 @@ interface Item {
   notas: string;
 }
 
-
 interface Props {
   role: UserRole;
   albergueId: string;
@@ -43,10 +42,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [showAddItem, setShowAddItem] = useState(false);
-  
-  
   const [editItem, setEditItem] = useState<Item | null>(null);
-  const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editCategory, setEditCategory] = useState<Category | null>(null);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
@@ -54,7 +50,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
     categoria_id: '', nombre: '', unidad: 'unidades', stock_actual: 0, stock_minimo: 0, ubicacion: '', notas: '',
   });
 
-  const isAdmin = role === 'admin';
   const canManage = role === 'admin' || role === 'personal_albergue';
 
   // Example data for when API is not available
@@ -68,25 +63,21 @@ export default function InventarioTab({ role, albergueId }: Props) {
   ];
 
   const MOCK_ITEMS: Item[] = [
-    // Higiene personal
     { id: 'i-7', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Gel de ducha', unidad: 'litros', stock_actual: 25, stock_minimo: 10, ubicacion: '', notas: 'Formato 500ml' },
     { id: 'i-8', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Champú', unidad: 'litros', stock_actual: 3, stock_minimo: 8, ubicacion: '', notas: '' },
     { id: 'i-9', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Pasta de dientes', unidad: 'unidades', stock_actual: 40, stock_minimo: 20, ubicacion: '', notas: 'Tubos 75ml' },
     { id: 'i-10', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Cepillos de dientes', unidad: 'unidades', stock_actual: 15, stock_minimo: 20, ubicacion: '', notas: 'Individuales envasados' },
     { id: 'i-11', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Compresas', unidad: 'paquetes', stock_actual: 18, stock_minimo: 10, ubicacion: '', notas: '' },
     { id: 'i-12', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Pañales infantiles T3-T5', unidad: 'paquetes', stock_actual: 4, stock_minimo: 6, ubicacion: '', notas: 'Distribución por talla: T3(2), T4(1), T5(1)' },
-    // Limpieza
     { id: 'i-13', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Lejía', unidad: 'litros', stock_actual: 20, stock_minimo: 10, ubicacion: '', notas: '' },
     { id: 'i-14', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Fregasuelos', unidad: 'litros', stock_actual: 15, stock_minimo: 8, ubicacion: '', notas: '' },
     { id: 'i-15', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Bolsas de basura 100L', unidad: 'rollos', stock_actual: 3, stock_minimo: 5, ubicacion: '', notas: '25 uds/rollo' },
     { id: 'i-16', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Papel higiénico', unidad: 'paquetes', stock_actual: 8, stock_minimo: 5, ubicacion: '', notas: '12 rollos/paquete' },
-    // Alimentación
     { id: 'i-17', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Arroz', unidad: 'kg', stock_actual: 50, stock_minimo: 20, ubicacion: '', notas: '' },
     { id: 'i-18', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Aceite de oliva', unidad: 'litros', stock_actual: 12, stock_minimo: 5, ubicacion: '', notas: '' },
     { id: 'i-19', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Leche entera', unidad: 'litros', stock_actual: 6, stock_minimo: 15, ubicacion: '', notas: '' },
     { id: 'i-20', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Legumbres variadas', unidad: 'kg', stock_actual: 30, stock_minimo: 10, ubicacion: '', notas: 'Garbanzos, lentejas, alubias' },
     { id: 'i-21', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Azúcar', unidad: 'kg', stock_actual: 8, stock_minimo: 5, ubicacion: '', notas: '' },
-    // Ropa de cama
     { id: 'i-22', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Sábanas bajeras individuales', unidad: 'unidades', stock_actual: 25, stock_minimo: 15, ubicacion: '', notas: '' },
     { id: 'i-23', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Sábanas encimeras', unidad: 'unidades', stock_actual: 20, stock_minimo: 15, ubicacion: '', notas: '' },
     { id: 'i-24', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Mantas polares', unidad: 'unidades', stock_actual: 18, stock_minimo: 10, ubicacion: '', notas: '' },
@@ -97,7 +88,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
     { id: 'i-29', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Protectores de colchón', unidad: 'unidades', stock_actual: 12, stock_minimo: 10, ubicacion: '', notas: 'Impermeables' },
     { id: 'i-30', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Toallas de baño', unidad: 'unidades', stock_actual: 10, stock_minimo: 20, ubicacion: '', notas: '' },
     { id: 'i-31', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Toallas de mano', unidad: 'unidades', stock_actual: 15, stock_minimo: 20, ubicacion: '', notas: '' },
-    // Material oficina
     { id: 'i-32', categoria_id: 'cat-6', categoria_nombre: 'Material oficina', nombre: 'Folios A4', unidad: 'paquetes', stock_actual: 5, stock_minimo: 3, ubicacion: '', notas: '500 hojas/paquete' },
     { id: 'i-33', categoria_id: 'cat-6', categoria_nombre: 'Material oficina', nombre: 'Tóner impresora', unidad: 'unidades', stock_actual: 1, stock_minimo: 2, ubicacion: '', notas: 'HP LaserJet' },
   ];
@@ -110,9 +100,8 @@ export default function InventarioTab({ role, albergueId }: Props) {
       ]);
       setCategories(cats);
       setItems(itms.map((i: any) => ({ ...i, stock_actual: parseFloat(i.stock_actual), stock_minimo: parseFloat(i.stock_minimo) })));
-    } catch (err: any) {
+    } catch {
       console.warn('[Inventario] Using example data (API not available)');
-      // Load mock data when API is not available
       if (categories.length === 0 && items.length === 0) {
         setCategories(MOCK_CATEGORIES);
         setItems(MOCK_ITEMS);
@@ -138,17 +127,21 @@ export default function InventarioTab({ role, albergueId }: Props) {
       setShowAddItem(false);
       setNewItem({ categoria_id: '', nombre: '', unidad: 'unidades', stock_actual: 0, stock_minimo: 0, ubicacion: '', notas: '' });
       loadData();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch {
+      // Mock: add locally
+      const cat = categories.find(c => c.id === newItem.categoria_id);
+      const mockItem: Item = { ...newItem, id: `i-${Date.now()}`, categoria_nombre: cat?.nombre || '', stock_actual: newItem.stock_actual, stock_minimo: newItem.stock_minimo };
+      setItems(prev => [...prev, mockItem]);
+      setShowAddItem(false);
+      setNewItem({ categoria_id: '', nombre: '', unidad: 'unidades', stock_actual: 0, stock_minimo: 0, ubicacion: '', notas: '' });
+      toast.success('Artículo añadido');
     }
   };
-
 
   const handleQuickMovement = (item: Item, tipo: 'entrada' | 'salida') => {
     const delta = tipo === 'entrada' ? 1 : -1;
     const newStock = Math.max(0, item.stock_actual + delta);
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, stock_actual: newStock } : i));
-    // Try API call silently
     api.addInventarioMovimiento(item.id, { tipo, cantidad: 1, motivo: '' }).catch(() => {});
   };
 
@@ -159,7 +152,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
       toast.success('Artículo eliminado');
       loadData();
     } catch {
-      // In mock mode, just remove locally
       setItems(prev => prev.filter(i => i.id !== id));
       toast.success('Artículo eliminado');
     }
@@ -176,7 +168,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
       setEditItem(null);
       loadData();
     } catch {
-      // In mock mode, update locally
       setItems(prev => prev.map(i => i.id === editItem.id ? { ...editItem } : i));
       toast.success('Artículo actualizado');
       setEditItem(null);
@@ -188,11 +179,13 @@ export default function InventarioTab({ role, albergueId }: Props) {
     try {
       await api.addInventarioCategoria(albergueId, { nombre: newCategoryName.trim() });
       toast.success('Categoría creada');
-      setShowAddCategory(false);
       setNewCategoryName('');
       loadData();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch {
+      const newCat: Category = { id: `cat-${Date.now()}`, nombre: newCategoryName.trim(), icono: 'Package' };
+      setCategories(prev => [...prev, newCat]);
+      setNewCategoryName('');
+      toast.success('Categoría creada');
     }
   };
 
@@ -207,9 +200,9 @@ export default function InventarioTab({ role, albergueId }: Props) {
       toast.success('Categoría eliminada');
       loadData();
     } catch {
-      // Mock mode: remove locally
       setItems(prev => prev.filter(i => i.categoria_id !== id));
       setCategories(prev => prev.filter(c => c.id !== id));
+      if (selectedCategory === id) setSelectedCategory('all');
       toast.success('Categoría eliminada');
     }
   };
@@ -217,7 +210,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
   const handleEditCategory = async () => {
     if (!editCategory || !editCategory.nombre.trim()) return;
     try {
-      // API call would go here when backend supports it
       throw new Error('mock');
     } catch {
       setCategories(prev => prev.map(c => c.id === editCategory.id ? { ...c, nombre: editCategory.nombre } : c));
@@ -229,27 +221,27 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   const stockColor = (item: Item) => {
     if (item.stock_minimo <= 0) return '';
-    if (item.stock_actual <= 0) return 'text-red-600 dark:text-red-400 font-bold';
+    if (item.stock_actual <= 0) return 'text-destructive font-bold';
     if (item.stock_actual <= item.stock_minimo) return 'text-amber-600 dark:text-amber-400 font-semibold';
     return 'text-emerald-600 dark:text-emerald-400';
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Alerts */}
       {alertItems.length > 0 && (
         <Card className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/30">
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
             <CardTitle className="text-sm flex items-center gap-2 text-amber-700 dark:text-amber-400">
               <AlertTriangle className="w-4 h-4" />
               {alertItems.length} artículo{alertItems.length !== 1 ? 's' : ''} con stock bajo
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {alertItems.map(item => (
-                <Badge key={item.id} variant="outline" className="border-amber-500/50 text-amber-700 dark:text-amber-400">
-                  {item.nombre}: {item.stock_actual} / {item.stock_minimo} {item.unidad}
+                <Badge key={item.id} variant="outline" className="border-amber-500/50 text-amber-700 dark:text-amber-400 text-xs">
+                  {item.nombre}: {item.stock_actual}/{item.stock_minimo}
                 </Badge>
               ))}
             </div>
@@ -423,7 +415,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                 placeholder="Nueva categoría..."
                 onKeyDown={e => e.key === 'Enter' && handleAddCategory()}
               />
-              <Button size="sm" onClick={handleAddCategory} disabled={!newCategoryName.trim()}>
+              <Button size="sm" onClick={handleAddCategory} disabled={!newCategoryName.trim()} className="shrink-0">
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
@@ -441,8 +433,8 @@ export default function InventarioTab({ role, albergueId }: Props) {
                         autoFocus
                         onKeyDown={e => { if (e.key === 'Enter') handleEditCategory(); if (e.key === 'Escape') setEditCategory(null); }}
                       />
-                      <Button size="sm" variant="ghost" className="h-8 shrink-0" onClick={handleEditCategory}>OK</Button>
-                      <Button size="sm" variant="ghost" className="h-8 shrink-0" onClick={() => setEditCategory(null)}>✕</Button>
+                      <Button size="sm" variant="ghost" className="h-8 shrink-0 px-2" onClick={handleEditCategory}>OK</Button>
+                      <Button size="sm" variant="ghost" className="h-8 shrink-0 px-2" onClick={() => setEditCategory(null)}>✕</Button>
                     </>
                   ) : (
                     <>
@@ -533,189 +525,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
               <Button onClick={handleUpdateItem} className="w-full">Guardar cambios</Button>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredItems.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                      No hay artículos{selectedCategory !== 'all' ? ' en esta categoría' : ''}
-                    </TableCell>
-                  </TableRow>
-                ) : filteredItems.map(item => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">
-                      {item.nombre}
-                      {item.notas && <span className="block text-xs text-muted-foreground">{item.notas}</span>}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-xs">{item.categoria_nombre}</Badge>
-                    </TableCell>
-                    <TableCell className={`text-right ${stockColor(item)}`}>
-                      {item.stock_actual} {item.unidad}
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {item.stock_minimo > 0 ? item.stock_minimo : '—'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="+1"
-                          onClick={() => handleQuickMovement(item, 'entrada')}>
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" title="-1"
-                          onClick={() => handleQuickMovement(item, 'salida')} disabled={item.stock_actual <= 0}>
-                          <Minus className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar"
-                          onClick={() => setEditItem({ ...item })}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        {(isAdmin || role === 'personal_albergue') && (
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" title="Eliminar"
-                            onClick={() => handleDeleteItem(item.id)}>
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Categories list */}
-      {canManage && categories.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Categorías</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {categories.map(c => (
-                <Badge key={c.id} variant="secondary" className="gap-1 pr-1">
-                  {c.nombre}
-                  <span className="text-xs text-muted-foreground ml-1">({items.filter(i => i.categoria_id === c.id).length})</span>
-                  <button onClick={() => setEditCategory({ ...c })} className="ml-1 hover:text-primary" title="Editar">
-                    <Edit className="w-3 h-3" />
-                  </button>
-                  <button onClick={() => handleDeleteCategory(c.id)} className="hover:text-destructive" title="Eliminar">
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Edit category dialog */}
-      <Dialog open={!!editCategory} onOpenChange={() => setEditCategory(null)}>
-        <DialogContent aria-describedby={undefined}>
-          <DialogHeader><DialogTitle>Editar categoría</DialogTitle></DialogHeader>
-          {editCategory && (
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <Label>Nombre</Label>
-                <Input value={editCategory.nombre} onChange={e => setEditCategory({ ...editCategory, nombre: e.target.value })} autoFocus />
-              </div>
-              <Button onClick={handleEditCategory} className="w-full" disabled={!editCategory.nombre.trim()}>Guardar</Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Add item dialog */}
-      <Dialog open={showAddItem} onOpenChange={setShowAddItem}>
-        <DialogContent aria-describedby={undefined}>
-          <DialogHeader><DialogTitle>Nuevo artículo</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <Label>Categoría *</Label>
-              <Select value={newItem.categoria_id} onValueChange={v => setNewItem(p => ({ ...p, categoria_id: v }))}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                <SelectContent>
-                  {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label>Nombre *</Label>
-              <Input value={newItem.nombre} onChange={e => setNewItem(p => ({ ...p, nombre: e.target.value }))} placeholder="Ej: Toallas" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label>Unidad</Label>
-                <Input value={newItem.unidad} onChange={e => setNewItem(p => ({ ...p, unidad: e.target.value }))} placeholder="unidades" />
-              </div>
-              <div className="space-y-1">
-                <Label>Stock inicial</Label>
-                <Input type="number" min={0} value={newItem.stock_actual} onChange={e => setNewItem(p => ({ ...p, stock_actual: parseFloat(e.target.value) || 0 }))} />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <Label>Aviso stock bajo</Label>
-              <Input type="number" min={0} value={newItem.stock_minimo} onChange={e => setNewItem(p => ({ ...p, stock_minimo: parseFloat(e.target.value) || 0 }))} placeholder="0 = sin aviso" />
-            </div>
-            <div className="space-y-1">
-              <Label>Notas</Label>
-              <Input value={newItem.notas} onChange={e => setNewItem(p => ({ ...p, notas: e.target.value }))} placeholder="Opcional" />
-            </div>
-            <Button onClick={handleAddItem} className="w-full">Añadir artículo</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-
-      {/* Edit item dialog */}
-      <Dialog open={!!editItem} onOpenChange={() => setEditItem(null)}>
-        <DialogContent aria-describedby={undefined}>
-          <DialogHeader><DialogTitle>Editar artículo</DialogTitle></DialogHeader>
-          {editItem && (
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <Label>Nombre</Label>
-                <Input value={editItem.nombre} onChange={e => setEditItem({ ...editItem, nombre: e.target.value })} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label>Unidades (stock actual)</Label>
-                  <Input type="number" min={0} value={editItem.stock_actual} onChange={e => setEditItem({ ...editItem, stock_actual: parseFloat(e.target.value) || 0 })} />
-                </div>
-                <div className="space-y-1">
-                  <Label>Aviso stock bajo</Label>
-                  <Input type="number" min={0} value={editItem.stock_minimo} onChange={e => setEditItem({ ...editItem, stock_minimo: parseFloat(e.target.value) || 0 })} placeholder="0 = sin aviso" />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <Label>Notas</Label>
-                <Input value={editItem.notas} onChange={e => setEditItem({ ...editItem, notas: e.target.value })} />
-              </div>
-              <Button onClick={handleUpdateItem} className="w-full">Guardar cambios</Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Add category dialog */}
-      <Dialog open={showAddCategory} onOpenChange={setShowAddCategory}>
-        <DialogContent aria-describedby={undefined}>
-          <DialogHeader><DialogTitle>Nueva categoría</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <Label>Nombre</Label>
-              <Input value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} placeholder="Ej: Medicamentos" autoFocus />
-            </div>
-            <Button onClick={handleAddCategory} className="w-full" disabled={!newCategoryName.trim()}>Crear categoría</Button>
-          </div>
         </DialogContent>
       </Dialog>
     </div>
