@@ -32,6 +32,15 @@ interface Item {
   notas: string;
 }
 
+interface LocalMovement {
+  item_id: string;
+  item_nombre: string;
+  categoria_nombre: string;
+  tipo: 'entrada' | 'salida';
+  cantidad: number;
+  fecha: string; // YYYY-MM
+}
+
 interface Props {
   role: UserRole;
   albergueId: string;
