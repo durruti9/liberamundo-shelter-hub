@@ -105,8 +105,8 @@ router.put('/:id/rooms', requireRole('admin'), async (req, res) => {
   }
 });
 
-// Update cleaning date for a room (admin + personal_albergue)
-router.put('/:id/rooms/:roomId/limpieza', requireRole('admin', 'personal_albergue'), async (req, res) => {
+// Update cleaning date for a room (admin + personal_albergue, validates albergue access)
+router.put('/:id/rooms/:roomId/limpieza', requireRole('admin', 'personal_albergue'), requireAlbergueAccess('id'), async (req, res) => {
   try {
     const { ultimaLimpieza } = req.body;
     const { id: albergueId, roomId } = req.params;
