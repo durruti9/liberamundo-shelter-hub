@@ -765,6 +765,135 @@ export default function InventarioTab({ role, albergueId }: Props) {
           </Card>
         </CollapsibleContent>
       </Collapsible>
+      {/* Movement History collapsible */}
+      <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
+        <CollapsibleTrigger asChild>
+          <Button variant="outline" className="w-full flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2">
+              <History className="w-4 h-4" />
+              Historial global de movimientos
+            </span>
+            <ChevronDown className={`w-4 h-4 transition-transform ${historyOpen ? 'rotate-180' : ''}`} />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-3">
+          <Card>
+            <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <History className="w-4 h-4 text-primary" />
+                  Movimientos registrados
+                </CardTitle>
+                <ExportButton
+                  type="movimientos"
+                  getData={() => movimientos.map((m: any) => ({
+                    ...m,
+                    fecha: new Date(m.fecha).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                    tipo: m.tipo === 'entrada' ? 'Entrada' : 'Salida',
+                  }))}
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6 space-y-4">
+              {/* Filters */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-xs">Desde</Label>
+                  <Input type="date" value={movFilters.start} onChange={e => setMovFilters(p => ({ ...p, start: e.target.value }))} className="h-8 text-xs" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Hasta</Label>
+                  <Input type="date" value={movFilters.end} onChange={e => setMovFilters(p => ({ ...p, end: e.target.value }))} className="h-8 text-xs" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Categoría</Label>
+                  <Select value={movFilters.categoria || '_all'} onValueChange={v => setMovFilters(p => ({ ...p, categoria: v === '_all' ? '' : v }))}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="_all">Todas</SelectItem>
+                      {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Usuario</Label>
+                  <Input value={movFilters.usuario} onChange={e => setMovFilters(p => ({ ...p, usuario: e.target.value }))} placeholder="Filtrar..." className="h-8 text-xs" />
+                </div>
+              </div>
+
+              {movLoading ? (
+                <p className="text-sm text-muted-foreground text-center py-6">Cargando movimientos...</p>
+              ) : movimientos.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  No hay movimientos registrados{movFilters.start || movFilters.end || movFilters.categoria || movFilters.usuario ? ' con estos filtros' : ''}.
+                </p>
+              ) : (
+                <>
+                  <div className="text-xs text-muted-foreground">
+                    {movimientos.length} movimiento{movimientos.length !== 1 ? 's' : ''} encontrado{movimientos.length !== 1 ? 's' : ''}
+                  </div>
+                  {/* Desktop table */}
+                  <div className="hidden sm:block overflow-x-auto max-h-[400px] overflow-y-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs">Fecha</TableHead>
+                          <TableHead className="text-xs">Artículo</TableHead>
+                          <TableHead className="text-xs">Categoría</TableHead>
+                          <TableHead className="text-xs text-center">Tipo</TableHead>
+                          <TableHead className="text-xs text-right">Cantidad</TableHead>
+                          <TableHead className="text-xs">Usuario</TableHead>
+                          <TableHead className="text-xs">Motivo</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {movimientos.map((m: any, idx: number) => (
+                          <TableRow key={m.id || idx}>
+                            <TableCell className="text-xs whitespace-nowrap">
+                              {new Date(m.fecha).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                            </TableCell>
+                            <TableCell className="text-xs font-medium">{m.item_nombre}</TableCell>
+                            <TableCell className="text-xs">
+                              <Badge variant="outline" className="text-[10px]">{m.categoria_nombre}</Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge variant={m.tipo === 'entrada' ? 'default' : 'destructive'} className="text-[10px]">
+                                {m.tipo === 'entrada' ? '↑ Entrada' : '↓ Salida'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className={`text-xs text-right font-medium ${m.tipo === 'entrada' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                              {m.tipo === 'entrada' ? '+' : '-'}{m.cantidad}
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{m.usuario || '—'}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{m.motivo || '—'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {/* Mobile cards */}
+                  <div className="sm:hidden space-y-2 max-h-[400px] overflow-y-auto">
+                    {movimientos.map((m: any, idx: number) => (
+                      <div key={m.id || idx} className="p-2.5 rounded-lg bg-muted/30 space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-medium truncate">{m.item_nombre}</span>
+                          <Badge variant={m.tipo === 'entrada' ? 'default' : 'destructive'} className="text-[10px] shrink-0">
+                            {m.tipo === 'entrada' ? '+' : '-'}{m.cantidad}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                          <span>{new Date(m.fecha).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                          <span>{m.usuario || '—'}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
