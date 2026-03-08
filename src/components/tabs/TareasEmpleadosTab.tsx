@@ -171,9 +171,10 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     return false;
   };
 
-  const handleDeleteTarea = (idx: number) => {
-    if (!isDuplicate(idx)) return; // Safety: never delete the original
-    setTareas(prev => prev.filter((_, i) => i !== idx));
+  const handleDeleteTarea = async (idx: number) => {
+    if (!isDuplicate(idx)) return;
+    const updated = tareas.filter((_, i) => i !== idx);
+    setTareas(updated);
     setEditingIdx(prev => {
       const s = new Set<number>();
       prev.forEach(i => {
@@ -182,6 +183,16 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
       });
       return s;
     });
+    // Auto-persist
+    if (selectedDate) {
+      try {
+        await api.saveTareasDia(albergueId, selectedDate, updated);
+        await loadMonth();
+        toast.success('Duplicado eliminado');
+      } catch {
+        toast.error('Error al eliminar duplicado');
+      }
+    }
   };
 
   const handleResetTarea = async (idx: number) => {
@@ -205,22 +216,31 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     }
   };
 
-  const handleSave = async () => {
-    if (!selectedDate) return;
-    try {
-      await api.saveTareasDia(albergueId, selectedDate, tareas);
-      await loadMonth();
-      setEditingIdx(new Set());
-      setOriginalTareas({});
-      // Re-load the current day's data to confirm persistence
-      const refreshed = allTareasDates[selectedDate];
-      if (refreshed) {
-        setTareas(refreshed.map(t => ({ ...t, adminObs: t.adminObs || '', respuestaEmpleado: t.respuestaEmpleado || '' })));
+  const handleDuplicateAndSave = async (idx: number) => {
+    const original = tareas[idx];
+    const dup: TareaDia = {
+      ...original,
+      id: undefined,
+      estado: 'pendiente',
+      turno: original.turno,
+      hechoPor: '',
+      observacion: '',
+      orden: tareas.length,
+      adminObs: '',
+      respuestaEmpleado: '',
+    };
+    const updated = [...tareas];
+    updated.splice(idx + 1, 0, dup);
+    setTareas(updated);
+    // Auto-persist
+    if (selectedDate) {
+      try {
+        await api.saveTareasDia(albergueId, selectedDate, updated);
+        await loadMonth();
+        toast.success('Tarea duplicada');
+      } catch {
+        toast.error('Error al duplicar');
       }
-      toast.success('Tareas guardadas correctamente');
-    } catch (err) {
-      console.error('Error saving tareas:', err);
-      toast.error('Error al guardar las tareas');
     }
   };
 
