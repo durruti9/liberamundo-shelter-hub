@@ -27,7 +27,8 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
 
   // Pending suggestions count (admin only)
   const [pendingSugerencias, setPendingSugerencias] = useState(0);
-  const [pendingTareas, setPendingTareas] = useState(0);
+  const [completedTareas, setCompletedTareas] = useState(0);
+  const [tareasBreakdown, setTareasBreakdown] = useState<{ nombre: string; count: number }[]>([]);
 
   useEffect(() => {
     const alId = store.currentAlbergue?.id || 'default';
@@ -48,12 +49,24 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
         });
     }
 
-    // Today's pending tasks
+    // Today's completed tasks + breakdown by employee
     const today = new Date().toISOString().split('T')[0];
     api.getTareasDia(alId, today, today)
       .then(data => {
         if (Array.isArray(data)) {
-          setPendingTareas(data.filter((t: any) => t.estado === 'pendiente').length);
+          const done = data.filter((t: any) => t.estado === 'hecha');
+          setCompletedTareas(done.length);
+          // Group by hechoPor
+          const byPerson: Record<string, number> = {};
+          done.forEach((t: any) => {
+            const name = t.hechoPor?.trim() || 'Sin asignar';
+            byPerson[name] = (byPerson[name] || 0) + 1;
+          });
+          setTareasBreakdown(
+            Object.entries(byPerson)
+              .map(([nombre, count]) => ({ nombre, count }))
+              .sort((a, b) => b.count - a.count)
+          );
         }
       })
       .catch(() => {});
