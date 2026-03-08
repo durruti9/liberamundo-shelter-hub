@@ -107,7 +107,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
   const adminCount = store.users.filter(u => u.role === 'admin').length;
 
-  const tabCount = role === 'admin' ? 12 : role === 'gestor' ? 7 : 8;
+  const tabCount = role === 'admin' ? 12 : role === 'gestor' ? 6 : 8;
 
   const handleAlbergueDeleted = (deletedId: string) => {
     if (deletedId === albergueId && store.albergues.length > 0) {
@@ -265,10 +265,12 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                   <span className="hidden sm:inline">Horarios</span>
                 </TabsTrigger>
               )}
-              <TabsTrigger value="inventario" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
-                <Package className="w-4 h-4 shrink-0" />
-                <span className="hidden sm:inline">Inventario</span>
-              </TabsTrigger>
+              {(role === 'admin' || role === 'personal_albergue') && (
+                <TabsTrigger value="inventario" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
+                  <Package className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Inventario</span>
+                </TabsTrigger>
+              )}
               {role === 'admin' && (
                 <TabsTrigger value="informes" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
                   <BarChart3 className="w-4 h-4 shrink-0" />
@@ -332,9 +334,11 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               <RegistroHorarioTab role={role} albergueId={albergueId} />
             </TabsContent>
           )}
-          <TabsContent value="inventario">
-            <InventarioTab role={role} albergueId={albergueId} />
-          </TabsContent>
+          {(role === 'admin' || role === 'personal_albergue') && (
+            <TabsContent value="inventario">
+              <InventarioTab role={role} albergueId={albergueId} />
+            </TabsContent>
+          )}
           {role === 'admin' && (
             <TabsContent value="informes">
               <InformesTab store={store} role={role} />

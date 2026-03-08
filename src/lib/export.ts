@@ -259,4 +259,25 @@ export const EXPORT_CONFIGS = {
       { key: 'Firmado', label: 'Firmado' },
     ],
   },
+  inventario: {
+    title: 'Inventario',
+    columns: [
+      { key: 'nombre', label: 'Artículo' },
+      { key: 'categoria_nombre', label: 'Categoría' },
+      { key: 'stock_actual', label: 'Stock actual' },
+      { key: 'stock_minimo', label: 'Stock mínimo' },
+      { key: 'unidad', label: 'Unidad' },
+      { key: 'ubicacion', label: 'Ubicación' },
+      { key: 'notas', label: 'Notas' },
+    ],
+  },
+  informes: {
+    title: 'Informe de ocupación',
+    columns: [
+      { key: 'mes', label: 'Mes' },
+      { key: 'ocupacion', label: 'Ocupación %' },
+      { key: 'entradas', label: 'Entradas' },
+      { key: 'salidas', label: 'Salidas' },
+    ],
+  },
 };

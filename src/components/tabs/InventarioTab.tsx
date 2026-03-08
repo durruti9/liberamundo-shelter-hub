@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Package, Plus, Minus, AlertTriangle, Trash2, Edit, ArrowDownUp, History } from 'lucide-react';
 import { api } from '@/lib/api';
 import { UserRole } from '@/types';
+import ExportButton from '@/components/ExportButton';
 
 interface Category {
   id: string;
@@ -74,7 +75,11 @@ export default function InventarioTab({ role, albergueId }: Props) {
       setCategories(cats);
       setItems(itms.map((i: any) => ({ ...i, stock_actual: parseFloat(i.stock_actual), stock_minimo: parseFloat(i.stock_minimo) })));
     } catch (err: any) {
-      toast.error('Error al cargar inventario: ' + err.message);
+      console.warn('[Inventario] Error loading:', err.message);
+      // Don't show toast for non-JSON responses (API not available in preview)
+      if (!err.message?.includes('non-JSON')) {
+        toast.error('Error al cargar inventario: ' + err.message);
+      }
     }
   }, [albergueId]);
 
@@ -217,6 +222,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
           <Badge variant="secondary">{items.length} artículos</Badge>
         </div>
         <div className="flex gap-2">
+          <ExportButton type="inventario" getData={() => items} />
           {isAdmin && (
             <Button variant="outline" size="sm" onClick={() => setShowAddCategory(true)}>
               + Categoría
