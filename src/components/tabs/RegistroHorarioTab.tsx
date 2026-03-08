@@ -480,6 +480,12 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 <ExportButton
                   type="registroHorario"
                   getData={() => exportData}
+                  pdfOptions={{
+                    empresa: empresaConfig.razon_social,
+                    cif: empresaConfig.cif,
+                    employeeName: currentEmpleado?.nombre_completo,
+                    legalText: 'Registro conservado durante 4 años conforme al Art. 34.9 del Estatuto de los Trabajadores (Real Decreto Legislativo 2/2015).',
+                  }}
                 />
               )}
             </div>
