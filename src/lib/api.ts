@@ -68,6 +68,10 @@ export const api = {
     request<{ ok: boolean }>('/auth/emergency-create', {
       method: 'POST', body: JSON.stringify({ secretCode, email, password, role }),
     }),
+  verifyEmergencyCode: (secretCode: string) =>
+    request<{ ok: boolean }>('/auth/verify-emergency', {
+      method: 'POST', body: JSON.stringify({ secretCode }),
+    }),
 
   // Albergues
   getAlbergues: () => request<any[]>('/albergues'),
