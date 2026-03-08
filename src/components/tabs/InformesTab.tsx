@@ -125,16 +125,19 @@ export default function InformesTab({ store }: Props) {
           <BarChart3 className="w-5 h-5 text-primary" />
           <h2 className="text-xl font-bold">Informes y Estadísticas</h2>
         </div>
-        <Select value={period} onValueChange={v => setPeriod(v as any)}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="3m">Últimos 3 meses</SelectItem>
-            <SelectItem value="6m">Últimos 6 meses</SelectItem>
-            <SelectItem value="12m">Último año</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2">
+          <ExportButton type="informes" getData={() => occupancyData} />
+          <Select value={period} onValueChange={v => setPeriod(v as any)}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="3m">Últimos 3 meses</SelectItem>
+              <SelectItem value="6m">Últimos 6 meses</SelectItem>
+              <SelectItem value="12m">Último año</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* KPI summary */}
