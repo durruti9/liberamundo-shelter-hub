@@ -212,9 +212,7 @@ export default function LlegadasTab({ store, role }: Props) {
                           <Button size="sm" onClick={() => openConfirm(l)}>
                             <Check className="w-4 h-4 mr-1" /> {t.confirm}
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={async () => {
-                            try { await deleteLlegada(l.id); } catch (err: any) { toast.error(err.message || 'Error al eliminar'); }
-                          }}>
+                          <Button size="sm" variant="ghost" onClick={() => setDeleteLlegadaId(l.id)}>
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
                         </TableCell>

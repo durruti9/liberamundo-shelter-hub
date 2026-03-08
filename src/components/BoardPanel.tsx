@@ -293,6 +293,14 @@ export default function BoardPanel({ title, icon, tipo, messages, role, onAdd, o
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteConfirmId}
+        onClose={() => setDeleteConfirmId(null)}
+        onConfirm={() => { if (deleteConfirmId) onDelete(deleteConfirmId); setDeleteConfirmId(null); }}
+        title="¿Eliminar este mensaje?"
+        description="Se eliminará permanentemente el mensaje y todas sus respuestas."
+      />
     </Card>
   );
 }
