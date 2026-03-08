@@ -18,6 +18,36 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { toast } from 'sonner';
 
+/** Debounced text input — saves only after user stops typing */
+function DebouncedInput({ value: externalValue, onCommit, delay = 600, ...props }: {
+  value: string;
+  onCommit: (val: string) => void;
+  delay?: number;
+} & Omit<React.ComponentProps<typeof Input>, 'value' | 'onChange'>) {
+  const [local, setLocal] = useState(externalValue);
+  const timer = useRef<ReturnType<typeof setTimeout>>();
+
+  // Sync from parent when external data changes (e.g. after reload)
+  useEffect(() => { setLocal(externalValue); }, [externalValue]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLocal(val);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => onCommit(val), delay);
+  };
+
+  // Flush on blur so data isn't lost
+  const handleBlur = () => {
+    clearTimeout(timer.current);
+    if (local !== externalValue) onCommit(local);
+  };
+
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  return <Input {...props} value={local} onChange={handleChange} onBlur={handleBlur} />;
+}
+
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
   role: UserRole;
@@ -146,9 +176,11 @@ export default function ComedorTab({ store, role }: Props) {
   }, [huespedActivos, comedor]);
 
   const handleUpdate = (huespedId: string, field: string, value: unknown) => {
-    console.log('[ComedorTab handleUpdate]', huespedId, field, value);
     updateComedor(huespedId, { [field]: value } as Partial<import('@/types').ComedorEntry>)
-      .catch(err => console.error('[ComedorTab handleUpdate] error:', err));
+      .catch(err => {
+        console.error('[ComedorTab] error:', err);
+        toast.error('Error al guardar cambios en comedor');
+      });
   };
 
   const downloadWeeklyPdf = useCallback(() => {
@@ -369,10 +401,10 @@ export default function ComedorTab({ store, role }: Props) {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Input
+                          <DebouncedInput
                             className="min-w-[160px] h-8 text-xs"
                             value={c.particularidades}
-                            onChange={e => handleUpdate(huesped.id, 'particularidades', e.target.value)}
+                            onCommit={val => handleUpdate(huesped.id, 'particularidades', val)}
                             placeholder={t.foodPlaceholder}
                             readOnly={!canEdit}
                           />
@@ -405,10 +437,10 @@ export default function ComedorTab({ store, role }: Props) {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Input
+                          <DebouncedInput
                             className="min-w-[140px] h-8 text-xs"
                             value={c.observaciones}
-                            onChange={e => handleUpdate(huesped.id, 'observaciones', e.target.value)}
+                            onCommit={val => handleUpdate(huesped.id, 'observaciones', val)}
                             placeholder={t.observationsPlaceholder}
                           />
                         </TableCell>

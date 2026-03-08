@@ -33,12 +33,15 @@ router.put('/:huespedId', async (req, res) => {
     const user = req.user;
     if (!user) return res.status(401).json({ error: 'No autenticado' });
 
-    // Verify user has access to the huesped's albergue
+    const huespedId = req.params.huespedId;
+
+    // Verify huesped exists and get albergue
     const { rows: huespedRows } = await pool.query(
-      'SELECT albergue_id FROM huespedes WHERE id = $1', [req.params.huespedId]
+      'SELECT albergue_id FROM huespedes WHERE id = $1', [huespedId]
     );
     if (huespedRows.length === 0) return res.status(404).json({ error: 'Huésped no encontrado' });
 
+    // Verify user has access to the huesped's albergue
     const huespedAlbergueId = huespedRows[0].albergue_id;
     if (user.role !== 'admin') {
       const { rows: access } = await pool.query(
@@ -51,22 +54,54 @@ router.put('/:huespedId', async (req, res) => {
     const { estado, separarComidas, diasSeparar, motivoAusencia, observaciones, particularidades } = req.body;
     const ultimoUsuario = user.nombre || user.email || 'desconocido';
 
-    console.log(`[comedor PUT] user=${user.email} nombre=${user.nombre} huespedId=${req.params.huespedId} ultimoUsuario=${ultimoUsuario}`);
+    console.log(`[comedor PUT] user=${user.email} huespedId=${huespedId} fields=${Object.keys(req.body).join(',')}`);
 
-    await pool.query(
-      `INSERT INTO comedor (huesped_id, estado, separar_comidas, dias_separar, motivo_ausencia, observaciones, particularidades, ultima_modificacion, ultimo_usuario)
-       VALUES ($1, COALESCE($2, 'Activo'), COALESCE($3, ARRAY['Todas']), COALESCE($4, ARRAY['Todos los días']), COALESCE($5, ''), COALESCE($6, ''), COALESCE($7, ''), NOW(), $8)
-       ON CONFLICT (huesped_id) DO UPDATE SET
-         estado = COALESCE($2, comedor.estado),
-         separar_comidas = COALESCE($3, comedor.separar_comidas),
-         dias_separar = COALESCE($4, comedor.dias_separar),
-         motivo_ausencia = COALESCE($5, comedor.motivo_ausencia),
-         observaciones = COALESCE($6, comedor.observaciones),
-         particularidades = COALESCE($7, comedor.particularidades),
-         ultima_modificacion = NOW(),
-         ultimo_usuario = $8`,
-      [req.params.huespedId, estado ?? null, separarComidas ?? null, diasSeparar ?? null, motivoAusencia ?? null, observaciones ?? null, particularidades ?? null, ultimoUsuario]
+    // Check if row exists
+    const { rows: existing } = await pool.query(
+      'SELECT huesped_id FROM comedor WHERE huesped_id = $1', [huespedId]
     );
+
+    if (existing.length > 0) {
+      // UPDATE: only set provided fields
+      const sets = [];
+      const vals = [];
+      let idx = 1;
+
+      if (estado !== undefined) { sets.push(`estado = $${idx++}`); vals.push(estado); }
+      if (separarComidas !== undefined) { sets.push(`separar_comidas = $${idx++}`); vals.push(separarComidas); }
+      if (diasSeparar !== undefined) { sets.push(`dias_separar = $${idx++}`); vals.push(diasSeparar); }
+      if (motivoAusencia !== undefined) { sets.push(`motivo_ausencia = $${idx++}`); vals.push(motivoAusencia); }
+      if (observaciones !== undefined) { sets.push(`observaciones = $${idx++}`); vals.push(observaciones); }
+      if (particularidades !== undefined) { sets.push(`particularidades = $${idx++}`); vals.push(particularidades); }
+
+      // Always update timestamp and user
+      sets.push(`ultima_modificacion = NOW()`);
+      sets.push(`ultimo_usuario = $${idx++}`);
+      vals.push(ultimoUsuario);
+
+      vals.push(huespedId);
+      await pool.query(
+        `UPDATE comedor SET ${sets.join(', ')} WHERE huesped_id = $${idx}`,
+        vals
+      );
+    } else {
+      // INSERT: use defaults for any missing field
+      await pool.query(
+        `INSERT INTO comedor (huesped_id, estado, separar_comidas, dias_separar, motivo_ausencia, observaciones, particularidades, ultima_modificacion, ultimo_usuario)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), $8)`,
+        [
+          huespedId,
+          estado || 'Activo',
+          separarComidas || ['Todas'],
+          diasSeparar || ['Todos los días'],
+          motivoAusencia || '',
+          observaciones || '',
+          particularidades || '',
+          ultimoUsuario,
+        ]
+      );
+    }
+
     res.json({ ok: true });
   } catch (err) {
     console.error('[comedor PUT] error:', err.message);

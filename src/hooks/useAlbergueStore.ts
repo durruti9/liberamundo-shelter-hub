@@ -185,14 +185,8 @@ export function useAlbergueStore(albergueId: string = 'default') {
 
   const updateComedor = useCallback(async (huespedId: string, data: Partial<ComedorEntry>) => {
     if (useApi) {
-      try {
-        console.log('[updateComedor] sending:', huespedId, data);
-        await api.updateComedor(huespedId, data);
-        console.log('[updateComedor] success');
-        await loadFromApi();
-      } catch (err: any) {
-        console.error('[updateComedor] error:', err.message, err.status);
-      }
+      await api.updateComedor(huespedId, data);
+      await loadFromApi();
       return;
     }
     setComedor(prev => {
