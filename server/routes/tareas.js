@@ -13,7 +13,7 @@ router.get('/:albergueId', async (req, res) => {
     );
     res.json(rows.map(r => ({
       id: r.id,
-      fecha: r.fecha,
+      fecha: r.fecha instanceof Date ? r.fecha.toISOString().split('T')[0] : String(r.fecha).split('T')[0],
       tareaId: r.tarea_id,
       tareaNombre: r.tarea_nombre,
       estado: r.estado,
