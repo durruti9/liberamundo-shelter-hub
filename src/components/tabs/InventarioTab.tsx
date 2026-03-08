@@ -87,6 +87,8 @@ interface Props {
   role: UserRole;
   albergueId: string;
 }
+
+export default function InventarioTab({ role, albergueId }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
