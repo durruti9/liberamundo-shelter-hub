@@ -120,6 +120,87 @@ export default function InformesTab({ store }: Props) {
   const totalActivos = huespedActivos.length;
   const occupancyRate = totalCamas > 0 ? Math.round((totalActivos / totalCamas) * 100) : 0;
 
+  const exportPDF = useCallback(() => {
+    const doc = new jsPDF();
+    const albergueName = store.currentAlbergue?.nombre || 'Albergue';
+    const dateStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    // Title
+    doc.setFontSize(18);
+    doc.text(`${albergueName} — Informe`, 14, 20);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generado el ${dateStr}`, 14, 27);
+
+    // KPIs
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text('Resumen general', 14, 38);
+    autoTable(doc, {
+      startY: 42,
+      head: [['Métrica', 'Valor']],
+      body: [
+        ['Total huéspedes histórico', String(totalHistorico)],
+        ['Huéspedes activos', String(totalActivos)],
+        ['Ocupación actual', `${occupancyRate}%  (${totalActivos}/${totalCamas})`],
+        ['Estancia media', `${avgStay} días`],
+        ['Incidencias totales', String(incidentStats.total)],
+        ['Incidencias pendientes', String(incidentStats.pending)],
+      ],
+      theme: 'grid',
+      headStyles: { fillColor: [41, 98, 168] },
+    });
+
+    // Occupancy table
+    let y = (doc as any).lastAutoTable?.finalY || 80;
+    doc.text('Evolución de ocupación', 14, y + 10);
+    autoTable(doc, {
+      startY: y + 14,
+      head: [['Mes', 'Ocupación %', 'Entradas', 'Salidas']],
+      body: occupancyData.map(d => [d.mes, `${d.ocupacion}%`, String(d.entradas), String(d.salidas)]),
+      theme: 'striped',
+      headStyles: { fillColor: [41, 98, 168] },
+    });
+
+    // Nationality table
+    y = (doc as any).lastAutoTable?.finalY || 120;
+    if (y > 240) { doc.addPage(); y = 20; }
+    doc.text('Distribución por nacionalidad', 14, y + 10);
+    autoTable(doc, {
+      startY: y + 14,
+      head: [['Nacionalidad', 'Huéspedes']],
+      body: nationalityData.map(d => [d.name, String(d.value)]),
+      theme: 'striped',
+      headStyles: { fillColor: [41, 98, 168] },
+    });
+
+    // Diet table
+    y = (doc as any).lastAutoTable?.finalY || 180;
+    if (y > 240) { doc.addPage(); y = 20; }
+    doc.text('Dietas activas', 14, y + 10);
+    autoTable(doc, {
+      startY: y + 14,
+      head: [['Dieta', 'Huéspedes']],
+      body: dietData.map(d => [d.name, String(d.value)]),
+      theme: 'striped',
+      headStyles: { fillColor: [41, 98, 168] },
+    });
+
+    // Room occupancy
+    y = (doc as any).lastAutoTable?.finalY || 220;
+    if (y > 240) { doc.addPage(); y = 20; }
+    doc.text('Ocupación por habitación', 14, y + 10);
+    autoTable(doc, {
+      startY: y + 14,
+      head: [['Habitación', 'Ocupadas', 'Libres', 'Total']],
+      body: roomOccupancy.map(r => [r.name, String(r.ocupadas), String(r.libres), String(r.total)]),
+      theme: 'striped',
+      headStyles: { fillColor: [41, 98, 168] },
+    });
+
+    doc.save(`informe_${albergueName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+  }, [store, totalHistorico, totalActivos, occupancyRate, totalCamas, avgStay, incidentStats, occupancyData, nationalityData, dietData, roomOccupancy]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -129,6 +210,9 @@ export default function InformesTab({ store }: Props) {
           <h2 className="text-xl font-bold">Informes y Estadísticas</h2>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={exportPDF} className="gap-1.5">
+            <FileDown className="w-4 h-4" /> PDF
+          </Button>
           <ExportButton type="informes" getData={() => occupancyData} />
           <Select value={period} onValueChange={v => setPeriod(v as any)}>
             <SelectTrigger className="w-[150px]">
