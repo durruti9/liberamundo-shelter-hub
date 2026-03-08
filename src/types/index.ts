@@ -39,6 +39,7 @@ export interface ComedorEntry {
   observaciones: string;
   particularidades: string;
   ultimaModificacion: string;
+  ultimoUsuario?: string;
 }
 
 export interface ProximaLlegada {
