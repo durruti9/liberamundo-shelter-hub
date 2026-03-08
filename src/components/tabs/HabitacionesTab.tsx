@@ -332,7 +332,7 @@ export default function HabitacionesTab({ store, role }: Props) {
       )}
 
       <Dialog open={!!checkoutTarget} onOpenChange={() => setCheckoutTarget(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>{t.checkoutDate}</DialogTitle>
           </DialogHeader>
