@@ -521,6 +521,9 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                     cif: empresaConfig.cif,
                     employeeName: currentEmpleado?.nombre_completo,
                     legalText: 'Registro conservado durante 4 años conforme al Art. 34.9 del Estatuto de los Trabajadores (Real Decreto Legislativo 2/2015).',
+                    signatures: Array.from(records.values())
+                      .filter(r => r.firma_data && r.firma_data.startsWith('data:'))
+                      .map(r => ({ fecha: r.fecha, firma_data: r.firma_data })),
                   }}
                 />
               )}
