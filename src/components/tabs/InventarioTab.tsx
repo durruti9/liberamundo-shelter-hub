@@ -75,7 +75,11 @@ export default function InventarioTab({ role, albergueId }: Props) {
       setCategories(cats);
       setItems(itms.map((i: any) => ({ ...i, stock_actual: parseFloat(i.stock_actual), stock_minimo: parseFloat(i.stock_minimo) })));
     } catch (err: any) {
-      toast.error('Error al cargar inventario: ' + err.message);
+      console.warn('[Inventario] Error loading:', err.message);
+      // Don't show toast for non-JSON responses (API not available in preview)
+      if (!err.message?.includes('non-JSON')) {
+        toast.error('Error al cargar inventario: ' + err.message);
+      }
     }
   }, [albergueId]);
 
