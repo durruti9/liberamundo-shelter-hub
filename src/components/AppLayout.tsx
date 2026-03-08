@@ -78,7 +78,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
   const adminCount = store.users.filter(u => u.role === 'admin').length;
 
-  const tabCount = role === 'admin' ? 11 : role === 'gestor' ? 7 : 7;
+  const tabCount = role === 'admin' ? 11 : role === 'gestor' ? 7 : 8;
 
   const handleAlbergueDeleted = (deletedId: string) => {
     if (deletedId === albergueId && store.albergues.length > 0) {
@@ -186,7 +186,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
       <main className="container mx-auto px-4 py-6">
         <Tabs value={tab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="grid w-full h-auto" style={{ gridTemplateColumns: `repeat(${tabCount}, minmax(0, 1fr))` }}>
-            {(role === 'admin' || role === 'gestor') && (
+            {(role === 'admin' || role === 'gestor' || role === 'personal_albergue') && (
               <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
                 <LayoutDashboard className="w-4 h-4" />
                 <span className="hidden sm:inline">{t.dashboard}</span>
@@ -240,7 +240,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             )}
           </TabsList>
 
-          {(role === 'admin' || role === 'gestor') && (
+          {(role === 'admin' || role === 'gestor' || role === 'personal_albergue') && (
             <TabsContent value="dashboard">
               <DashboardTab store={store} role={role} />
             </TabsContent>
