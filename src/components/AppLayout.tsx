@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound, ListChecks, Mailbox, StickyNote, Clock } from 'lucide-react';
 import PasswordInput from '@/components/PasswordInput';
+import { api } from '@/lib/api';
 import logo from '@/assets/Logo2Liberamundo.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
