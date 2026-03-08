@@ -590,7 +590,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                             {rec?.firma_data ? (
                               <span title="Firmado" className="text-[hsl(var(--success))]">✅</span>
                             ) : rec?.estado ? (
-                              <span title="Pendiente" className="text-amber-500">⚠️</span>
+                              <span title="Pendiente" className="text-[hsl(38,92%,50%)]">⚠️</span>
                             ) : null}
                           </TableCell>
                           <TableCell className="text-xs text-center p-1">
