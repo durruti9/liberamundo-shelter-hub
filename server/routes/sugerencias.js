@@ -1,10 +1,29 @@
 import { Router } from 'express';
 import pool from '../db.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
-// Bulk delete suggestions (must be before /:param routes)
-router.post('/bulk-delete', async (req, res) => {
+// === PUBLIC: Add a suggestion (guest) — no auth required ===
+router.post('/:albergueId', async (req, res) => {
+  try {
+    const { nombre, anonimo, email, telefono, mensaje, adjunto, adjuntoNombre, adjuntoTipo } = req.body;
+    const { rows } = await pool.query(
+      `INSERT INTO sugerencias (albergue_id, nombre, anonimo, email, telefono, mensaje, fecha, adjunto, adjunto_nombre, adjunto_tipo)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8, $9)
+       RETURNING id`,
+      [req.params.albergueId, nombre || '', anonimo || false, email || '', telefono || '', mensaje, adjunto || '', adjuntoNombre || '', adjuntoTipo || '']
+    );
+    res.json({ id: rows[0].id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// === PROTECTED: All management endpoints require auth ===
+
+// Bulk delete suggestions
+router.post('/bulk-delete', requireAuth, async (req, res) => {
   try {
     const { ids } = req.body;
     if (!ids || !ids.length) return res.json({ ok: true });
@@ -15,8 +34,8 @@ router.post('/bulk-delete', async (req, res) => {
   }
 });
 
-// Clear all suggestions for an albergue (must be before /:id DELETE)
-router.delete('/clear/:albergueId', async (req, res) => {
+// Clear all suggestions for an albergue
+router.delete('/clear/:albergueId', requireAuth, async (req, res) => {
   try {
     await pool.query(`DELETE FROM sugerencias WHERE albergue_id = $1`, [req.params.albergueId]);
     res.json({ ok: true });
@@ -26,7 +45,7 @@ router.delete('/clear/:albergueId', async (req, res) => {
 });
 
 // Get all suggestions (admin only)
-router.get('/:albergueId', async (req, res) => {
+router.get('/:albergueId', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT * FROM sugerencias WHERE albergue_id = $1 ORDER BY fecha DESC`,
@@ -53,24 +72,8 @@ router.get('/:albergueId', async (req, res) => {
   }
 });
 
-// Add a suggestion (guest)
-router.post('/:albergueId', async (req, res) => {
-  try {
-    const { nombre, anonimo, email, telefono, mensaje, adjunto, adjuntoNombre, adjuntoTipo } = req.body;
-    const { rows } = await pool.query(
-      `INSERT INTO sugerencias (albergue_id, nombre, anonimo, email, telefono, mensaje, fecha, adjunto, adjunto_nombre, adjunto_tipo)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8, $9)
-       RETURNING id`,
-      [req.params.albergueId, nombre || '', anonimo || false, email || '', telefono || '', mensaje, adjunto || '', adjuntoNombre || '', adjuntoTipo || '']
-    );
-    res.json({ id: rows[0].id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // Update suggestion (admin reply, mark read, translation, resolved)
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAuth, async (req, res) => {
   try {
     const { respuesta, leida, traduccion, resuelta } = req.body;
     const updates = [];
@@ -96,7 +99,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a single suggestion
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res) => {
   try {
     await pool.query(`DELETE FROM sugerencias WHERE id = $1`, [req.params.id]);
     res.json({ ok: true });
