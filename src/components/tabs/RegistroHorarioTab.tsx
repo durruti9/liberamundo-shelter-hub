@@ -241,10 +241,11 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   // Check if date is future
   const isFuture = (dateStr: string) => dateStr > today;
 
-  // Save a record
+  // Save a record with audit log
   const saveRecord = useCallback(async (record: RegistroDia) => {
     setSaving(true);
     try {
+      const oldRecord = records.get(record.fecha);
       await api.saveRegistroHorario(record.empleado_id, record);
       setRecords(prev => {
         const next = new Map(prev);
@@ -252,11 +253,32 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
         return next;
       });
       setLastSaved(new Date());
+
+      // Audit log (silent, don't block)
+      const empName = currentEmpleado?.nombre_completo || '';
+      const userEmail = localStorage.getItem('authEmail') || '';
+      const changes: string[] = [];
+      if (!oldRecord || oldRecord.estado !== record.estado) changes.push(`estado: ${oldRecord?.estado || '(vacío)'} → ${record.estado}`);
+      if (oldRecord?.entrada_manana !== record.entrada_manana) changes.push(`entrada_mañana`);
+      if (oldRecord?.salida_manana !== record.salida_manana) changes.push(`salida_mañana`);
+      if (oldRecord?.firma_data !== record.firma_data) changes.push(`firma`);
+      
+      if (changes.length > 0) {
+        api.logAuditoria({
+          empleado_id: record.empleado_id,
+          empleado_nombre: empName,
+          fecha_registro: record.fecha,
+          campo_modificado: changes.join(', '),
+          valor_anterior: oldRecord?.estado || '',
+          valor_nuevo: record.estado,
+          modificado_por: userEmail,
+        }).catch(() => {});
+      }
     } catch (err: any) {
       toast.error('Error al guardar: ' + (err.message || ''));
     }
     setSaving(false);
-  }, []);
+  }, [records, currentEmpleado]);
 
   // Open day modal
   const openDay = (dayNum: number) => {
