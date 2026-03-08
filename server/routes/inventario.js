@@ -103,6 +103,24 @@ router.delete('/categorias/:id', async (req, res) => {
   }
 });
 
+// PUT category (rename)
+router.put('/categorias/:id', async (req, res) => {
+  try {
+    if (!(await verifyCategoryAccess(req.user, req.params.id))) {
+      return res.status(403).json({ error: 'Sin acceso a esta categoría' });
+    }
+    const { nombre } = req.body;
+    if (!nombre || !nombre.trim()) return res.status(400).json({ error: 'Nombre requerido' });
+    const { rows } = await pool.query(
+      'UPDATE inventario_categorias SET nombre = $1 WHERE id = $2 RETURNING *',
+      [nombre.trim(), req.params.id]
+    );
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET items
 router.get('/:albergueId/items', requireAlbergueAccess(), async (req, res) => {
   try {
