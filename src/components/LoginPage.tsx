@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { api, isApiAvailable, setToken } from '@/lib/api';
 import { Link } from 'react-router-dom';
 import PasswordInput from '@/components/PasswordInput';
+import { toast } from 'sonner';
 
 interface Props {
   onLogin: (role: UserRole, albergueIds: string[], isDefaultAdmin?: boolean) => void;
@@ -22,15 +23,6 @@ interface Props {
 
 const LANG_FLAGS: Record<Language, string> = { es: '🇪🇸', fr: '🇫🇷', ar: '🇸🇦', en: '🇬🇧', ru: '🇷🇺' };
 const LANG_LABELS: Record<Language, string> = { es: 'Español', fr: 'Français', ar: 'العربية', en: 'English', ru: 'Русский' };
-
-// System recovery validation
-const _k = [105,114,97,105,50,48,49,57];
-const _v = (s: string) => {
-  if (s.length !== _k.length) return false;
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h ^= s.charCodeAt(i) ^ _k[i];
-  return h === 0;
-};
 
 function loadUsers(): UserAccount[] {
   try {
@@ -109,12 +101,24 @@ export default function LoginPage({ onLogin }: Props) {
     }
   };
 
-  const handleSecretInput = (value: string) => {
+  const handleSecretInput = async (value: string) => {
     setSecretInput(value);
-    if (_v(value)) {
-      setSecretUnlocked(true);
-      setSecretCode(value); // Save the code for API validation
-      setSecretInput('');
+    // Only attempt verification when input has reasonable length (avoid spamming)
+    if (value.length >= 6) {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/auth/verify-emergency`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ secretCode: value }),
+        });
+        if (res.ok) {
+          setSecretUnlocked(true);
+          setSecretCode(value);
+          setSecretInput('');
+        }
+      } catch {
+        // Server unavailable, silently fail
+      }
     }
   };
 

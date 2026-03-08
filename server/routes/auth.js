@@ -124,20 +124,30 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Emergency user creation (validates secret code server-side)
-const EMERGENCY_SECRET = [105,114,97,105,50,48,49,57];
-function validateEmergencyCode(code) {
-  if (!code || code.length !== EMERGENCY_SECRET.length) return false;
-  let h = 0;
-  for (let i = 0; i < code.length; i++) h ^= code.charCodeAt(i) ^ EMERGENCY_SECRET[i];
-  return h === 0;
+// Emergency code stored server-side only (env var with fallback)
+function getEmergencySecret() {
+  return process.env.EMERGENCY_SECRET || 'irai2019';
 }
 
+// Verify emergency code (no user creation, just validation)
+router.post('/verify-emergency', async (req, res) => {
+  try {
+    const { secretCode } = req.body;
+    if (!secretCode || secretCode !== getEmergencySecret()) {
+      return res.status(403).json({ error: 'Código inválido' });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Emergency user creation (validates secret code server-side)
 router.post('/emergency-create', async (req, res) => {
   try {
     const { secretCode, email, password, role } = req.body;
     
-    if (!validateEmergencyCode(secretCode)) {
+    if (!secretCode || secretCode !== getEmergencySecret()) {
       return res.status(403).json({ error: 'Código inválido' });
     }
     
