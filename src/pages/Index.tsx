@@ -109,6 +109,7 @@ const Index = () => {
     setRole('admin');
     setUserAlbergueIds([]);
     setIsDefaultAdmin(false);
+    clearToken();
     localStorage.removeItem('auth');
     localStorage.removeItem('authRole');
     localStorage.removeItem('authEmail');
