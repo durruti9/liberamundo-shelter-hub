@@ -1,13 +1,15 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BedDouble, Users, Clock, AlertTriangle, TrendingUp, CalendarPlus, MessageSquarePlus, ListChecks } from 'lucide-react';
+import { BedDouble, Users, Clock, AlertTriangle, TrendingUp, CalendarPlus, MessageSquarePlus, ListChecks, BarChart3, ChevronDown } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { useI18n } from '@/i18n/I18nContext';
 import { formatDateES } from '@/lib/dateFormat';
 import BoardPanel from '@/components/BoardPanel';
 import { UserRole } from '@/types';
 import { api } from '@/lib/api';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import InformesTab from './InformesTab';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
@@ -373,6 +375,28 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
           </CardContent>
         </Card>
       </div>
+
+      {/* Collapsible Informes section (admin only) */}
+      {isAdmin && (
+        <Collapsible>
+          <Card>
+            <CollapsibleTrigger className="w-full">
+              <CardHeader className="flex flex-row items-center justify-between py-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-primary" />
+                  Informes y Estadísticas
+                </CardTitle>
+                <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform duration-200 [&[data-state=open]]:rotate-180" />
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <InformesTab store={store} role={role} />
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
     </div>
   );
 }
