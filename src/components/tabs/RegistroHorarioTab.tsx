@@ -947,6 +947,87 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* DELETE EMPLOYEE CONFIRMATION */}
+      <AlertDialog open={!!deleteEmpTarget} onOpenChange={() => setDeleteEmpTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar empleado?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminarán todos sus registros horarios. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteEmployee} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* REVISION DIALOG */}
+      <Dialog open={!!revisionDialog} onOpenChange={() => setRevisionDialog(null)}>
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-destructive" /> Marcar para revisión
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label className="text-sm">Motivo (opcional)</Label>
+              <Textarea
+                value={revisionDialog?.motivo || ''}
+                onChange={e => setRevisionDialog(prev => prev ? { ...prev, motivo: e.target.value } : null)}
+                rows={2}
+                placeholder="Describe el motivo de la revisión..."
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setRevisionDialog(null)}>Cancelar</Button>
+              <Button variant="destructive" onClick={confirmRevision}>Marcar revisión</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* VACATION EDIT DIALOG */}
+      <Dialog open={!!vacDialog} onOpenChange={() => setVacDialog(null)}>
+        <DialogContent className="max-w-xs" aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle>Editar vacaciones asignadas</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label className="text-sm">Días de vacaciones asignadas</Label>
+              <Input
+                type="number"
+                min={0}
+                max={60}
+                value={vacDialog?.value || ''}
+                onChange={e => setVacDialog(prev => prev ? { ...prev, value: e.target.value } : null)}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setVacDialog(null)}>Cancelar</Button>
+              <Button onClick={async () => {
+                if (!vacDialog || !vacDialog.value || isNaN(Number(vacDialog.value))) return;
+                try {
+                  await api.updateVacacionesSaldo(selectedEmpleado, year, { asignadas: Number(vacDialog.value), consumidas: vacSaldo.consumidas });
+                  setVacSaldo(prev => ({ ...prev, asignadas: Number(vacDialog.value) }));
+                  toast.success('Vacaciones actualizadas');
+                  setVacDialog(null);
+                } catch (err: any) {
+                  toast.error(err.message);
+                }
+              }}>
+                <Save className="w-4 h-4 mr-1" /> Guardar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
