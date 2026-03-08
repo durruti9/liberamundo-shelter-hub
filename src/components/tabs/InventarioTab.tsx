@@ -31,14 +31,6 @@ interface Item {
   notas: string;
 }
 
-interface Movement {
-  id: string;
-  tipo: 'entrada' | 'salida';
-  cantidad: number;
-  motivo: string;
-  usuario: string;
-  fecha: string;
-}
 
 interface Props {
   role: UserRole;
