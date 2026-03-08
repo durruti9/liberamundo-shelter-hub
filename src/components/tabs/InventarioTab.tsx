@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { toast } from 'sonner';
-import { Package, Plus, Minus, AlertTriangle, Trash2, Edit, ChevronDown, BarChart3, History, Search, Filter } from 'lucide-react';
+import { Package, Plus, Minus, AlertTriangle, Trash2, Edit, ChevronDown, BarChart3, History } from 'lucide-react';
 import { api } from '@/lib/api';
 import { UserRole } from '@/types';
 import ExportButton from '@/components/ExportButton';
