@@ -257,6 +257,12 @@ export interface Translations {
   upcomingArrivalsBoard: string;
   // Employee Tasks
   employeeTasks: string;
+  // Cleaning
+  lastCleaning: string;
+  noCleaningRecorded: string;
+  today: string;
+  yesterday: string;
+  ago: string;
 }
 
 const es: Translations = {
