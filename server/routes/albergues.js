@@ -103,4 +103,18 @@ router.put('/:id/rooms', requireRole('admin'), async (req, res) => {
   }
 });
 
+// Update cleaning date for a room (admin + personal_albergue)
+router.put('/:id/rooms/:roomId/limpieza', requireRole('admin', 'personal_albergue'), async (req, res) => {
+  try {
+    const { ultimaLimpieza } = req.body;
+    await pool.query(
+      'UPDATE rooms SET ultima_limpieza = $1 WHERE id = $2 AND albergue_id = $3',
+      [ultimaLimpieza || null, req.params.roomId, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
