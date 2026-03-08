@@ -189,8 +189,10 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
       setEditingIdx(new Set());
       setOriginalTareas({});
       setSelectedDate(null);
+      toast.success('Tareas guardadas correctamente');
     } catch (err) {
       console.error('Error saving tareas:', err);
+      toast.error('Error al guardar las tareas');
     }
   };
 
