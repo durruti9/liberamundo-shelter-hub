@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import pool from '../db.js';
-import { requireAlbergueAccess, requireHuespedAccess } from '../middleware/albergueAccess.js';
+import { requireAlbergueAccess } from '../middleware/albergueAccess.js';
 
 const router = Router();
 
@@ -26,11 +26,17 @@ router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
   }
 });
 
-// Update comedor entry (all roles can edit, but validates huésped belongs to user's albergue)
-router.put('/:huespedId', requireHuespedAccess('huespedId'), async (req, res) => {
+// Update comedor entry — editable by ALL authenticated roles
+router.put('/:huespedId', async (req, res) => {
   try {
+    const user = req.user;
+    if (!user) return res.status(401).json({ error: 'No autenticado' });
+
     const { estado, separarComidas, diasSeparar, motivoAusencia, observaciones, particularidades } = req.body;
-    const ultimoUsuario = req.user?.nombre || req.user?.email || 'desconocido';
+    const ultimoUsuario = user.nombre || user.email || 'desconocido';
+
+    console.log(`[comedor PUT] user=${user.email} nombre=${user.nombre} huespedId=${req.params.huespedId} ultimoUsuario=${ultimoUsuario}`);
+
     await pool.query(
       `INSERT INTO comedor (huesped_id, estado, separar_comidas, dias_separar, motivo_ausencia, observaciones, particularidades, ultima_modificacion, ultimo_usuario)
        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), $8)
@@ -47,8 +53,7 @@ router.put('/:huespedId', requireHuespedAccess('huespedId'), async (req, res) =>
     );
     res.json({ ok: true });
   } catch (err) {
+    console.error('[comedor PUT] error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
-
-export default router;
