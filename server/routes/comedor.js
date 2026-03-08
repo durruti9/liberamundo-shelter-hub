@@ -55,7 +55,7 @@ router.put('/:huespedId', async (req, res) => {
 
     await pool.query(
       `INSERT INTO comedor (huesped_id, estado, separar_comidas, dias_separar, motivo_ausencia, observaciones, particularidades, ultima_modificacion, ultimo_usuario)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), $8)
+       VALUES ($1, COALESCE($2, 'Activo'), COALESCE($3, ARRAY['Todas']), COALESCE($4, ARRAY['Todos los días']), COALESCE($5, ''), COALESCE($6, ''), COALESCE($7, ''), NOW(), $8)
        ON CONFLICT (huesped_id) DO UPDATE SET
          estado = COALESCE($2, comedor.estado),
          separar_comidas = COALESCE($3, comedor.separar_comidas),
@@ -65,7 +65,7 @@ router.put('/:huespedId', async (req, res) => {
          particularidades = COALESCE($7, comedor.particularidades),
          ultima_modificacion = NOW(),
          ultimo_usuario = $8`,
-      [req.params.huespedId, estado, separarComidas, diasSeparar, motivoAusencia, observaciones, particularidades, ultimoUsuario]
+      [req.params.huespedId, estado ?? null, separarComidas ?? null, diasSeparar ?? null, motivoAusencia ?? null, observaciones ?? null, particularidades ?? null, ultimoUsuario]
     );
     res.json({ ok: true });
   } catch (err) {
