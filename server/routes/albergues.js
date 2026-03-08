@@ -24,10 +24,10 @@ router.get('/', async (req, res) => {
     const albergueIds = albergues.map(a => a.id);
     let rooms = [];
     if (albergueIds.length > 0) {
-      const placeholders = albergueIds.map((_, i) => `$${params.length + i + 1}`).join(',');
+      const placeholders = albergueIds.map((_, i) => `$${i + 1}`).join(',');
       const { rows: roomRows } = await pool.query(
         `SELECT * FROM rooms WHERE albergue_id IN (${placeholders}) ORDER BY id`,
-        [...params, ...albergueIds]
+        albergueIds
       );
       rooms = roomRows;
     }
