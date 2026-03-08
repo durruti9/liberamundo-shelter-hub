@@ -328,31 +328,30 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                   </Select>
                 </div>
               </div>
-              {store.albergues.length > 1 && (
-                <div className="space-y-1">
-                  <Label className="text-xs">Albergues asignados</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {store.albergues.map(a => (
-                      <label key={a.id} className="flex items-center gap-1.5 text-xs cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={newUser.albergueIds.includes(a.id)}
-                          onChange={e => {
-                            setNewUser(p => ({
-                              ...p,
-                              albergueIds: e.target.checked
-                                ? [...p.albergueIds, a.id]
-                                : p.albergueIds.filter(id => id !== a.id)
-                            }));
-                          }}
-                          className="rounded"
-                        />
-                        {a.nombre}
-                      </label>
-                    ))}
-                  </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Albergues asignados {store.albergues.length === 1 && <span className="text-muted-foreground">(auto-asignado)</span>}</Label>
+                <div className="flex flex-wrap gap-2">
+                  {store.albergues.map(a => (
+                    <label key={a.id} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={store.albergues.length === 1 || newUser.albergueIds.includes(a.id)}
+                        disabled={store.albergues.length === 1}
+                        onChange={e => {
+                          setNewUser(p => ({
+                            ...p,
+                            albergueIds: e.target.checked
+                              ? [...p.albergueIds, a.id]
+                              : p.albergueIds.filter(id => id !== a.id)
+                          }));
+                        }}
+                        className="rounded"
+                      />
+                      {a.nombre}
+                    </label>
+                  ))}
                 </div>
-              )}
+              </div>
               <Button size="sm" onClick={handleAddUser} className="w-full">
                 <Plus className="w-4 h-4 mr-1" /> Crear usuario
               </Button>

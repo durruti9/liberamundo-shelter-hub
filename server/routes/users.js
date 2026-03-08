@@ -49,14 +49,17 @@ router.post('/', async (req, res) => {
       [email.trim(), hash, role, '']
     );
     
-    // Assign albergues if provided
-    if (Array.isArray(albergueIds) && albergueIds.length > 0) {
-      for (const albId of albergueIds) {
-        await client.query(
-          'INSERT INTO user_albergues (user_email, albergue_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-          [email.trim(), albId]
-        );
-      }
+    // Assign albergues: if none provided, auto-assign ALL existing albergues
+    let idsToAssign = Array.isArray(albergueIds) && albergueIds.length > 0 ? albergueIds : [];
+    if (idsToAssign.length === 0) {
+      const { rows: allAlbs } = await client.query('SELECT id FROM albergues');
+      idsToAssign = allAlbs.map(a => a.id);
+    }
+    for (const albId of idsToAssign) {
+      await client.query(
+        'INSERT INTO user_albergues (user_email, albergue_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [email.trim(), albId]
+      );
     }
     
     await client.query('COMMIT');
