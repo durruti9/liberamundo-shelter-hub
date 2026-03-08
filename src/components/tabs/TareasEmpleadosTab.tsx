@@ -231,8 +231,10 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
       // Stop editing this task
       setEditingIdx(prev => { const s = new Set(prev); s.delete(idx); return s; });
       setOriginalTareas(prev => { const c = { ...prev }; delete c[idx]; return c; });
+      toast.success('Tarea registrada');
     } catch (err) {
       console.error('Error saving tareas:', err);
+      toast.error('Error al registrar la tarea');
     }
   };
 
