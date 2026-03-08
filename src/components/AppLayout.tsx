@@ -281,6 +281,31 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                   </Select>
                 </div>
               </div>
+              {store.albergues.length > 1 && (
+                <div className="space-y-1">
+                  <Label className="text-xs">Albergues asignados</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {store.albergues.map(a => (
+                      <label key={a.id} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newUser.albergueIds.includes(a.id)}
+                          onChange={e => {
+                            setNewUser(p => ({
+                              ...p,
+                              albergueIds: e.target.checked
+                                ? [...p.albergueIds, a.id]
+                                : p.albergueIds.filter(id => id !== a.id)
+                            }));
+                          }}
+                          className="rounded"
+                        />
+                        {a.nombre}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
               <Button size="sm" onClick={handleAddUser} className="w-full">
                 <Plus className="w-4 h-4 mr-1" /> Crear usuario
               </Button>
@@ -291,15 +316,30 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                 <TableRow>
                   <TableHead>Usuario</TableHead>
                   <TableHead>Rol</TableHead>
-                  <TableHead className="w-24"></TableHead>
+                  <TableHead className="w-32"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {store.users.map(u => (
                   <TableRow key={u.email}>
-                    <TableCell className="text-sm">{u.email}</TableCell>
+                    <TableCell>
+                      <div className="text-sm font-medium">{u.email}</div>
+                      {(u as any).albergueIds && (u as any).albergueIds.length > 0 && (
+                        <div className="text-[10px] text-muted-foreground mt-0.5">
+                          {(u as any).albergueIds.map((id: string) => store.albergues.find(a => a.id === id)?.nombre || id).join(', ')}
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell><Badge variant="outline" className="text-xs">{roleLabel[u.role]}</Badge></TableCell>
                     <TableCell className="space-x-1">
+                      {store.albergues.length > 1 && (
+                        <Button size="icon" variant="ghost" title="Asignar albergues" onClick={() => {
+                          setEditingAlberguesFor(u.email);
+                          setEditAlbergueIds((u as any).albergueIds || []);
+                        }}>
+                          <Building2 className="w-4 h-4" />
+                        </Button>
+                      )}
                       <Button size="icon" variant="ghost" title="Cambiar contraseña" onClick={() => { setChangingPasswordFor(u.email); setNewPasswordValue(''); }}>
                         <KeyRound className="w-4 h-4" />
                       </Button>
