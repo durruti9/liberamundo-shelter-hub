@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ChevronLeft, ChevronRight, ClipboardList, Plus, Save, X, Unlock, MessageCircle, Send, Pencil, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ClipboardList, Plus, Save, X, Unlock, MessageCircle, Send, Pencil, Trash2, RotateCcw } from 'lucide-react';
 import ExportButton from '@/components/ExportButton';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
@@ -181,6 +181,18 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     });
   };
 
+  const handleResetTarea = (idx: number) => {
+    setTareas(prev => prev.map((t, i) => i === idx ? {
+      ...t,
+      estado: 'pendiente',
+      hechoPor: '',
+      observacion: '',
+      adminObs: '',
+      respuestaEmpleado: '',
+    } : t));
+    toast.success('Tarea reseteada. Pulsa "Guardar todo" para confirmar.');
+  };
+
   const handleSave = async () => {
     if (!selectedDate) return;
     try {
@@ -345,13 +357,22 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                       {canDelete && <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-muted-foreground/30 text-muted-foreground">duplicado</Badge>}
                       {/* Edit pencil icon */}
                       {editable && !isEditing && (
-                        <button
-                          onClick={() => startEditing(idx)}
-                          className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-primary"
-                          title="Editar tarea"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-0.5">
+                          <button
+                            onClick={() => startEditing(idx)}
+                            className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-primary"
+                            title="Editar tarea"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleResetTarea(idx)}
+                            className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-amber-600"
+                            title="Dejar en blanco"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       )}
                       {/* Delete icon for duplicates when editing */}
                       {editable && isEditing && canDelete && (
