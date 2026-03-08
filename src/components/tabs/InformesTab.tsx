@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
 import { BarChart3, Users, TrendingUp, Globe, Clock, BedDouble, UtensilsCrossed } from 'lucide-react';
 import { UserRole } from '@/types';
+import ExportButton from '@/components/ExportButton';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
