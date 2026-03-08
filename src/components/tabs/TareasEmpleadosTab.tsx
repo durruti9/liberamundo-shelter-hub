@@ -441,7 +441,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                     )}
                     {editable && (
                       <Button variant="outline" size="sm" onClick={() => handleDuplicate(idx)} className="text-xs gap-1">
-                        <Plus className="w-3 h-3" /> Añadir otra
+                        <Plus className="w-3 h-3" /> Duplicar tarea
                       </Button>
                     )}
                   </div>
