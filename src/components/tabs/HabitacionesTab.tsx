@@ -17,6 +17,7 @@ import { es, fr, ar, enUS, ru } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { stayDuration, formatDateES } from '@/lib/dateFormat';
 import { useI18n } from '@/i18n/I18nContext';
+import { toast } from 'sonner';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
