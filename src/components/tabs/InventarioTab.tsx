@@ -324,10 +324,17 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   const handleEditCategory = async () => {
     if (!editCategory || !editCategory.nombre.trim()) return;
-    // Update locally (API endpoint for category update not yet implemented)
-    setCategories(prev => prev.map(c => c.id === editCategory.id ? { ...c, nombre: editCategory.nombre } : c));
-    setItems(prev => prev.map(i => i.categoria_id === editCategory.id ? { ...i, categoria_nombre: editCategory.nombre } : i));
-    toast.success('Categoría actualizada');
+    try {
+      await api.updateInventarioCategoria(editCategory.id, { nombre: editCategory.nombre.trim() });
+      toast.success('Categoría actualizada');
+      loadData();
+    } catch {
+      // Fallback: update locally
+      setCategories(prev => prev.map(c => c.id === editCategory.id ? { ...c, nombre: editCategory.nombre } : c));
+      setItems(prev => prev.map(i => i.categoria_id === editCategory.id ? { ...i, categoria_nombre: editCategory.nombre } : i));
+      toast.success('Categoría actualizada');
+    }
+    setEditCategory(null);
     setEditCategory(null);
   };
 
