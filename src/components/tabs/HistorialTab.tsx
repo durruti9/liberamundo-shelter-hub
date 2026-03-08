@@ -209,7 +209,7 @@ export default function HistorialTab({ store, role }: Props) {
       </Dialog>
 
       <Dialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-destructive" /> {t.confirmDeletion}</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">{t.deleteConfirmMsg}</p>
           <div className="flex justify-end gap-2 mt-4">

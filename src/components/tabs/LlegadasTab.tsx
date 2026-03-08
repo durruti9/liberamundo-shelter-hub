@@ -291,7 +291,7 @@ export default function LlegadasTab({ store, role }: Props) {
 
       {/* Confirmation Dialog */}
       <Dialog open={!!confirmingLlegada} onOpenChange={() => setConfirmingLlegada(null)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>{t.confirmEntry} — {confirmingLlegada?.nombre}</DialogTitle>
           </DialogHeader>

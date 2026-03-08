@@ -157,7 +157,7 @@ export default function IncidenciasTab({ store, role }: Props) {
 
       {/* New incident form */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>{t.newIncident}</DialogTitle>
           </DialogHeader>
