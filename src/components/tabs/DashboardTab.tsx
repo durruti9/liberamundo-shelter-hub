@@ -374,6 +374,8 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
             )}
           </CardContent>
         </Card>
+      </div>
+
       {/* Collapsible Informes section (admin only) */}
       {isAdmin && (
         <Collapsible>
