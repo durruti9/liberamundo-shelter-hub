@@ -96,8 +96,29 @@ app.all('/api/*', (_, res) => {
   res.status(404).json({ error: 'API route not found' });
 });
 
+// PWA: service worker must never be cached
+app.get('/sw.js', (_, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile('/app/public/sw.js');
+});
+
+// PWA: manifest with correct MIME type
+app.get('/manifest.webmanifest', (_, res) => {
+  res.setHeader('Content-Type', 'application/manifest+json');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.sendFile('/app/public/manifest.webmanifest');
+});
+
 // Serve static frontend
-app.use(express.static('/app/public'));
+app.use(express.static('/app/public', {
+  setHeaders: (res, path) => {
+    // Cache hashed assets long-term
+    if (path.includes('/assets/')) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+  }
+}));
 app.get('*', (_, res) => {
   res.sendFile('/app/public/index.html');
 });
