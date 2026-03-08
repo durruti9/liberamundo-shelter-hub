@@ -960,6 +960,11 @@ const ar: Translations = {
   resolveMessage: 'حل الرسالة',
   upcomingArrivalsBoard: 'الوصول القادم',
   employeeTasks: 'المهام اليومية',
+  lastCleaning: 'التنظيف',
+  noCleaningRecorded: 'لم يتم تسجيل التنظيف',
+  today: 'اليوم',
+  yesterday: 'أمس',
+  ago: 'منذ',
 };
 
 const en: Translations = {
