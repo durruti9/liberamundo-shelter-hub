@@ -71,6 +71,7 @@ export interface Room {
   id: string;
   nombre: string;
   camas: number;
+  ultimaLimpieza?: string;
 }
 
 export interface Albergue {
