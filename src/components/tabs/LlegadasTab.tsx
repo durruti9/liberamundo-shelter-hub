@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -102,7 +103,7 @@ export default function LlegadasTab({ store, role }: Props) {
   const update = (field: keyof LlegadaFormData, value: string) => setForm(prev => ({ ...prev, [field]: value }));
   const updateConfirm = (field: keyof LlegadaFormData, value: string) => setConfirmForm(prev => ({ ...prev, [field]: value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nombre.trim()) return;
     const data = {
@@ -112,9 +113,13 @@ export default function LlegadasTab({ store, role }: Props) {
       habitacionAsignada: form.habitacionAsignada || undefined,
       camaAsignada: form.camaAsignada ? parseInt(form.camaAsignada) : undefined,
     };
-    if (editingId) { editLlegada(editingId, data); } else { addLlegada(data); }
-    setShowForm(false);
-    setEditingId(null);
+    try {
+      if (editingId) { await editLlegada(editingId, data); } else { await addLlegada(data); }
+      setShowForm(false);
+      setEditingId(null);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al guardar llegada');
+    }
   };
 
   const openConfirm = (l: ProximaLlegada) => {
@@ -126,18 +131,22 @@ export default function LlegadasTab({ store, role }: Props) {
     });
   };
 
-  const handleConfirmSubmit = (e: React.FormEvent) => {
+  const handleConfirmSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!confirmingLlegada || !confirmForm.habitacionAsignada || !confirmForm.camaAsignada) return;
-    editLlegada(confirmingLlegada.id, {
-      nombre: confirmForm.nombre, nie: confirmForm.nie, nacionalidad: confirmForm.nacionalidad,
-      idioma: confirmForm.idioma, dieta: confirmForm.dieta, fechaLlegada: confirmForm.fechaLlegada,
-      notas: confirmForm.notas,
-      habitacionAsignada: confirmForm.habitacionAsignada,
-      camaAsignada: parseInt(confirmForm.camaAsignada),
-    });
-    confirmarLlegada(confirmingLlegada.id);
-    setConfirmingLlegada(null);
+    try {
+      await editLlegada(confirmingLlegada.id, {
+        nombre: confirmForm.nombre, nie: confirmForm.nie, nacionalidad: confirmForm.nacionalidad,
+        idioma: confirmForm.idioma, dieta: confirmForm.dieta, fechaLlegada: confirmForm.fechaLlegada,
+        notas: confirmForm.notas,
+        habitacionAsignada: confirmForm.habitacionAsignada,
+        camaAsignada: parseInt(confirmForm.camaAsignada),
+      });
+      await confirmarLlegada(confirmingLlegada.id);
+      setConfirmingLlegada(null);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al confirmar llegada');
+    }
   };
 
   const isRoomOccupied = (roomId: string) => {
