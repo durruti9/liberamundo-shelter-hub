@@ -5,13 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { UserRole } from '@/types';
 import CheckInModal from '@/components/CheckInModal';
-import { BedDouble, MoreVertical, AlertTriangle } from 'lucide-react';
+import { BedDouble, MoreVertical, AlertTriangle, SprayCan } from 'lucide-react';
 import ExportButton from '@/components/ExportButton';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { stayDuration, formatDateES } from '@/lib/dateFormat';
 import { useI18n } from '@/i18n/I18nContext';
@@ -22,7 +23,7 @@ interface Props {
 }
 
 export default function HabitacionesTab({ store, role }: Props) {
-  const { huespedActivos, rooms, totalCamas, checkIn, checkOut, cambiarCama, editHuesped, deleteHuesped, getOccupant } = store;
+  const { huespedActivos, rooms, totalCamas, checkIn, checkOut, cambiarCama, editHuesped, deleteHuesped, getOccupant, updateRooms } = store;
   const { t } = useI18n();
   const [checkInTarget, setCheckInTarget] = useState<{ habitacion: string; cama: number } | null>(null);
   const [editTarget, setEditTarget] = useState<string | null>(null);
@@ -163,6 +164,47 @@ export default function HabitacionesTab({ store, role }: Props) {
                 </span>
                 <Badge variant="outline" className="text-xs">{room.camas} {t.beds}</Badge>
               </CardTitle>
+              {/* Última limpieza */}
+              <div className="flex items-center gap-1.5 mt-1">
+                <SprayCan className="w-3 h-3 text-muted-foreground shrink-0" />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="text-[10px] text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted">
+                      {room.ultimaLimpieza
+                        ? `Limpieza: ${format(new Date(room.ultimaLimpieza + 'T00:00:00'), 'dd/MM/yyyy')}`
+                        : 'Sin registrar limpieza'}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={room.ultimaLimpieza ? new Date(room.ultimaLimpieza + 'T00:00:00') : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          const dateStr = format(date, 'yyyy-MM-dd');
+                          const updatedRooms = rooms.map(r =>
+                            r.id === room.id ? { ...r, ultimaLimpieza: dateStr } : r
+                          );
+                          updateRooms(updatedRooms);
+                        }
+                      }}
+                      disabled={(date) => date > new Date()}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                {room.ultimaLimpieza && (() => {
+                  const days = differenceInDays(new Date(), new Date(room.ultimaLimpieza + 'T00:00:00'));
+                  return (
+                    <span className={cn(
+                      "text-[10px] font-medium",
+                      days <= 1 ? "text-[hsl(var(--success))]" : days <= 3 ? "text-primary" : days <= 7 ? "text-[hsl(38,92%,50%)]" : "text-destructive"
+                    )}>
+                      ({days === 0 ? 'Hoy' : days === 1 ? 'Ayer' : `hace ${days}d`})
+                    </span>
+                  );
+                })()}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-2">
