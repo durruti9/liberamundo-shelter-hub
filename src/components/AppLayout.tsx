@@ -256,7 +256,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
       {/* User management dialog - admin only */}
       <Dialog open={showUsers} onOpenChange={setShowUsers}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
           <DialogHeader><DialogTitle>{t.userManagement}</DialogTitle></DialogHeader>
           <div className="space-y-6">
             <div className="space-y-3 p-4 border rounded-lg">
