@@ -138,29 +138,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     setTareas(prev => prev.map((t, i) => i === idx ? { ...t, [field]: value } : t));
   };
 
-  const handleDuplicate = (idx: number) => {
-    const original = tareas[idx];
-    const dup: TareaDia = {
-      ...original,
-      id: undefined,
-      estado: 'pendiente',
-      turno: original.turno,
-      hechoPor: '',
-      observacion: '',
-      orden: tareas.length,
-      adminObs: '',
-      respuestaEmpleado: '',
-    };
-    setTareas(prev => {
-      const copy = [...prev];
-      copy.splice(idx + 1, 0, dup);
-      return copy;
-    });
-    // Auto-start editing the new duplicate
-    setTimeout(() => {
-      setEditingIdx(prev => new Set(prev).add(idx + 1));
-    }, 0);
-  };
+  
 
   // Check if a task at index is a duplicate (not the first occurrence of its tareaId)
   const isDuplicate = (idx: number): boolean => {
@@ -171,9 +149,10 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     return false;
   };
 
-  const handleDeleteTarea = (idx: number) => {
-    if (!isDuplicate(idx)) return; // Safety: never delete the original
-    setTareas(prev => prev.filter((_, i) => i !== idx));
+  const handleDeleteTarea = async (idx: number) => {
+    if (!isDuplicate(idx)) return;
+    const updated = tareas.filter((_, i) => i !== idx);
+    setTareas(updated);
     setEditingIdx(prev => {
       const s = new Set<number>();
       prev.forEach(i => {
@@ -182,6 +161,16 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
       });
       return s;
     });
+    // Auto-persist
+    if (selectedDate) {
+      try {
+        await api.saveTareasDia(albergueId, selectedDate, updated);
+        await loadMonth();
+        toast.success('Duplicado eliminado');
+      } catch {
+        toast.error('Error al eliminar duplicado');
+      }
+    }
   };
 
   const handleResetTarea = async (idx: number) => {
@@ -205,22 +194,31 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     }
   };
 
-  const handleSave = async () => {
-    if (!selectedDate) return;
-    try {
-      await api.saveTareasDia(albergueId, selectedDate, tareas);
-      await loadMonth();
-      setEditingIdx(new Set());
-      setOriginalTareas({});
-      // Re-load the current day's data to confirm persistence
-      const refreshed = allTareasDates[selectedDate];
-      if (refreshed) {
-        setTareas(refreshed.map(t => ({ ...t, adminObs: t.adminObs || '', respuestaEmpleado: t.respuestaEmpleado || '' })));
+  const handleDuplicateAndSave = async (idx: number) => {
+    const original = tareas[idx];
+    const dup: TareaDia = {
+      ...original,
+      id: undefined,
+      estado: 'pendiente',
+      turno: original.turno,
+      hechoPor: '',
+      observacion: '',
+      orden: tareas.length,
+      adminObs: '',
+      respuestaEmpleado: '',
+    };
+    const updated = [...tareas];
+    updated.splice(idx + 1, 0, dup);
+    setTareas(updated);
+    // Auto-persist
+    if (selectedDate) {
+      try {
+        await api.saveTareasDia(albergueId, selectedDate, updated);
+        await loadMonth();
+        toast.success('Tarea duplicada');
+      } catch {
+        toast.error('Error al duplicar');
       }
-      toast.success('Tareas guardadas correctamente');
-    } catch (err) {
-      console.error('Error saving tareas:', err);
-      toast.error('Error al guardar las tareas');
     }
   };
 
@@ -283,29 +281,59 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     setReplyText('');
   };
 
-  const saveAdminObs = () => {
+  const saveAdminObs = async () => {
     if (obsDialogIdx === null) return;
-    handleUpdateTarea(obsDialogIdx, 'adminObs', obsText);
+    const updated = tareas.map((t, i) => i === obsDialogIdx ? { ...t, adminObs: obsText } : t);
+    setTareas(updated);
     setObsDialogIdx(null);
+    if (selectedDate) {
+      try {
+        await api.saveTareasDia(albergueId, selectedDate, updated);
+        await loadMonth();
+        toast.success('Observación guardada');
+      } catch { toast.error('Error al guardar observación'); }
+    }
   };
 
-  const clearAdminObs = () => {
+  const clearAdminObs = async () => {
     if (obsDialogIdx === null) return;
-    handleUpdateTarea(obsDialogIdx, 'adminObs', '');
+    const updated = tareas.map((t, i) => i === obsDialogIdx ? { ...t, adminObs: '' } : t);
+    setTareas(updated);
     setObsText('');
+    if (selectedDate) {
+      try {
+        await api.saveTareasDia(albergueId, selectedDate, updated);
+        await loadMonth();
+      } catch { toast.error('Error al borrar observación'); }
+    }
   };
 
-  const saveEmployeeReply = () => {
+  const saveEmployeeReply = async () => {
     if (obsDialogIdx === null || !replyText.trim()) return;
     const current = tareas[obsDialogIdx].respuestaEmpleado;
     const newReply = current ? `${current}\n---\n${replyText}` : replyText;
-    handleUpdateTarea(obsDialogIdx, 'respuestaEmpleado', newReply);
+    const updated = tareas.map((t, i) => i === obsDialogIdx ? { ...t, respuestaEmpleado: newReply } : t);
+    setTareas(updated);
     setReplyText('');
+    if (selectedDate) {
+      try {
+        await api.saveTareasDia(albergueId, selectedDate, updated);
+        await loadMonth();
+        toast.success('Respuesta enviada');
+      } catch { toast.error('Error al enviar respuesta'); }
+    }
   };
 
-  const clearEmployeeReply = () => {
+  const clearEmployeeReply = async () => {
     if (obsDialogIdx === null) return;
-    handleUpdateTarea(obsDialogIdx, 'respuestaEmpleado', '');
+    const updated = tareas.map((t, i) => i === obsDialogIdx ? { ...t, respuestaEmpleado: '' } : t);
+    setTareas(updated);
+    if (selectedDate) {
+      try {
+        await api.saveTareasDia(albergueId, selectedDate, updated);
+        await loadMonth();
+      } catch { toast.error('Error al borrar respuestas'); }
+    }
   };
 
   // Calendar grid
@@ -493,7 +521,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                       </Button>
                     )}
                     {editable && (
-                      <Button variant="outline" size="sm" onClick={() => handleDuplicate(idx)} className="text-xs gap-1">
+                      <Button variant="outline" size="sm" onClick={() => handleDuplicateAndSave(idx)} className="text-xs gap-1">
                         <Plus className="w-3 h-3" /> Duplicar tarea
                       </Button>
                     )}
@@ -583,7 +611,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                 )}
 
                 <p className="text-xs text-muted-foreground">
-                  ⚠️ Recuerda pulsar "Registrar" en la tarea correspondiente para guardar los cambios.
+                  Los cambios se guardan automáticamente.
                 </p>
               </div>
             )}
