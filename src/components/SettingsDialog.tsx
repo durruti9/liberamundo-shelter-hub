@@ -146,18 +146,18 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
         </DialogHeader>
 
         <Tabs defaultValue="rooms" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="rooms" className="flex items-center gap-2">
-              <BedDouble className="w-4 h-4" /> <span className="hidden sm:inline">{t.roomConfiguration}</span><span className="sm:hidden">{t.rooms}</span>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto gap-1">
+            <TabsTrigger value="rooms" className="flex items-center gap-1.5 text-xs sm:text-sm py-2">
+              <BedDouble className="w-4 h-4 shrink-0" /> {t.rooms}
             </TabsTrigger>
-            <TabsTrigger value="albergues" className="flex items-center gap-2">
-              <Building2 className="w-4 h-4" /> <span className="hidden sm:inline">{t.shelterManagement}</span><span className="sm:hidden">Albergues</span>
+            <TabsTrigger value="albergues" className="flex items-center gap-1.5 text-xs sm:text-sm py-2">
+              <Building2 className="w-4 h-4 shrink-0" /> Albergues
             </TabsTrigger>
-            <TabsTrigger value="backup" className="flex items-center gap-2">
-              <Database className="w-4 h-4" /> <span className="hidden sm:inline">{t.backupRestore}</span><span className="sm:hidden">Backup</span>
+            <TabsTrigger value="backup" className="flex items-center gap-1.5 text-xs sm:text-sm py-2">
+              <Database className="w-4 h-4 shrink-0" /> Backup
             </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
-              <Shield className="w-4 h-4" /> <span className="hidden sm:inline">Seguridad</span><span className="sm:hidden">Logs</span>
+            <TabsTrigger value="security" className="flex items-center gap-1.5 text-xs sm:text-sm py-2">
+              <Shield className="w-4 h-4 shrink-0" /> Logs
             </TabsTrigger>
           </TabsList>
 

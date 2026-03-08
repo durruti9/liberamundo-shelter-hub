@@ -221,60 +221,62 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
       <main className="container mx-auto px-4 py-6">
         <Tabs value={tab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full h-auto" style={{ gridTemplateColumns: `repeat(${tabCount}, minmax(0, 1fr))` }}>
-            {(role === 'admin' || role === 'gestor' || role === 'personal_albergue') && (
-              <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-                <LayoutDashboard className="w-4 h-4" />
-                <span className="hidden sm:inline">{t.dashboard}</span>
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full h-auto" style={{ gridTemplateColumns: `repeat(${tabCount}, minmax(0, 1fr))` }}>
+              {(role === 'admin' || role === 'gestor' || role === 'personal_albergue') && (
+                <TabsTrigger value="dashboard" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
+                  <LayoutDashboard className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">{t.dashboard}</span>
+                </TabsTrigger>
+              )}
+              <TabsTrigger value="habitaciones" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
+                <BedDouble className="w-4 h-4 shrink-0" />
+                <span className="hidden sm:inline">{t.rooms}</span>
               </TabsTrigger>
-            )}
-            <TabsTrigger value="habitaciones" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-              <BedDouble className="w-5 h-5 min-w-5 min-h-5 shrink-0" />
-              <span className="hidden sm:inline">{t.rooms}</span>
-            </TabsTrigger>
-            {(role === 'admin' || role === 'gestor') && (
-              <TabsTrigger value="historial" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-                <History className="w-4 h-4" />
-                <span className="hidden sm:inline">{t.history}</span>
+              {(role === 'admin' || role === 'gestor') && (
+                <TabsTrigger value="historial" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
+                  <History className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">{t.history}</span>
+                </TabsTrigger>
+              )}
+              <TabsTrigger value="llegadas" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
+                <CalendarPlus className="w-4 h-4 shrink-0" />
+                <span className="hidden sm:inline">{t.arrivals}</span>
               </TabsTrigger>
-            )}
-            <TabsTrigger value="llegadas" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-              <CalendarPlus className="w-4 h-4" />
-              <span className="hidden sm:inline">{t.arrivals}</span>
-            </TabsTrigger>
-            <TabsTrigger value="comedor" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-              <UtensilsCrossed className="w-4 h-4" />
-              <span className="hidden sm:inline">{t.dining}</span>
-            </TabsTrigger>
-            <TabsTrigger value="incidencias" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-              <FileWarning className="w-4 h-4" />
-              <span className="hidden sm:inline">{t.incidents}</span>
-            </TabsTrigger>
-            {(role === 'admin' || role === 'personal_albergue') && (
-              <TabsTrigger value="tareas" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-                <ListChecks className="w-5 h-5 min-w-5 min-h-5 shrink-0" />
-                <span className="hidden sm:inline">{t.employeeTasks}</span>
+              <TabsTrigger value="comedor" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
+                <UtensilsCrossed className="w-4 h-4 shrink-0" />
+                <span className="hidden sm:inline">{t.dining}</span>
               </TabsTrigger>
-            )}
-            {(role === 'admin' || role === 'personal_albergue') && (
-              <TabsTrigger value="registro_horario" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-                <Clock className="w-4 h-4" />
-                <span className="hidden sm:inline">Horarios</span>
+              <TabsTrigger value="incidencias" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
+                <FileWarning className="w-4 h-4 shrink-0" />
+                <span className="hidden sm:inline">{t.incidents}</span>
               </TabsTrigger>
-            )}
-            {role === 'admin' && (
-              <TabsTrigger value="sugerencias" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-                <Mailbox className="w-4 h-4" />
-                <span className="hidden sm:inline">Buzón</span>
-              </TabsTrigger>
-            )}
-            {role === 'admin' && (
-              <TabsTrigger value="notas" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-                <StickyNote className="w-4 h-4" />
-                <span className="hidden sm:inline">Notas</span>
-              </TabsTrigger>
-            )}
-          </TabsList>
+              {(role === 'admin' || role === 'personal_albergue') && (
+                <TabsTrigger value="tareas" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
+                  <ListChecks className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">{t.employeeTasks}</span>
+                </TabsTrigger>
+              )}
+              {(role === 'admin' || role === 'personal_albergue') && (
+                <TabsTrigger value="registro_horario" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
+                  <Clock className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Horarios</span>
+                </TabsTrigger>
+              )}
+              {role === 'admin' && (
+                <TabsTrigger value="sugerencias" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
+                  <Mailbox className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Buzón</span>
+                </TabsTrigger>
+              )}
+              {role === 'admin' && (
+                <TabsTrigger value="notas" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
+                  <StickyNote className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Notas</span>
+                </TabsTrigger>
+              )}
+            </TabsList>
+          </div>
 
           {(role === 'admin' || role === 'gestor' || role === 'personal_albergue') && (
             <TabsContent value="dashboard">

@@ -275,18 +275,18 @@ export default function SugerenciasTab({ role, albergueId, userName }: Props) {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-xl font-bold flex items-center gap-2">
-          <MessageSquarePlus className="w-5 h-5 text-primary" /> Buzón de sugerencias
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2 flex-wrap">
+          <MessageSquarePlus className="w-5 h-5 text-primary shrink-0" /> Buzón
           {pending > 0 && (
-            <Badge className="bg-[hsl(30,90%,50%)] text-white text-xs">{pending} pendientes</Badge>
+            <Badge className="bg-[hsl(30,90%,50%)] text-[hsl(0,0%,100%)] text-xs">{pending} pendientes</Badge>
           )}
           {resolved > 0 && (
-            <Badge className="bg-[hsl(142,60%,40%)] text-white text-xs">{resolved} resueltas</Badge>
+            <Badge className="bg-[hsl(142,60%,40%)] text-[hsl(0,0%,100%)] text-xs">{resolved} resueltas</Badge>
           )}
         </h2>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Bulk delete selected */}
           {selectedIds.size > 0 && (
             <AlertDialog>
