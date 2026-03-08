@@ -13,6 +13,7 @@ import CheckInModal from '@/components/CheckInModal';
 import { BedDouble, MoreVertical, AlertTriangle, SprayCan } from 'lucide-react';
 import ExportButton from '@/components/ExportButton';
 import { format, differenceInDays } from 'date-fns';
+import { es, fr, ar, enUS, ru } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { stayDuration, formatDateES } from '@/lib/dateFormat';
 import { useI18n } from '@/i18n/I18nContext';
@@ -24,7 +25,9 @@ interface Props {
 
 export default function HabitacionesTab({ store, role }: Props) {
   const { huespedActivos, rooms, totalCamas, checkIn, checkOut, cambiarCama, editHuesped, deleteHuesped, getOccupant, updateRooms } = store;
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const dateFnsLocale = { es, fr, ar, en: enUS, ru }[lang] || es;
+  const canClean = role === 'admin' || role === 'personal_albergue';
   const [checkInTarget, setCheckInTarget] = useState<{ habitacion: string; cama: number } | null>(null);
   const [editTarget, setEditTarget] = useState<string | null>(null);
   const [checkoutTarget, setCheckoutTarget] = useState<string | null>(null);
@@ -164,15 +167,16 @@ export default function HabitacionesTab({ store, role }: Props) {
                 </span>
                 <Badge variant="outline" className="text-xs">{room.camas} {t.beds}</Badge>
               </CardTitle>
-              {/* Última limpieza */}
+              {/* Última limpieza - solo admin y personal_albergue */}
+              {canClean && (
               <div className="flex items-center gap-1.5 mt-1">
                 <SprayCan className="w-3 h-3 text-muted-foreground shrink-0" />
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="text-[10px] text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted">
                       {room.ultimaLimpieza
-                        ? `Limpieza: ${format(new Date(room.ultimaLimpieza + 'T00:00:00'), 'dd/MM/yyyy')}`
-                        : 'Sin registrar limpieza'}
+                        ? `${t.lastCleaning || 'Limpieza'}: ${format(new Date(room.ultimaLimpieza + 'T00:00:00'), 'dd/MM/yyyy')}`
+                        : (t.noCleaningRecorded || 'Sin registrar limpieza')}
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -189,6 +193,7 @@ export default function HabitacionesTab({ store, role }: Props) {
                         }
                       }}
                       disabled={(date) => date > new Date()}
+                      locale={dateFnsLocale}
                       className={cn("p-3 pointer-events-auto")}
                     />
                   </PopoverContent>
@@ -200,11 +205,12 @@ export default function HabitacionesTab({ store, role }: Props) {
                       "text-[10px] font-medium",
                       days <= 1 ? "text-[hsl(var(--success))]" : days <= 3 ? "text-primary" : days <= 7 ? "text-[hsl(38,92%,50%)]" : "text-destructive"
                     )}>
-                      ({days === 0 ? 'Hoy' : days === 1 ? 'Ayer' : `hace ${days}d`})
+                      ({days === 0 ? (t.today || 'Hoy') : days === 1 ? (t.yesterday || 'Ayer') : `${t.ago || 'hace'} ${days}d`})
                     </span>
                   );
                 })()}
               </div>
+              )}
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-2">

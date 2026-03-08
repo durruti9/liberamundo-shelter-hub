@@ -257,6 +257,12 @@ export interface Translations {
   upcomingArrivalsBoard: string;
   // Employee Tasks
   employeeTasks: string;
+  // Cleaning
+  lastCleaning: string;
+  noCleaningRecorded: string;
+  today: string;
+  yesterday: string;
+  ago: string;
 }
 
 const es: Translations = {
@@ -486,6 +492,11 @@ const es: Translations = {
   resolveMessage: 'Resolver mensaje',
   upcomingArrivalsBoard: 'Próximas llegadas',
   employeeTasks: 'Tareas Diarias',
+  lastCleaning: 'Limpieza',
+  noCleaningRecorded: 'Sin registrar limpieza',
+  today: 'Hoy',
+  yesterday: 'Ayer',
+  ago: 'hace',
 };
 
 const fr: Translations = {
@@ -715,6 +726,11 @@ const fr: Translations = {
   resolveMessage: 'Résoudre le message',
   upcomingArrivalsBoard: 'Prochaines arrivées',
   employeeTasks: 'Tâches Quotidiennes',
+  lastCleaning: 'Nettoyage',
+  noCleaningRecorded: 'Aucun nettoyage enregistré',
+  today: "Aujourd'hui",
+  yesterday: 'Hier',
+  ago: 'il y a',
 };
 
 const ar: Translations = {
@@ -944,6 +960,11 @@ const ar: Translations = {
   resolveMessage: 'حل الرسالة',
   upcomingArrivalsBoard: 'الوصول القادم',
   employeeTasks: 'المهام اليومية',
+  lastCleaning: 'التنظيف',
+  noCleaningRecorded: 'لم يتم تسجيل التنظيف',
+  today: 'اليوم',
+  yesterday: 'أمس',
+  ago: 'منذ',
 };
 
 const en: Translations = {
@@ -1173,6 +1194,11 @@ const en: Translations = {
   resolveMessage: 'Resolve message',
   upcomingArrivalsBoard: 'Upcoming arrivals',
   employeeTasks: 'Daily Tasks',
+  lastCleaning: 'Cleaning',
+  noCleaningRecorded: 'No cleaning recorded',
+  today: 'Today',
+  yesterday: 'Yesterday',
+  ago: 'ago',
 };
 
 const ru: Translations = {
@@ -1402,6 +1428,11 @@ const ru: Translations = {
   resolveMessage: 'Решить сообщение',
   upcomingArrivalsBoard: 'Ближайшие прибытия',
   employeeTasks: 'Ежедневные задачи',
+  lastCleaning: 'Уборка',
+  noCleaningRecorded: 'Уборка не зарегистрирована',
+  today: 'Сегодня',
+  yesterday: 'Вчера',
+  ago: 'назад',
 };
 
 export const translations: Record<Language, Translations> = { es, fr, ar, en, ru };
