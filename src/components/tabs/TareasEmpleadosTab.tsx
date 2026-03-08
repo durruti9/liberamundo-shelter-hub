@@ -382,10 +382,10 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
 
             // Card background based on estado
             const cardBg = isHecha
-              ? 'border-[hsl(142,60%,70%)] bg-[hsl(142,60%,95%)]'
+              ? 'border-[hsl(142,60%,70%)] dark:border-[hsl(142,35%,30%)] bg-[hsl(142,60%,95%)] dark:bg-[hsl(142,30%,14%)]'
               : tarea.estado === 'no procede'
                 ? 'border-border bg-muted/50'
-                : 'border-[hsl(38,92%,70%)] bg-[hsl(38,92%,95%)]';
+                : 'border-[hsl(38,92%,70%)] dark:border-[hsl(38,50%,30%)] bg-[hsl(38,92%,95%)] dark:bg-[hsl(38,40%,14%)]';
 
             return (
             <Card key={idx} className={`border transition-colors ${cardBg}`}>
