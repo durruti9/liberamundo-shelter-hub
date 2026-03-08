@@ -13,9 +13,7 @@ function saveToStorage(key: string, data: unknown) {
   localStorage.setItem(key, JSON.stringify(data));
 }
 
-const DEFAULT_USERS: UserAccount[] = [
-  { email: 'admin', password: 'admin', role: 'admin' },
-];
+const DEFAULT_USERS: UserAccount[] = [];
 
 export function useAlbergueStore(albergueId: string = 'default') {
   const prefix = albergueId;
