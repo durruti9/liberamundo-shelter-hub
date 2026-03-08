@@ -173,6 +173,11 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
+  // Dialog states for replacing confirm()/prompt()
+  const [deleteEmpTarget, setDeleteEmpTarget] = useState<string | null>(null);
+  const [revisionDialog, setRevisionDialog] = useState<{ dayNum: number; motivo: string } | null>(null);
+  const [vacDialog, setVacDialog] = useState<{ value: string } | null>(null);
+
   // beforeunload when editing a day
   useBeforeUnload(showDayModal && !!editingDay);
 
