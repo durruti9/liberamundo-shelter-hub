@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -134,16 +134,30 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     setOriginalTareas({});
   };
 
+  // Debounce ref for auto-saving non-critical fields
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleUpdateTarea = (idx: number, field: keyof TareaDia, value: string) => {
     const updated = tareas.map((t, i) => i === idx ? { ...t, [field]: value } : t);
     setTareas(updated);
-    // Auto-save when estado changes to 'hecha' or 'no procede' (task locks)
-    if (field === 'estado' && (value === 'hecha' || value === 'no procede') && selectedDate) {
+    if (!selectedDate) return;
+
+    // Immediate save for estado changes (locks the card)
+    if (field === 'estado') {
       api.saveTareasDia(albergueId, selectedDate, updated)
         .then(() => loadMonth())
-        .then(() => toast.success('Tarea registrada'))
-        .catch(() => toast.error('Error al registrar'));
+        .then(() => toast.success('Guardado'))
+        .catch(() => toast.error('Error al guardar'));
+      return;
     }
+
+    // Debounced save for text/select fields (turno, hechoPor, observacion)
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      api.saveTareasDia(albergueId, selectedDate, updated)
+        .then(() => loadMonth())
+        .catch(() => toast.error('Error al guardar'));
+    }, 800);
   };
 
   // Check if a task at index is a duplicate (not the first occurrence of its tareaId)
@@ -239,39 +253,6 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     }
     setEditingIdx(prev => { const s = new Set(prev); s.delete(idx); return s; });
     setOriginalTareas(prev => { const c = { ...prev }; delete c[idx]; return c; });
-  };
-
-  const registerTarea = async (idx: number) => {
-    if (!selectedDate) return;
-    try {
-      // Save all current tareas state to persist
-      await api.saveTareasDia(albergueId, selectedDate, tareas);
-      // Refresh month data
-      await loadMonth();
-      // Refresh local tareas for this day from updated allTareasDates
-      // (loadMonth updates allTareasDates via setState, but we need to re-fetch)
-      const start = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
-      const end = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
-      const data = await api.getTareasDia(albergueId, start, end);
-      const grouped: Record<string, TareaDia[]> = {};
-      for (const t of data) {
-        const fechaNorm = typeof t.fecha === 'string' ? t.fecha.split('T')[0] : String(t.fecha).split('T')[0];
-        const normalized = { ...t, fecha: fechaNorm };
-        if (!grouped[fechaNorm]) grouped[fechaNorm] = [];
-        grouped[fechaNorm].push(normalized);
-      }
-      setAllTareasDates(grouped);
-      if (grouped[selectedDate]) {
-        setTareas(grouped[selectedDate].map(t => ({ ...t, adminObs: t.adminObs || '', respuestaEmpleado: t.respuestaEmpleado || '' })));
-      }
-      // Stop editing this task
-      setEditingIdx(prev => { const s = new Set(prev); s.delete(idx); return s; });
-      setOriginalTareas(prev => { const c = { ...prev }; delete c[idx]; return c; });
-      toast.success('Tarea registrada');
-    } catch (err) {
-      console.error('Error saving tareas:', err);
-      toast.error('Error al registrar la tarea');
-    }
   };
 
   const handleReopen = () => {
@@ -515,12 +496,6 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                     <Badge className={`text-xs border ${ESTADO_COLORS[tarea.estado]}`} variant="outline">
                       {tarea.estado}
                     </Badge>
-                    {/* Registrar button: for pending tasks or when editing a hecha task */}
-                    {editable && ((!isHecha) || isEditing) && (
-                      <Button size="sm" onClick={() => registerTarea(idx)} className="text-xs gap-1 bg-[hsl(142,60%,40%)] hover:bg-[hsl(142,60%,35%)] text-white">
-                        <Save className="w-3 h-3" /> Registrar
-                      </Button>
-                    )}
                     {editable && isEditing && isHecha && (
                       <Button variant="outline" size="sm" onClick={() => cancelEditing(idx)} className="text-xs gap-1">
                         <X className="w-3 h-3" /> Cancelar
