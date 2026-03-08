@@ -168,7 +168,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   const [editingDay, setEditingDay] = useState<RegistroDia | null>(null);
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [showManageEmployees, setShowManageEmployees] = useState(false);
-  const [newEmp, setNewEmp] = useState({ nombre_completo: '', jornada_diaria_horas: 8, vacaciones_anuales: 22 });
+  const [newEmp, setNewEmp] = useState({ nombre_completo: '', jornada_diaria_horas: 40, vacaciones_anuales: 22 });
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
