@@ -210,6 +210,7 @@ export default function HabitacionesTab({ store, role }: Props) {
                       ({days === 0 ? (t.today || 'Hoy') : days === 1 ? (t.yesterday || 'Ayer') : `${t.ago || 'hace'} ${days}d`})
                     </span>
                   );
+                  } catch { return null; }
                 })()}
               </div>
               )}
