@@ -1,8 +1,12 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { requireAlbergueAccess } from '../middleware/albergueAccess.js';
+import { requireRole } from '../middleware/auth.js';
 
 const router = Router();
+
+// Restrict entire inventory module to admin + personal_albergue
+router.use(requireRole('admin', 'personal_albergue'));
 
 const DEFAULT_CATEGORIES = [
   { nombre: 'Ropa y calzado', icono: 'Shirt', orden: 1 },
@@ -13,6 +17,30 @@ const DEFAULT_CATEGORIES = [
   { nombre: 'Material oficina', icono: 'Paperclip', orden: 6 },
   { nombre: 'Otros', icono: 'Package', orden: 7 },
 ];
+
+// Helper: verify category belongs to user's albergue
+async function verifyCategoryAccess(user, categoryId) {
+  if (user.role === 'admin') return true;
+  const { rows } = await pool.query(
+    `SELECT c.albergue_id FROM inventario_categorias c
+     JOIN user_albergues ua ON ua.albergue_id = c.albergue_id AND ua.user_email = $1
+     WHERE c.id = $2`,
+    [user.email, categoryId]
+  );
+  return rows.length > 0;
+}
+
+// Helper: verify item belongs to user's albergue
+async function verifyItemAccess(user, itemId) {
+  if (user.role === 'admin') return true;
+  const { rows } = await pool.query(
+    `SELECT i.albergue_id FROM inventario_items i
+     JOIN user_albergues ua ON ua.albergue_id = i.albergue_id AND ua.user_email = $1
+     WHERE i.id = $2`,
+    [user.email, itemId]
+  );
+  return rows.length > 0;
+}
 
 // Ensure default categories exist for an albergue
 async function ensureCategories(albergueId) {
@@ -62,9 +90,12 @@ router.post('/:albergueId/categorias', requireAlbergueAccess(), async (req, res)
   }
 });
 
-// DELETE category
+// DELETE category (with access check)
 router.delete('/categorias/:id', async (req, res) => {
   try {
+    if (!(await verifyCategoryAccess(req.user, req.params.id))) {
+      return res.status(403).json({ error: 'Sin acceso a esta categoría' });
+    }
     await pool.query('DELETE FROM inventario_categorias WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
   } catch (err) {
@@ -104,9 +135,12 @@ router.post('/:albergueId/items', requireAlbergueAccess(), async (req, res) => {
   }
 });
 
-// PUT item
+// PUT item (with access check)
 router.put('/items/:id', async (req, res) => {
   try {
+    if (!(await verifyItemAccess(req.user, req.params.id))) {
+      return res.status(403).json({ error: 'Sin acceso a este artículo' });
+    }
     const { nombre, unidad, stock_minimo, ubicacion, notas } = req.body;
     const { rows } = await pool.query(
       `UPDATE inventario_items SET nombre = COALESCE($1, nombre), unidad = COALESCE($2, unidad), 
@@ -120,9 +154,12 @@ router.put('/items/:id', async (req, res) => {
   }
 });
 
-// DELETE item
+// DELETE item (with access check)
 router.delete('/items/:id', async (req, res) => {
   try {
+    if (!(await verifyItemAccess(req.user, req.params.id))) {
+      return res.status(403).json({ error: 'Sin acceso a este artículo' });
+    }
     await pool.query('DELETE FROM inventario_items WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
   } catch (err) {
@@ -130,22 +167,24 @@ router.delete('/items/:id', async (req, res) => {
   }
 });
 
-// POST movement (entrada/salida)
+// POST movement (with access check)
 router.post('/items/:itemId/movimiento', async (req, res) => {
   const client = await pool.connect();
   try {
+    if (!(await verifyItemAccess(req.user, req.params.itemId))) {
+      client.release();
+      return res.status(403).json({ error: 'Sin acceso a este artículo' });
+    }
     const { tipo, cantidad, motivo } = req.body;
     const usuario = req.user?.email || '';
     
     await client.query('BEGIN');
     
-    // Insert movement
     await client.query(
       'INSERT INTO inventario_movimientos (item_id, tipo, cantidad, motivo, usuario) VALUES ($1, $2, $3, $4, $5)',
       [req.params.itemId, tipo, cantidad, motivo || '', usuario]
     );
     
-    // Update stock
     const delta = tipo === 'entrada' ? cantidad : -cantidad;
     const { rows } = await client.query(
       'UPDATE inventario_items SET stock_actual = GREATEST(0, stock_actual + $1), updated_at = NOW() WHERE id = $2 RETURNING *',
@@ -162,9 +201,12 @@ router.post('/items/:itemId/movimiento', async (req, res) => {
   }
 });
 
-// GET movements for item
+// GET movements for item (with access check)
 router.get('/items/:itemId/movimientos', async (req, res) => {
   try {
+    if (!(await verifyItemAccess(req.user, req.params.itemId))) {
+      return res.status(403).json({ error: 'Sin acceso a este artículo' });
+    }
     const { rows } = await pool.query(
       'SELECT * FROM inventario_movimientos WHERE item_id = $1 ORDER BY fecha DESC LIMIT 50',
       [req.params.itemId]
@@ -175,7 +217,7 @@ router.get('/items/:itemId/movimientos', async (req, res) => {
   }
 });
 
-// GET alerts (items below minimum stock)
+// GET alerts
 router.get('/:albergueId/alertas', requireAlbergueAccess(), async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -192,7 +234,7 @@ router.get('/:albergueId/alertas', requireAlbergueAccess(), async (req, res) => 
   }
 });
 
-// GET monthly consumption (salidas) for albergue
+// GET monthly consumption
 router.get('/:albergueId/consumo-mensual', requireAlbergueAccess(), async (req, res) => {
   try {
     const { rows } = await pool.query(

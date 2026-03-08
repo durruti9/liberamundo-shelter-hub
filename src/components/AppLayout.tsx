@@ -462,7 +462,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setChangingPasswordFor(null)}>{t.cancel}</Button>
-              <Button disabled={newPasswordValue.length < 4} onClick={async () => {
+              <Button disabled={newPasswordValue.length < 8} onClick={async () => {
                 try {
                   await store.changePassword(changingPasswordFor!, newPasswordValue);
                   const { toast } = await import('sonner');
