@@ -819,6 +819,42 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* EMPRESA CONFIG MODAL (admin only) */}
+      <Dialog open={showEmpresaConfig} onOpenChange={setShowEmpresaConfig}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="w-5 h-5" /> Configuración Empresa
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Estos datos aparecerán en la cabecera del registro horario y en las exportaciones PDF. Requisito legal Art. 34.9 ET.
+            </p>
+            <div className="space-y-1">
+              <Label>Razón Social</Label>
+              <Input value={editEmpresa.razon_social} onChange={e => setEditEmpresa({ ...editEmpresa, razon_social: e.target.value })} placeholder="Nombre de la empresa" />
+            </div>
+            <div className="space-y-1">
+              <Label>CIF</Label>
+              <Input value={editEmpresa.cif} onChange={e => setEditEmpresa({ ...editEmpresa, cif: e.target.value })} placeholder="B12345678" />
+            </div>
+            <Button className="w-full" onClick={async () => {
+              try {
+                await api.updateConfigEmpresa(albergueId, editEmpresa);
+                setEmpresaConfig({ ...editEmpresa });
+                setShowEmpresaConfig(false);
+                toast.success('Configuración de empresa guardada');
+              } catch (err: any) {
+                toast.error(err.message);
+              }
+            }}>
+              <Save className="w-4 h-4 mr-1" /> Guardar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
