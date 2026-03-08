@@ -91,14 +91,15 @@ router.post('/registros/:empleadoId', async (req, res) => {
     const { fecha, estado, entrada_manana, salida_manana, entrada_tarde, salida_tarde,
             entrada_noche, salida_noche, pausa_min, horas_ordinarias, horas_extra,
             horas_complementarias, horas_vacaciones, horas_totales, observaciones,
-            firma_data, firmado_en } = req.body;
+            firma_data, firmado_en, marcado_revision, motivo_revision } = req.body;
     
     const { rows } = await pool.query(
       `INSERT INTO registros_horario 
         (empleado_id, fecha, estado, entrada_manana, salida_manana, entrada_tarde, salida_tarde,
          entrada_noche, salida_noche, pausa_min, horas_ordinarias, horas_extra,
-         horas_complementarias, horas_vacaciones, horas_totales, observaciones, firma_data, firmado_en, updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18, NOW())
+         horas_complementarias, horas_vacaciones, horas_totales, observaciones, firma_data, firmado_en,
+         marcado_revision, motivo_revision, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20, NOW())
        ON CONFLICT (empleado_id, fecha) DO UPDATE SET
          estado = EXCLUDED.estado,
          entrada_manana = EXCLUDED.entrada_manana,
@@ -116,6 +117,8 @@ router.post('/registros/:empleadoId', async (req, res) => {
          observaciones = EXCLUDED.observaciones,
          firma_data = EXCLUDED.firma_data,
          firmado_en = EXCLUDED.firmado_en,
+         marcado_revision = EXCLUDED.marcado_revision,
+         motivo_revision = EXCLUDED.motivo_revision,
          updated_at = NOW()
        RETURNING *`,
       [req.params.empleadoId, fecha, estado || 'trabajado',
@@ -124,7 +127,8 @@ router.post('/registros/:empleadoId', async (req, res) => {
        entrada_noche || null, salida_noche || null,
        pausa_min || 0, horas_ordinarias || 0, horas_extra || 0,
        horas_complementarias || 0, horas_vacaciones || 0, horas_totales || 0,
-       observaciones || '', firma_data || '', firmado_en || null]
+       observaciones || '', firma_data || '', firmado_en || null,
+       marcado_revision || false, motivo_revision || '']
     );
     res.json(rows[0]);
   } catch (err) {
