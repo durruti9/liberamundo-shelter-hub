@@ -83,13 +83,11 @@ const Index = () => {
     localStorage.setItem('userAlbergueIds', JSON.stringify(albergueIds));
     resetSessionTimer();
 
-    // For non-admin users, immediately set albergueId from login response
-    // so they don't get stuck with 'default' which doesn't exist in the DB
-    if (userRole !== 'admin' && albergueIds.length > 0 && !localStorage.getItem('currentAlbergueId')) {
+    // Always set albergueId from login response to ensure consistency
+    if (albergueIds.length > 0) {
       setAlbergueId(albergueIds[0]);
       localStorage.setItem('currentAlbergueId', albergueIds[0]);
     }
-    // For admin users with no albergueId set, we'll resolve it after albergues load
   };
 
   const albergues = loadAlbergues();
