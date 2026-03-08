@@ -101,12 +101,24 @@ export default function LoginPage({ onLogin }: Props) {
     }
   };
 
-  const handleSecretInput = (value: string) => {
+  const handleSecretInput = async (value: string) => {
     setSecretInput(value);
-    if (_v(value)) {
-      setSecretUnlocked(true);
-      setSecretCode(value); // Save the code for API validation
-      setSecretInput('');
+    // Only attempt verification when input has reasonable length (avoid spamming)
+    if (value.length >= 6) {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/auth/verify-emergency`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ secretCode: value }),
+        });
+        if (res.ok) {
+          setSecretUnlocked(true);
+          setSecretCode(value);
+          setSecretInput('');
+        }
+      } catch {
+        // Server unavailable, silently fail
+      }
     }
   };
 
