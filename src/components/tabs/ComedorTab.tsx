@@ -18,6 +18,36 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { toast } from 'sonner';
 
+/** Debounced text input — saves only after user stops typing */
+function DebouncedInput({ value: externalValue, onCommit, delay = 600, ...props }: {
+  value: string;
+  onCommit: (val: string) => void;
+  delay?: number;
+} & Omit<React.ComponentProps<typeof Input>, 'value' | 'onChange'>) {
+  const [local, setLocal] = useState(externalValue);
+  const timer = useRef<ReturnType<typeof setTimeout>>();
+
+  // Sync from parent when external data changes (e.g. after reload)
+  useEffect(() => { setLocal(externalValue); }, [externalValue]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLocal(val);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => onCommit(val), delay);
+  };
+
+  // Flush on blur so data isn't lost
+  const handleBlur = () => {
+    clearTimeout(timer.current);
+    if (local !== externalValue) onCommit(local);
+  };
+
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  return <Input {...props} value={local} onChange={handleChange} onBlur={handleBlur} />;
+}
+
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
   role: UserRole;
