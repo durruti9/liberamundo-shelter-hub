@@ -60,6 +60,8 @@ export default function InventarioTab({ role, albergueId }: Props) {
     categoria_id: '', nombre: '', unidad: 'unidades', stock_actual: 0, stock_minimo: 0, ubicacion: '', notas: '',
   });
   const [statsOpen, setStatsOpen] = useState(false);
+  const [localMovements, setLocalMovements] = useState<LocalMovement[]>([]);
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
   const [consumoData, setConsumoData] = useState<any[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
