@@ -103,26 +103,32 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             <img src={logo} alt="Libera Mundo" className="h-9" />
             <div className="hidden sm:block">
               <h1 className="text-lg font-bold leading-tight">{store.currentAlbergue?.nombre || t.appName}</h1>
-              {role === 'admin' && store.albergues.length > 1 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
-                      {t.switchShelter} <ChevronDown className="w-3 h-3" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    {store.albergues.map(a => (
-                      <DropdownMenuItem
-                        key={a.id}
-                        onClick={() => onSwitchAlbergue(a.id)}
-                        className={a.id === albergueId ? 'bg-accent font-medium' : ''}
-                      >
-                        <Building2 className="w-4 h-4 mr-2" /> {a.nombre}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+              {(() => {
+                const userAlbergueIds = JSON.parse(localStorage.getItem('userAlbergueIds') || '[]');
+                const switchable = role === 'admin'
+                  ? store.albergues
+                  : store.albergues.filter(a => userAlbergueIds.includes(a.id));
+                return switchable.length > 1 ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
+                        {t.switchShelter} <ChevronDown className="w-3 h-3" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      {switchable.map(a => (
+                        <DropdownMenuItem
+                          key={a.id}
+                          onClick={() => onSwitchAlbergue(a.id)}
+                          className={a.id === albergueId ? 'bg-accent font-medium' : ''}
+                        >
+                          <Building2 className="w-4 h-4 mr-2" /> {a.nombre}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : null;
+              })()}
             </div>
           </div>
           <div className="flex items-center gap-1">
