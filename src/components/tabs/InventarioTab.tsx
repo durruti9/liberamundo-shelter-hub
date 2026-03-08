@@ -417,15 +417,9 @@ export default function InventarioTab({ role, albergueId }: Props) {
                 <Input type="number" min={0} value={newItem.stock_actual} onChange={e => setNewItem(p => ({ ...p, stock_actual: parseFloat(e.target.value) || 0 }))} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label>Stock mínimo</Label>
-                <Input type="number" min={0} value={newItem.stock_minimo} onChange={e => setNewItem(p => ({ ...p, stock_minimo: parseFloat(e.target.value) || 0 }))} />
-              </div>
-              <div className="space-y-1">
-                <Label>Ubicación</Label>
-                <Input value={newItem.ubicacion} onChange={e => setNewItem(p => ({ ...p, ubicacion: e.target.value }))} placeholder="Almacén 1" />
-              </div>
+            <div className="space-y-1">
+              <Label>Aviso stock bajo</Label>
+              <Input type="number" min={0} value={newItem.stock_minimo} onChange={e => setNewItem(p => ({ ...p, stock_minimo: parseFloat(e.target.value) || 0 }))} placeholder="0 = sin aviso" />
             </div>
             <div className="space-y-1">
               <Label>Notas</Label>
