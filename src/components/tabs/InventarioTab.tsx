@@ -264,7 +264,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (!confirm('¿Eliminar este artículo y su historial?')) return;
     try {
       await api.deleteInventarioItem(id);
       toast.success('Artículo eliminado');
@@ -273,6 +272,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
       setItems(prev => prev.filter(i => i.id !== id));
       toast.success('Artículo eliminado');
     }
+    setDeleteItemId(null);
   };
 
   const handleUpdateItem = async () => {
