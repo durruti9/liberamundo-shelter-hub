@@ -23,13 +23,26 @@ export default function NotificationBell({ albergueId, role, onNavigate }: Props
   const lastCheckRef = useRef<string>(new Date().toISOString());
   const knownIdsRef = useRef<Set<string>>(new Set());
   const initializedRef = useRef(false);
+  const apiAvailableRef = useRef(true);
+  const consecutiveFailsRef = useRef(0);
 
   const checkUpdates = useCallback(async () => {
+    // Back off if API has been failing
+    if (!apiAvailableRef.current) {
+      consecutiveFailsRef.current++;
+      // After 3 consecutive fails, stop polling until page reload
+      if (consecutiveFailsRef.current > 3) return;
+    }
+
     try {
       const newNotifs: Notification[] = [];
 
       // Check incidencias
       const incidencias = await api.getIncidencias(albergueId);
+      // If we got here, API is available
+      apiAvailableRef.current = true;
+      consecutiveFailsRef.current = 0;
+
       incidencias.forEach((i: any) => {
         if (!knownIdsRef.current.has(`inc-${i.id}`)) {
           if (initializedRef.current) {
@@ -106,13 +119,19 @@ export default function NotificationBell({ albergueId, role, onNavigate }: Props
 
       lastCheckRef.current = new Date().toISOString();
     } catch {
-      // API not available, ignore
+      // API not available — mark and back off
+      apiAvailableRef.current = false;
+      consecutiveFailsRef.current++;
     }
   }, [albergueId, role]);
 
   useEffect(() => {
+    // Only start polling if we have an auth token (API mode)
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
     checkUpdates();
-    const interval = setInterval(checkUpdates, 30000); // Poll every 30s
+    const interval = setInterval(checkUpdates, 30000);
     return () => clearInterval(interval);
   }, [checkUpdates]);
 
