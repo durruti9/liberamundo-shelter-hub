@@ -283,14 +283,38 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
     setSaving(false);
   }, [records, currentEmpleado]);
 
-  // Open day modal
+  // Open day modal (only for non-admin)
   const openDay = (dayNum: number) => {
     if (!selectedEmpleado) return;
     const fecha = formatDate(year, month, dayNum);
     if (isFuture(fecha)) return;
+    if (isAdmin) return; // Admin cannot edit records
     const existing = records.get(fecha) || emptyRecord(selectedEmpleado, fecha);
     setEditingDay({ ...existing });
     setShowDayModal(true);
+  };
+
+  // Toggle review flag (admin only)
+  const toggleRevision = async (dayNum: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAdmin || !selectedEmpleado) return;
+    const fecha = formatDate(year, month, dayNum);
+    const rec = records.get(fecha);
+    if (!rec || !rec.estado) return;
+
+    const newFlag = !rec.marcado_revision;
+    let motivo = rec.motivo_revision || '';
+    if (newFlag) {
+      const reason = prompt('Motivo de la revisión (opcional):');
+      if (reason === null) return; // cancelled
+      motivo = reason;
+    } else {
+      motivo = '';
+    }
+
+    const updated = { ...rec, marcado_revision: newFlag, motivo_revision: motivo };
+    await saveRecord(updated);
+    toast.success(newFlag ? 'Marcado para revisión' : 'Revisión resuelta');
   };
 
   // Save day from modal
