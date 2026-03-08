@@ -28,6 +28,7 @@ import RegistroHorarioTab from './tabs/RegistroHorarioTab';
 import ThemeToggle from './ThemeToggle';
 import GlobalSearch from './GlobalSearch';
 import NotificationBell from './NotificationBell';
+import ConnectionIndicator from './ConnectionIndicator';
 import { useAlbergueStore } from '@/hooks/useAlbergueStore';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
