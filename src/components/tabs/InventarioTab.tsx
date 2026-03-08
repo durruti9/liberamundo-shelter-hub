@@ -50,6 +50,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
   const [newItem, setNewItem] = useState({
     categoria_id: '', nombre: '', unidad: 'unidades', stock_actual: 0, stock_minimo: 0, ubicacion: '', notas: '',
   });
+  const [statsOpen, setStatsOpen] = useState(false);
 
   const canManage = role === 'admin' || role === 'personal_albergue';
 
