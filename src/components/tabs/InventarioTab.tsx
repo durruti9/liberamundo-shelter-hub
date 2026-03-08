@@ -118,6 +118,8 @@ export default function InventarioTab({ role, albergueId }: Props) {
   const [movFilters, setMovFilters] = useState({
     start: '', end: '', categoria: '', usuario: '',
   });
+  const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
+  const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null);
 
   const canManage = role === 'admin' || role === 'personal_albergue';
 
