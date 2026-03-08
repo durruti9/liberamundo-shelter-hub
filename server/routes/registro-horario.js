@@ -179,4 +179,50 @@ router.put('/vacaciones/:empleadoId/:anio', async (req, res) => {
   }
 });
 
+// ====== CONFIG EMPRESA ======
+
+router.get('/config-empresa/:albergueId', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM config_empresa WHERE albergue_id = $1',
+      [req.params.albergueId]
+    );
+    res.json(rows[0] || { razon_social: '', cif: '' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/config-empresa/:albergueId', async (req, res) => {
+  try {
+    const { razon_social, cif } = req.body;
+    await pool.query(
+      `INSERT INTO config_empresa (id, albergue_id, razon_social, cif, updated_at)
+       VALUES (gen_random_uuid()::text, $1, $2, $3, NOW())
+       ON CONFLICT (albergue_id) DO UPDATE SET razon_social = $2, cif = $3, updated_at = NOW()`,
+      [req.params.albergueId, razon_social || '', cif || '']
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ====== AUDITORÍA ======
+
+// Log audit entry (called internally when saving records)
+router.post('/auditoria', async (req, res) => {
+  try {
+    const { empleado_id, empleado_nombre, fecha_registro, campo_modificado, valor_anterior, valor_nuevo, modificado_por } = req.body;
+    await pool.query(
+      `INSERT INTO auditoria_registros (empleado_id, empleado_nombre, fecha_registro, campo_modificado, valor_anterior, valor_nuevo, modificado_por)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [empleado_id, empleado_nombre || '', fecha_registro, campo_modificado || '', valor_anterior || '', valor_nuevo || '', modificado_por || '']
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
