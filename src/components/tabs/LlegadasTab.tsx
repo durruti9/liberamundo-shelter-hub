@@ -50,6 +50,7 @@ export default function LlegadasTab({ store, role }: Props) {
   const [form, setForm] = useState<LlegadaFormData>(emptyForm());
   const [confirmingLlegada, setConfirmingLlegada] = useState<ProximaLlegada | null>(null);
   const [confirmForm, setConfirmForm] = useState<LlegadaFormData>(emptyForm());
+  const [deleteLlegadaId, setDeleteLlegadaId] = useState<string | null>(null);
 
   const canManage = role === 'admin' || role === 'gestor';
 
