@@ -101,4 +101,12 @@
   .bed-occupied {
     @apply bg-primary text-primary-foreground;
   }
+  /* Hide scrollbar but allow scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

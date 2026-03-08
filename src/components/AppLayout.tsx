@@ -221,7 +221,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
       <main className="container mx-auto px-4 py-6">
         <Tabs value={tab} onValueChange={handleTabChange} className="space-y-6">
-          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
             <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full h-auto" style={{ gridTemplateColumns: `repeat(${tabCount}, minmax(0, 1fr))` }}>
               {(role === 'admin' || role === 'gestor' || role === 'personal_albergue') && (
                 <TabsTrigger value="dashboard" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
