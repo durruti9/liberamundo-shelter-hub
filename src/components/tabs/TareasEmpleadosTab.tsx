@@ -181,6 +181,18 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     });
   };
 
+  const handleResetTarea = (idx: number) => {
+    setTareas(prev => prev.map((t, i) => i === idx ? {
+      ...t,
+      estado: 'pendiente',
+      hechoPor: '',
+      observacion: '',
+      adminObs: '',
+      respuestaEmpleado: '',
+    } : t));
+    toast.success('Tarea reseteada. Pulsa "Guardar todo" para confirmar.');
+  };
+
   const handleSave = async () => {
     if (!selectedDate) return;
     try {
