@@ -373,6 +373,10 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
           <TabsContent value="backup">
             <BackupSection t={t} />
           </TabsContent>
+
+          <TabsContent value="security">
+            <AccessLogsSection />
+          </TabsContent>
         </Tabs>
       </DialogContent>
 
