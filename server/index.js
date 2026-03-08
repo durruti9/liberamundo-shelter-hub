@@ -18,6 +18,7 @@ import notasRoutes from './routes/notas.js';
 import menuRoutes from './routes/menu.js';
 import accessLogRoutes from './routes/access-logs.js';
 import registroHorarioRoutes from './routes/registro-horario.js';
+import inventarioRoutes from './routes/inventario.js';
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.use('/api/notas', requireAuth, notasRoutes);
 app.use('/api/menu', requireAuth, menuRoutes);
 app.use('/api/access-logs', requireAuth, accessLogRoutes);
 app.use('/api/registro-horario', requireAuth, registroHorarioRoutes);
+app.use('/api/inventario', requireAuth, inventarioRoutes);
 
 // Diagnostic endpoint (requires auth + admin)
 app.get('/api/debug/status', requireAuth, async (req, res) => {

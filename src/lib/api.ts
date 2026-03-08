@@ -224,6 +224,24 @@ export const api = {
     request<any>(`/registro-horario/auditoria`, { method: 'POST', body: JSON.stringify(data) }),
   getAuditoria: (albergueId: string) =>
     request<any[]>(`/registro-horario/auditoria/${albergueId}`),
+
+  // Inventario
+  getInventarioCategorias: (albergueId: string) => request<any[]>(`/inventario/${albergueId}/categorias`),
+  addInventarioCategoria: (albergueId: string, data: any) =>
+    request<any>(`/inventario/${albergueId}/categorias`, { method: 'POST', body: JSON.stringify(data) }),
+  deleteInventarioCategoria: (id: string) =>
+    request<any>(`/inventario/categorias/${id}`, { method: 'DELETE' }),
+  getInventarioItems: (albergueId: string) => request<any[]>(`/inventario/${albergueId}/items`),
+  addInventarioItem: (albergueId: string, data: any) =>
+    request<any>(`/inventario/${albergueId}/items`, { method: 'POST', body: JSON.stringify(data) }),
+  updateInventarioItem: (id: string, data: any) =>
+    request<any>(`/inventario/items/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteInventarioItem: (id: string) =>
+    request<any>(`/inventario/items/${id}`, { method: 'DELETE' }),
+  addInventarioMovimiento: (itemId: string, data: any) =>
+    request<any>(`/inventario/items/${itemId}/movimiento`, { method: 'POST', body: JSON.stringify(data) }),
+  getInventarioMovimientos: (itemId: string) => request<any[]>(`/inventario/items/${itemId}/movimientos`),
+  getInventarioAlertas: (albergueId: string) => request<any[]>(`/inventario/${albergueId}/alertas`),
 };
 
 // Check if API is available

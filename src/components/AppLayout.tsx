@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound, ListChecks, Mailbox, StickyNote, Clock } from 'lucide-react';
+import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound, ListChecks, Mailbox, StickyNote, Clock, Package, BarChart3 } from 'lucide-react';
 import PasswordInput from '@/components/PasswordInput';
 import { api } from '@/lib/api';
 import logo from '@/assets/Logo2Liberamundo.png';
@@ -25,6 +25,8 @@ import TareasEmpleadosTab from './tabs/TareasEmpleadosTab';
 import SugerenciasTab from './tabs/SugerenciasTab';
 import NotasTab from './tabs/NotasTab';
 import RegistroHorarioTab from './tabs/RegistroHorarioTab';
+import InventarioTab from './tabs/InventarioTab';
+import InformesTab from './tabs/InformesTab';
 import ThemeToggle from './ThemeToggle';
 import GlobalSearch from './GlobalSearch';
 import NotificationBell from './NotificationBell';
@@ -105,7 +107,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
   const adminCount = store.users.filter(u => u.role === 'admin').length;
 
-  const tabCount = role === 'admin' ? 10 : role === 'gestor' ? 6 : 7;
+  const tabCount = role === 'admin' ? 12 : role === 'gestor' ? 7 : 8;
 
   const handleAlbergueDeleted = (deletedId: string) => {
     if (deletedId === albergueId && store.albergues.length > 0) {
@@ -263,6 +265,16 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                   <span className="hidden sm:inline">Horarios</span>
                 </TabsTrigger>
               )}
+              <TabsTrigger value="inventario" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
+                <Package className="w-4 h-4 shrink-0" />
+                <span className="hidden sm:inline">Inventario</span>
+              </TabsTrigger>
+              {role === 'admin' && (
+                <TabsTrigger value="informes" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
+                  <BarChart3 className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Informes</span>
+                </TabsTrigger>
+              )}
               {role === 'admin' && (
                 <TabsTrigger value="sugerencias" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
                   <Mailbox className="w-4 h-4 shrink-0" />
@@ -318,6 +330,14 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
           {(role === 'admin' || role === 'personal_albergue') && (
             <TabsContent value="registro_horario">
               <RegistroHorarioTab role={role} albergueId={albergueId} />
+            </TabsContent>
+          )}
+          <TabsContent value="inventario">
+            <InventarioTab role={role} albergueId={albergueId} />
+          </TabsContent>
+          {role === 'admin' && (
+            <TabsContent value="informes">
+              <InformesTab store={store} role={role} />
             </TabsContent>
           )}
         </Tabs>
