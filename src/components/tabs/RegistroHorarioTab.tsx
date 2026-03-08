@@ -662,7 +662,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                   <span>🏖 Vacaciones {year}:</span>
                   <Badge variant="outline">{vacSaldo.asignadas} asignadas</Badge>
                   <Badge variant="secondary">{vacSaldo.consumidas} consumidas</Badge>
-                  <Badge className={vacSaldo.asignadas - vacSaldo.consumidas > 0 ? 'bg-green-600' : 'bg-destructive'}>
+                  <Badge className={vacSaldo.asignadas - vacSaldo.consumidas > 0 ? 'bg-success text-success-foreground' : 'bg-destructive text-destructive-foreground'}>
                     {(vacSaldo.asignadas - vacSaldo.consumidas).toFixed(1)} pendientes
                   </Badge>
                 </div>
