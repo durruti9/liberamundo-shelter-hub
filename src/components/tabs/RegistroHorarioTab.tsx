@@ -749,6 +749,11 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                   value={editingDay.firma_data}
                   onChange={dataUrl => setEditingDay({ ...editingDay, firma_data: dataUrl, firmado_en: dataUrl ? new Date().toISOString() : null })}
                 />
+                {editingDay.firmado_en && (
+                  <p className="text-xs text-muted-foreground">
+                    Firmado el {new Date(editingDay.firmado_en).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} {new Date(editingDay.firmado_en).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
