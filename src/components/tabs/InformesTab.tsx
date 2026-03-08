@@ -22,7 +22,7 @@ const COLORS = [
   'hsl(220, 60%, 65%)', 'hsl(50, 80%, 50%)', 'hsl(300, 40%, 55%)',
 ];
 
-export default function InformesTab({ store }: Props) {
+export default function InformesTab({ store, role }: Props) {
   const { huespedes, huespedActivos, totalCamas, incidencias, rooms, comedor } = store;
   const [period, setPeriod] = useState<'3m' | '6m' | '12m'>('6m');
 
