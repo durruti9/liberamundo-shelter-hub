@@ -22,7 +22,13 @@ export function exportToPDF(
   filename: string,
   columns: { key: string; label: string }[],
   title: string,
-  options?: { empresa?: string; cif?: string; legalText?: string; employeeName?: string }
+  options?: {
+    empresa?: string;
+    cif?: string;
+    legalText?: string;
+    employeeName?: string;
+    signatures?: { fecha: string; firma_data: string }[];
+  }
 ) {
   const doc = new jsPDF({ orientation: 'landscape' });
   let yPos = 12;
@@ -66,12 +72,70 @@ export function exportToPDF(
     margin: { top: yPos },
   });
 
+  let finalY = (doc as any).lastAutoTable?.finalY || 200;
+
+  // Add signatures section if available
+  if (options?.signatures && options.signatures.length > 0) {
+    const validSigs = options.signatures.filter(s => s.firma_data && s.firma_data.startsWith('data:'));
+    if (validSigs.length > 0) {
+      finalY += 8;
+      doc.setFontSize(9);
+      doc.setTextColor(0);
+      doc.text('Firmas del trabajador/a:', 14, finalY);
+      finalY += 4;
+
+      const sigWidth = 40;
+      const sigHeight = 20;
+      const cols = 5;
+      let col = 0;
+
+      validSigs.forEach((sig) => {
+        const x = 14 + col * (sigWidth + 10);
+        const y = finalY;
+        
+        if (y + sigHeight + 10 > doc.internal.pageSize.getHeight()) {
+          doc.addPage();
+          finalY = 20;
+        }
+
+        try {
+          doc.addImage(sig.firma_data, 'PNG', x, y, sigWidth, sigHeight);
+          doc.setFontSize(6);
+          doc.setTextColor(120);
+          doc.text(sig.fecha, x + sigWidth / 2, y + sigHeight + 3, { align: 'center' });
+        } catch {
+          // Skip invalid signature images
+        }
+
+        col++;
+        if (col >= cols) {
+          col = 0;
+          finalY += sigHeight + 8;
+        }
+      });
+
+      if (col > 0) finalY += sigHeight + 8;
+    }
+  }
+
   // Legal footer text
   if (options?.legalText) {
-    const finalY = (doc as any).lastAutoTable?.finalY || 200;
+    if (finalY + 15 > doc.internal.pageSize.getHeight()) {
+      doc.addPage();
+      finalY = 20;
+    }
     doc.setFontSize(7);
     doc.setTextColor(120);
-    doc.text(options.legalText, 14, finalY + 10);
+    doc.text(options.legalText, 14, finalY + 5);
+
+    // Signature lines
+    finalY += 15;
+    doc.setFontSize(8);
+    doc.setTextColor(0);
+    doc.text('Firma del trabajador/a:', 14, finalY);
+    doc.line(14, finalY + 15, 100, finalY + 15);
+    doc.text('Firma de la empresa:', 160, finalY);
+    doc.line(160, finalY + 15, 260, finalY + 15);
   }
 
   doc.save(`${filename}.pdf`);
