@@ -146,7 +146,9 @@ export default function ComedorTab({ store, role }: Props) {
   }, [huespedActivos, comedor]);
 
   const handleUpdate = (huespedId: string, field: string, value: unknown) => {
-    updateComedor(huespedId, { [field]: value } as Partial<import('@/types').ComedorEntry>);
+    console.log('[ComedorTab handleUpdate]', huespedId, field, value);
+    updateComedor(huespedId, { [field]: value } as Partial<import('@/types').ComedorEntry>)
+      .catch(err => console.error('[ComedorTab handleUpdate] error:', err));
   };
 
   const downloadWeeklyPdf = useCallback(() => {

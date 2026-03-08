@@ -184,7 +184,17 @@ export function useAlbergueStore(albergueId: string = 'default') {
   }, [llegadas, checkIn, useApi, loadFromApi]);
 
   const updateComedor = useCallback(async (huespedId: string, data: Partial<ComedorEntry>) => {
-    if (useApi) { await api.updateComedor(huespedId, data); await loadFromApi(); return; }
+    if (useApi) {
+      try {
+        console.log('[updateComedor] sending:', huespedId, data);
+        await api.updateComedor(huespedId, data);
+        console.log('[updateComedor] success');
+        await loadFromApi();
+      } catch (err: any) {
+        console.error('[updateComedor] error:', err.message, err.status);
+      }
+      return;
+    }
     setComedor(prev => {
       const idx = prev.findIndex(c => c.huespedId === huespedId);
       if (idx >= 0) {
