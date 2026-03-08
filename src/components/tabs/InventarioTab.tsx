@@ -110,6 +110,14 @@ export default function InventarioTab({ role, albergueId }: Props) {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
 
+  // Movement history state
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [movimientos, setMovimientos] = useState<any[]>([]);
+  const [movLoading, setMovLoading] = useState(false);
+  const [movFilters, setMovFilters] = useState({
+    start: '', end: '', categoria: '', usuario: '',
+  });
+
   const canManage = role === 'admin' || role === 'personal_albergue';
 
   const loadedRef = useRef(false);
