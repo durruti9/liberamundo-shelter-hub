@@ -348,7 +348,7 @@ export default function InformesTab({ store, role }: Props) {
             ) : (
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={dietData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" className="opacity-50" />
                   <XAxis type="number" tick={{ fontSize: 11 }} />
                   <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 10 }} />
                    <Tooltip content={<ChartTooltip />} />
