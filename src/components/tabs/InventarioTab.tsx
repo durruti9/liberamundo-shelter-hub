@@ -333,17 +333,13 @@ export default function InventarioTab({ role, albergueId }: Props) {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Entrada"
-                          onClick={() => setShowMovement({ item, tipo: 'entrada' })}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="+1"
+                          onClick={() => handleQuickMovement(item, 'entrada')}>
                           <Plus className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" title="Salida"
-                          onClick={() => setShowMovement({ item, tipo: 'salida' })}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" title="-1"
+                          onClick={() => handleQuickMovement(item, 'salida')} disabled={item.stock_actual <= 0}>
                           <Minus className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="Historial"
-                          onClick={() => handleShowHistory(item)}>
-                          <History className="w-4 h-4" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar"
                           onClick={() => setEditItem({ ...item })}>
