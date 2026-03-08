@@ -430,6 +430,54 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
     return { ordinarias, extra, complementarias, vacDays, worked, unsigned };
   }, [records, numDays, year, month, today]);
 
+  // Export all employees summary for the month
+  const handleExportAllEmployees = useCallback(async () => {
+    if (empleados.length === 0) { toast.error('No hay empleados'); return; }
+    toast.loading('Generando resumen...', { id: 'export-summary' });
+    try {
+      const start = formatDate(year, month, 1);
+      const end = formatDate(year, month, daysInMonth(year, month));
+      const rows: Record<string, any>[] = [];
+
+      for (const emp of empleados.filter(e => e.activo)) {
+        const recs: any[] = await api.getRegistrosHorario(emp.id, start, end);
+        let ordinarias = 0, extra = 0, totales = 0, vacDays = 0, bajaDays = 0, permisoDays = 0, worked = 0, unsigned = 0;
+        for (const r of recs) {
+          ordinarias += Number(r.horas_ordinarias) || 0;
+          extra += Number(r.horas_extra) || 0;
+          totales += Number(r.horas_totales) || 0;
+          if (r.estado === 'vacaciones') vacDays++;
+          if (r.estado === 'baja') bajaDays++;
+          if (r.estado === 'permiso') permisoDays++;
+          if (['trabajado', 'teletrabajo'].includes(r.estado)) worked++;
+          if (r.estado && !r.firma_data) unsigned++;
+        }
+        rows.push({
+          empleado: emp.nombre_completo,
+          dias_trabajados: worked,
+          horas_ordinarias: Math.round(ordinarias * 100) / 100,
+          horas_extra: Math.round(extra * 100) / 100,
+          horas_totales: Math.round(totales * 100) / 100,
+          dias_vacaciones: vacDays,
+          dias_baja: bajaDays,
+          dias_permiso: permisoDays,
+          dias_sin_firmar: unsigned,
+        });
+      }
+
+      const config = EXPORT_CONFIGS.resumenHorasEmpleados;
+      const filename = `${config.title}_${MONTHS_ES[month]}_${year}`;
+      exportToPDF(rows, filename, config.columns, `${config.title} — ${MONTHS_ES[month]} ${year}`, {
+        empresa: empresaConfig.razon_social,
+        cif: empresaConfig.cif,
+      });
+      exportToCSV(rows, filename, config.columns);
+      toast.success('Resumen exportado (PDF + CSV)', { id: 'export-summary' });
+    } catch (err: any) {
+      toast.error('Error al generar resumen: ' + (err.message || ''), { id: 'export-summary' });
+    }
+  }, [empleados, year, month, empresaConfig]);
+
   // Export data
   const exportData = useMemo(() => {
     const rows: any[] = [];
