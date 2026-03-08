@@ -717,7 +717,15 @@ export default function InventarioTab({ role, albergueId }: Props) {
                                 <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
                               ))}
                             </Pie>
-                            <Tooltip formatter={(value: number) => [`${value} uds.`]} />
+                            <Tooltip content={({ active, payload }) => {
+                              if (!active || !payload?.length) return null;
+                              return (
+                                <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg">
+                                  <p className="text-sm font-medium text-card-foreground">{payload[0].name}</p>
+                                  <p className="text-sm text-primary font-semibold">{payload[0].value} uds.</p>
+                                </div>
+                              );
+                            }} />
                           </PieChart>
                         </ResponsiveContainer>
                         <div className="flex-1 space-y-1.5">
