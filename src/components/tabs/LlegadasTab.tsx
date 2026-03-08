@@ -130,18 +130,22 @@ export default function LlegadasTab({ store, role }: Props) {
     });
   };
 
-  const handleConfirmSubmit = (e: React.FormEvent) => {
+  const handleConfirmSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!confirmingLlegada || !confirmForm.habitacionAsignada || !confirmForm.camaAsignada) return;
-    editLlegada(confirmingLlegada.id, {
-      nombre: confirmForm.nombre, nie: confirmForm.nie, nacionalidad: confirmForm.nacionalidad,
-      idioma: confirmForm.idioma, dieta: confirmForm.dieta, fechaLlegada: confirmForm.fechaLlegada,
-      notas: confirmForm.notas,
-      habitacionAsignada: confirmForm.habitacionAsignada,
-      camaAsignada: parseInt(confirmForm.camaAsignada),
-    });
-    confirmarLlegada(confirmingLlegada.id);
-    setConfirmingLlegada(null);
+    try {
+      await editLlegada(confirmingLlegada.id, {
+        nombre: confirmForm.nombre, nie: confirmForm.nie, nacionalidad: confirmForm.nacionalidad,
+        idioma: confirmForm.idioma, dieta: confirmForm.dieta, fechaLlegada: confirmForm.fechaLlegada,
+        notas: confirmForm.notas,
+        habitacionAsignada: confirmForm.habitacionAsignada,
+        camaAsignada: parseInt(confirmForm.camaAsignada),
+      });
+      await confirmarLlegada(confirmingLlegada.id);
+      setConfirmingLlegada(null);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al confirmar llegada');
+    }
   };
 
   const isRoomOccupied = (roomId: string) => {
