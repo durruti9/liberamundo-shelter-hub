@@ -427,9 +427,8 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
               )}
               {selectedEmpleado && (
                 <ExportButton
-                  data={exportData}
-                  filename={`registro_horario_${currentEmpleado?.nombre_completo || ''}_${MONTHS_ES[month]}_${year}`}
-                  title={`Registro Horario - ${currentEmpleado?.nombre_completo || ''} - ${MONTHS_ES[month]} ${year}`}
+                  type="registroHorario"
+                  getData={() => exportData}
                 />
               )}
             </div>
