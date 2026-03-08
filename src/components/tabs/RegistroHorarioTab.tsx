@@ -95,7 +95,7 @@ function parseTime(t: string | null): number {
   return h * 60 + (m || 0);
 }
 
-function calcHours(record: Partial<RegistroDia>, jornadaDiaria: number) {
+function calcHours(record: Partial<RegistroDia>, jornadaSemanal: number) {
   let totalMin = 0;
   if (record.entrada_manana && record.salida_manana) {
     totalMin += parseTime(record.salida_manana) - parseTime(record.entrada_manana);
@@ -110,6 +110,7 @@ function calcHours(record: Partial<RegistroDia>, jornadaDiaria: number) {
   totalMin = Math.max(0, totalMin);
   
   const totalHours = totalMin / 60;
+  const jornadaDiaria = jornadaSemanal / 5;
   const ordinarias = Math.min(totalHours, jornadaDiaria);
   const extra = Math.max(0, totalHours - jornadaDiaria);
   
@@ -167,7 +168,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   const [editingDay, setEditingDay] = useState<RegistroDia | null>(null);
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [showManageEmployees, setShowManageEmployees] = useState(false);
-  const [newEmp, setNewEmp] = useState({ nombre_completo: '', jornada_diaria_horas: 8, vacaciones_anuales: 22 });
+  const [newEmp, setNewEmp] = useState({ nombre_completo: '', jornada_diaria_horas: 40, vacaciones_anuales: 22 });
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
@@ -372,7 +373,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
       const emp = await api.addEmpleadoHorario(albergueId, newEmp);
       setEmpleados(prev => [...prev, emp]);
       setSelectedEmpleado(emp.id);
-      setNewEmp({ nombre_completo: '', jornada_diaria_horas: 8, vacaciones_anuales: 22 });
+      setNewEmp({ nombre_completo: '', jornada_diaria_horas: 40, vacaciones_anuales: 22 });
       setShowAddEmployee(false);
       toast.success('Empleado añadido');
     } catch (err: any) {
@@ -857,8 +858,8 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs">Jornada diaria (h)</Label>
-                <Input type="number" min={1} max={12} step={0.5} value={newEmp.jornada_diaria_horas}
+                <Label className="text-xs">Jornada semanal (h)</Label>
+                <Input type="number" min={1} max={60} step={0.5} value={newEmp.jornada_diaria_horas}
                   onChange={e => setNewEmp({ ...newEmp, jornada_diaria_horas: Number(e.target.value) })} />
               </div>
               <div className="space-y-1">
@@ -884,7 +885,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 <div>
                   <p className="font-medium text-sm">{emp.nombre_completo}</p>
                   <p className="text-xs text-muted-foreground">
-                    Jornada: {emp.jornada_diaria_horas}h | Vacaciones: {emp.vacaciones_anuales} días
+                    Jornada semanal: {emp.jornada_diaria_horas}h | Vacaciones: {emp.vacaciones_anuales} días
                   </p>
                 </div>
                 <Button size="icon" variant="ghost" onClick={() => handleDeleteEmployee(emp.id)}>

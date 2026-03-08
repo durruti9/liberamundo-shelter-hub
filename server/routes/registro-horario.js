@@ -25,7 +25,7 @@ router.post('/empleados/:albergueId', async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO empleados_horario (albergue_id, nombre_completo, jornada_diaria_horas, vacaciones_anuales)
        VALUES ($1, $2, $3, $4) RETURNING *`,
-      [req.params.albergueId, nombre_completo, jornada_diaria_horas || 8, vacaciones_anuales || 22]
+      [req.params.albergueId, nombre_completo, jornada_diaria_horas || 40, vacaciones_anuales || 22]
     );
     // Create vacation balance for current year
     const year = new Date().getFullYear();
