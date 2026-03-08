@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound, ListChecks, Mailbox, StickyNote, Clock } from 'lucide-react';
@@ -24,6 +24,9 @@ import TareasEmpleadosTab from './tabs/TareasEmpleadosTab';
 import SugerenciasTab from './tabs/SugerenciasTab';
 import NotasTab from './tabs/NotasTab';
 import RegistroHorarioTab from './tabs/RegistroHorarioTab';
+import ThemeToggle from './ThemeToggle';
+import GlobalSearch from './GlobalSearch';
+import NotificationBell from './NotificationBell';
 import { useAlbergueStore } from '@/hooks/useAlbergueStore';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
@@ -39,10 +42,15 @@ interface Props {
 const LANG_LABELS: Record<Language, string> = { es: 'Español', fr: 'Français', ar: 'العربية', en: 'English', ru: 'Русский' };
 const LANG_FLAGS: Record<Language, string> = { es: '🇪🇸', fr: '🇫🇷', ar: '🇸🇦', en: '🇬🇧', ru: '🇷🇺' };
 
+const TAB_STORAGE_KEY = 'lm_active_tab';
+
 export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue }: Props) {
   const store = useAlbergueStore(albergueId);
   const { t, lang, setLang } = useI18n();
-  const [tab, setTab] = useState('dashboard');
+  const [tab, setTab] = useState(() => {
+    const saved = sessionStorage.getItem(TAB_STORAGE_KEY);
+    return saved || 'dashboard';
+  });
   const [showUsers, setShowUsers] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [newUser, setNewUser] = useState({ email: '', password: '', role: 'personal_albergue' as UserRole, albergueIds: [] as string[] });
@@ -50,6 +58,11 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
   const [newPasswordValue, setNewPasswordValue] = useState('');
   const [editingAlberguesFor, setEditingAlberguesFor] = useState<string | null>(null);
   const [editAlbergueIds, setEditAlbergueIds] = useState<string[]>([]);
+
+  const handleTabChange = useCallback((value: string) => {
+    setTab(value);
+    sessionStorage.setItem(TAB_STORAGE_KEY, value);
+  }, []);
 
   const handleAddUser = async () => {
     if (!newUser.email || !newUser.password) return;
@@ -73,6 +86,14 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
       if (remaining.length > 0) onSwitchAlbergue(remaining[0].id);
     }
   };
+
+  const handleSearchNavigate = useCallback((targetTab: string) => {
+    handleTabChange(targetTab);
+  }, [handleTabChange]);
+
+  const handleNotificationNavigate = useCallback((targetTab: string) => {
+    handleTabChange(targetTab);
+  }, [handleTabChange]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -104,7 +125,26 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            {/* Global search */}
+            <GlobalSearch
+              huespedes={store.huespedes}
+              incidencias={store.incidencias}
+              llegadas={store.llegadas}
+              boardMessages={store.boardMessages}
+              onNavigate={handleSearchNavigate}
+            />
+
+            {/* Notifications */}
+            <NotificationBell
+              albergueId={albergueId}
+              role={role}
+              onNavigate={handleNotificationNavigate}
+            />
+
+            {/* Theme toggle */}
+            <ThemeToggle />
+
             {/* Language switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -122,7 +162,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Badge variant="outline" className="text-xs">{roleLabel[role]}</Badge>
+            <Badge variant="outline" className="text-xs hidden sm:flex">{roleLabel[role]}</Badge>
 
             {role === 'admin' && (
               <>
@@ -144,7 +184,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        <Tabs value={tab} onValueChange={setTab} className="space-y-6">
+        <Tabs value={tab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="grid w-full h-auto" style={{ gridTemplateColumns: `repeat(${tabCount}, minmax(0, 1fr))` }}>
             {(role === 'admin' || role === 'gestor') && (
               <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
@@ -420,10 +460,8 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                   const { toast } = await import('sonner');
                   toast.success('Albergues actualizados');
                   setEditingAlberguesFor(null);
-                  // Reload users
                   if (store.useApi) {
-                    const users = await api.getUsers();
-                    // The store will update on next load
+                    await api.getUsers();
                   }
                 } catch { /* error handled by api */ }
               }}>{t.save}</Button>
