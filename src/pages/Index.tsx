@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PasswordInput from '@/components/PasswordInput';
 import logo from '@/assets/Logo2Liberamundo.png';
-import { api, isApiAvailable } from '@/lib/api';
+import { api, isApiAvailable, clearToken } from '@/lib/api';
 
 // Session timeout: 2 hours of inactivity
 const SESSION_TIMEOUT = 2 * 60 * 60 * 1000;
@@ -109,6 +109,7 @@ const Index = () => {
     setRole('admin');
     setUserAlbergueIds([]);
     setIsDefaultAdmin(false);
+    clearToken();
     localStorage.removeItem('auth');
     localStorage.removeItem('authRole');
     localStorage.removeItem('authEmail');

@@ -12,7 +12,7 @@ import { UserRole, UserAccount } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
 import { Language } from '@/i18n/translations';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { api, isApiAvailable } from '@/lib/api';
+import { api, isApiAvailable, setToken } from '@/lib/api';
 import { Link } from 'react-router-dom';
 import PasswordInput from '@/components/PasswordInput';
 
@@ -67,6 +67,7 @@ export default function LoginPage({ onLogin }: Props) {
       if (apiAvailable) {
         try {
           const result = await api.login(email, password);
+          if (result.token) setToken(result.token);
           localStorage.setItem('auth', 'true');
           localStorage.setItem('authRole', result.role);
           localStorage.setItem('authEmail', email);

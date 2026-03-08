@@ -3,6 +3,7 @@ import cors from 'cors';
 import { readFileSync } from 'fs';
 import bcrypt from 'bcrypt';
 import pool from './db.js';
+import { requireAuth } from './middleware/auth.js';
 import authRoutes from './routes/auth.js';
 import albergueRoutes from './routes/albergues.js';
 import huespedRoutes from './routes/huespedes.js';
@@ -21,7 +22,7 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '15mb' }));
 
-// Health check (tests DB connection)
+// Health check (public, no auth)
 app.get('/api/health', async (_, res) => {
   try {
     await pool.query('SELECT 1');
@@ -31,22 +32,26 @@ app.get('/api/health', async (_, res) => {
   }
 });
 
-// API Routes
+// Auth routes (public - login)
 app.use('/api/auth', authRoutes);
-app.use('/api/albergues', albergueRoutes);
-app.use('/api/huespedes', huespedRoutes);
-app.use('/api/comedor', comedorRoutes);
-app.use('/api/llegadas', llegadaRoutes);
-app.use('/api/incidencias', incidenciaRoutes);
-app.use('/api/board', boardRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/tareas', tareasRoutes);
-app.use('/api/sugerencias', sugerenciasRoutes);
-app.use('/api/notas', notasRoutes);
-app.use('/api/menu', menuRoutes);
-app.use('/api/access-logs', accessLogRoutes);
 
-// Catch-all for unknown API routes (return 404 JSON, NOT index.html)
+// Sugerencias public endpoint (no auth needed for guest submissions)
+app.use('/api/sugerencias', sugerenciasRoutes);
+
+// All other API routes require JWT
+app.use('/api/albergues', requireAuth, albergueRoutes);
+app.use('/api/huespedes', requireAuth, huespedRoutes);
+app.use('/api/comedor', requireAuth, comedorRoutes);
+app.use('/api/llegadas', requireAuth, llegadaRoutes);
+app.use('/api/incidencias', requireAuth, incidenciaRoutes);
+app.use('/api/board', requireAuth, boardRoutes);
+app.use('/api/users', requireAuth, userRoutes);
+app.use('/api/tareas', requireAuth, tareasRoutes);
+app.use('/api/notas', requireAuth, notasRoutes);
+app.use('/api/menu', requireAuth, menuRoutes);
+app.use('/api/access-logs', requireAuth, accessLogRoutes);
+
+// Catch-all for unknown API routes
 app.all('/api/*', (_, res) => {
   res.status(404).json({ error: 'API route not found' });
 });
@@ -61,15 +66,13 @@ app.get('*', (_, res) => {
 async function initDB(retries = 10, delay = 3000) {
   for (let i = 0; i < retries; i++) {
     try {
-      // Test connection
       await pool.query('SELECT 1');
       console.log('✅ Database connection established');
 
-      // Run schema
       const initSQL = readFileSync(new URL('./init.sql', import.meta.url), 'utf8');
       await pool.query(initSQL);
 
-      // Only create default admin on first install (no users exist at all)
+      // Only create default admin on first install
       const { rows: userCount } = await pool.query("SELECT COUNT(*) as cnt FROM users");
       if (parseInt(userCount[0].cnt) === 0) {
         const hash = await bcrypt.hash('admin', 10);
@@ -92,13 +95,12 @@ async function initDB(retries = 10, delay = 3000) {
       }
     }
   }
-  console.error('❌ Could not connect to database after all retries. Starting server anyway for health checks.');
+  console.error('❌ Could not connect to database after all retries.');
   return false;
 }
 
 async function start() {
   await initDB();
-
   const port = process.env.PORT || 3000;
   app.listen(port, '0.0.0.0', () => console.log(`🚀 Server running on port ${port}`));
 }

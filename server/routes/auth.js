@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import pool from '../db.js';
+import { generateToken } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -64,12 +65,20 @@ router.post('/login', async (req, res) => {
 
     const isDefaultAdmin = user.email === 'admin';
 
+    // Generate JWT token
+    const token = generateToken({
+      email: user.email,
+      role: user.role,
+      nombre: user.nombre,
+    });
+
     res.json({
       email: user.email,
       role: user.role,
       nombre: user.nombre,
       albergueIds,
       isDefaultAdmin,
+      token,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

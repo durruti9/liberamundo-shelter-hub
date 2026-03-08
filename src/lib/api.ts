@@ -1,14 +1,45 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
+function getToken(): string | null {
+  return localStorage.getItem('authToken');
+}
+
+export function setToken(token: string) {
+  localStorage.setItem('authToken', token);
+}
+
+export function clearToken() {
+  localStorage.removeItem('authToken');
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = getToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string> || {}),
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
     ...options,
+    headers,
   });
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
     const error = new Error(err.error || res.statusText);
     (error as any).status = res.status;
+    (error as any).code = err.code;
+    
+    // Auto-logout on expired/invalid token
+    if (res.status === 401 && err.code === 'TOKEN_EXPIRED') {
+      clearToken();
+      localStorage.removeItem('auth');
+      window.location.reload();
+    }
+    
     throw error;
   }
   return res.json();
@@ -20,7 +51,7 @@ export const api = {
 
   // Auth
   login: (email: string, password: string) =>
-    request<{ email: string; role: string; nombre: string; albergueIds: string[]; isDefaultAdmin?: boolean }>('/auth/login', {
+    request<{ email: string; role: string; nombre: string; albergueIds: string[]; isDefaultAdmin?: boolean; token: string }>('/auth/login', {
       method: 'POST', body: JSON.stringify({ email, password }),
     }),
 
@@ -56,11 +87,15 @@ export const api = {
   // Menu
   getMenuInfo: (albergueId: string) => request<any>(`/menu/${albergueId}`),
   uploadMenu: async (albergueId: string, file: File) => {
+    const token = getToken();
     const formData = new FormData();
     formData.append('file', file);
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
     const res = await fetch(`${API_BASE}/menu/${albergueId}`, {
       method: 'POST',
       body: formData,
+      headers,
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: res.statusText }));
