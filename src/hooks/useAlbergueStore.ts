@@ -19,14 +19,26 @@ const DEFAULT_USERS: UserAccount[] = [
 
 export function useAlbergueStore(albergueId: string = 'default') {
   const prefix = albergueId;
-  const [useApi, setUseApi] = useState(false);
+  // Derive API mode from token existence - if we logged in via API, the API is available
+  const [useApi, setUseApi] = useState(() => !!localStorage.getItem('authToken'));
   const apiChecked = useRef(false);
+  const dataLoaded = useRef(false);
 
-  // Check API availability on mount
+  // Load data from API on mount if token exists, or check health as fallback
   useEffect(() => {
-    if (!apiChecked.current) {
-      apiChecked.current = true;
+    if (apiChecked.current) return;
+    apiChecked.current = true;
+
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      // Token exists = API was used for login = API is available
+      console.log('[Store] Token found, using API mode. AlbergueId:', albergueId);
+      setUseApi(true);
+      loadFromApi();
+    } else {
+      // No token, check if API is available (localStorage fallback mode)
       isApiAvailable().then(available => {
+        console.log('[Store] Health check result:', available);
         setUseApi(available);
         if (available) loadFromApi();
       });
@@ -85,8 +97,25 @@ export function useAlbergueStore(albergueId: string = 'default') {
         console.error('[Store] 403 FORBIDDEN - User does not have access to albergue:', albergueId);
         console.error('[Store] Debug info:', err.message);
       }
+      // If API call fails, try health check - maybe API went down
+      if (err.status !== 403) {
+        const available = await isApiAvailable();
+        if (!available) {
+          console.warn('[Store] API unavailable, falling back to localStorage');
+          setUseApi(false);
+        }
+      }
     }
   }, [albergueId]);
+
+  // Auto-refresh data every 30s when in API mode (keeps data in sync between users)
+  useEffect(() => {
+    if (!useApi) return;
+    const interval = setInterval(() => {
+      loadFromApi();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [useApi, loadFromApi]);
 
   // ── Persist to localStorage only when NOT using API ──
   useEffect(() => { if (!useApi) saveToStorage(`${prefix}_huespedes`, huespedes); }, [huespedes, prefix, useApi]);
@@ -347,5 +376,6 @@ export function useAlbergueStore(albergueId: string = 'default') {
     addUser, removeUser, changePassword, authenticate,
     addAlbergue, editAlbergueName, deleteAlbergue, updateRooms, updateRoomCleaning,
     addBoardMessage, addBoardReply, resolveBoardMessage, deleteBoardMessage,
+    refreshData: loadFromApi,
   };
 }
