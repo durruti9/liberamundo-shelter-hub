@@ -6,10 +6,31 @@ import { requireAlbergueAccess } from '../middleware/albergueAccess.js';
 const router = Router();
 
 // List all albergues (any authenticated user)
-router.get('/', async (_, res) => {
+router.get('/', async (req, res) => {
   try {
-    const { rows: albergues } = await pool.query('SELECT * FROM albergues ORDER BY nombre');
-    const { rows: rooms } = await pool.query('SELECT * FROM rooms ORDER BY id');
+    const user = req.user;
+    let albergueFilter = '';
+    const params = [];
+
+    // Non-admin users only see their assigned albergues
+    if (user && user.role !== 'admin') {
+      albergueFilter = `WHERE a.id IN (SELECT albergue_id FROM user_albergues WHERE user_email = $1)`;
+      params.push(user.email);
+    }
+
+    const { rows: albergues } = await pool.query(
+      `SELECT * FROM albergues a ${albergueFilter} ORDER BY a.nombre`, params
+    );
+    const albergueIds = albergues.map(a => a.id);
+    let rooms = [];
+    if (albergueIds.length > 0) {
+      const placeholders = albergueIds.map((_, i) => `$${params.length + i + 1}`).join(',');
+      const { rows: roomRows } = await pool.query(
+        `SELECT * FROM rooms WHERE albergue_id IN (${placeholders}) ORDER BY id`,
+        [...params, ...albergueIds]
+      );
+      rooms = roomRows;
+    }
     const result = albergues.map(a => ({
       ...a,
       rooms: rooms.filter(r => r.albergue_id === a.id).map(r => ({
