@@ -187,10 +187,20 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
         <Card>
           <CardContent className="pt-6 text-center">
             <div className="flex items-center justify-center gap-2">
-              <ListChecks className={`w-5 h-5 ${pendingTareas > 0 ? 'text-warning' : 'text-muted-foreground'}`} />
-              <span className={`text-3xl font-bold ${pendingTareas > 0 ? 'text-warning' : ''}`}>{pendingTareas}</span>
+              <ListChecks className={`w-5 h-5 ${completedTareas > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
+              <span className={`text-3xl font-bold ${completedTareas > 0 ? 'text-primary' : ''}`}>{completedTareas}</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Tareas pendientes hoy</p>
+            <p className="text-xs text-muted-foreground mt-1">Tareas completadas hoy</p>
+            {tareasBreakdown.length > 0 && (
+              <div className="mt-2 space-y-0.5 text-left">
+                {tareasBreakdown.map(b => (
+                  <div key={b.nombre} className="flex justify-between text-[10px] text-muted-foreground">
+                    <span className="truncate mr-1">{b.nombre}</span>
+                    <span className="font-medium">{b.count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
         {isAdmin && (

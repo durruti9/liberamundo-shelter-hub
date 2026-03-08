@@ -398,7 +398,14 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                       </div>
                       <div>
                         <label className="text-xs text-muted-foreground">Hecho por</label>
-                        <Input className="h-8 text-xs" value={tarea.hechoPor} onChange={e => handleUpdateTarea(idx, 'hechoPor', e.target.value)} readOnly={!taskEditable} placeholder="Nombre..." />
+                        <Select value={tarea.hechoPor || ''} onValueChange={v => handleUpdateTarea(idx, 'hechoPor', v)} disabled={!taskEditable}>
+                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                          <SelectContent>
+                            {empleadosList.map(name => (
+                              <SelectItem key={name} value={name}>{name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div>
                         <label className="text-xs text-muted-foreground">Observación</label>
