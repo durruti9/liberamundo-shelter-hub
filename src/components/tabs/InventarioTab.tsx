@@ -318,8 +318,8 @@ export default function InventarioTab({ role, albergueId }: Props) {
                 <TableRow>
                   <TableHead>Artículo</TableHead>
                   <TableHead>Categoría</TableHead>
-                  <TableHead className="text-right">Unidades</TableHead>
-                  <TableHead className="text-right">Aviso stock bajo</TableHead>
+                  <TableHead className="text-right">Stock</TableHead>
+                  <TableHead className="text-right">Aviso stock bajo en</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
