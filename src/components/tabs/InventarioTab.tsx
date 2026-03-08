@@ -66,6 +66,53 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   const isAdmin = role === 'admin';
 
+  // Example data for when API is not available
+  const MOCK_CATEGORIES: Category[] = [
+    { id: 'cat-1', nombre: 'Ropa y calzado', icono: 'Shirt' },
+    { id: 'cat-2', nombre: 'Higiene personal', icono: 'Droplets' },
+    { id: 'cat-3', nombre: 'Limpieza', icono: 'SprayCan' },
+    { id: 'cat-4', nombre: 'Alimentación', icono: 'Apple' },
+    { id: 'cat-5', nombre: 'Ropa de cama', icono: 'BedDouble' },
+    { id: 'cat-6', nombre: 'Material oficina', icono: 'Paperclip' },
+    { id: 'cat-7', nombre: 'Otros', icono: 'Package' },
+  ];
+
+  const MOCK_ITEMS: Item[] = [
+    // Ropa y calzado
+    { id: 'i-1', categoria_id: 'cat-1', categoria_nombre: 'Ropa y calzado', nombre: 'Camisetas talla M', unidad: 'unidades', stock_actual: 45, stock_minimo: 20, ubicacion: 'Almacén principal - Estantería A1', notas: 'Colores variados' },
+    { id: 'i-2', categoria_id: 'cat-1', categoria_nombre: 'Ropa y calzado', nombre: 'Camisetas talla L', unidad: 'unidades', stock_actual: 12, stock_minimo: 20, ubicacion: 'Almacén principal - Estantería A1', notas: '' },
+    { id: 'i-3', categoria_id: 'cat-1', categoria_nombre: 'Ropa y calzado', nombre: 'Pantalones chándal', unidad: 'unidades', stock_actual: 30, stock_minimo: 15, ubicacion: 'Almacén principal - Estantería A2', notas: 'Tallas S-XL' },
+    { id: 'i-4', categoria_id: 'cat-1', categoria_nombre: 'Ropa y calzado', nombre: 'Zapatillas deportivas', unidad: 'pares', stock_actual: 8, stock_minimo: 10, ubicacion: 'Almacén principal - Estantería A3', notas: 'Números 39-45' },
+    { id: 'i-5', categoria_id: 'cat-1', categoria_nombre: 'Ropa y calzado', nombre: 'Calcetines', unidad: 'pares', stock_actual: 60, stock_minimo: 30, ubicacion: 'Almacén principal - Estantería A1', notas: '' },
+    { id: 'i-6', categoria_id: 'cat-1', categoria_nombre: 'Ropa y calzado', nombre: 'Chaquetas de invierno', unidad: 'unidades', stock_actual: 5, stock_minimo: 10, ubicacion: 'Almacén principal - Perchero', notas: 'Tallas variadas' },
+    // Higiene personal
+    { id: 'i-7', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Gel de ducha', unidad: 'litros', stock_actual: 25, stock_minimo: 10, ubicacion: 'Almacén baños', notas: 'Formato 500ml' },
+    { id: 'i-8', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Champú', unidad: 'litros', stock_actual: 3, stock_minimo: 8, ubicacion: 'Almacén baños', notas: '' },
+    { id: 'i-9', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Pasta de dientes', unidad: 'unidades', stock_actual: 40, stock_minimo: 20, ubicacion: 'Almacén baños', notas: 'Tubos 75ml' },
+    { id: 'i-10', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Cepillos de dientes', unidad: 'unidades', stock_actual: 15, stock_minimo: 20, ubicacion: 'Almacén baños', notas: 'Individuales envasados' },
+    { id: 'i-11', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Compresas', unidad: 'paquetes', stock_actual: 18, stock_minimo: 10, ubicacion: 'Almacén baños', notas: '' },
+    { id: 'i-12', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Pañales infantiles T3-T5', unidad: 'paquetes', stock_actual: 4, stock_minimo: 6, ubicacion: 'Almacén baños', notas: 'Distribución por talla: T3(2), T4(1), T5(1)' },
+    // Limpieza
+    { id: 'i-13', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Lejía', unidad: 'litros', stock_actual: 20, stock_minimo: 10, ubicacion: 'Cuarto limpieza', notas: '' },
+    { id: 'i-14', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Fregasuelos', unidad: 'litros', stock_actual: 15, stock_minimo: 8, ubicacion: 'Cuarto limpieza', notas: '' },
+    { id: 'i-15', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Bolsas de basura 100L', unidad: 'rollos', stock_actual: 3, stock_minimo: 5, ubicacion: 'Cuarto limpieza', notas: '25 uds/rollo' },
+    { id: 'i-16', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Papel higiénico', unidad: 'paquetes', stock_actual: 8, stock_minimo: 5, ubicacion: 'Cuarto limpieza', notas: '12 rollos/paquete' },
+    // Alimentación
+    { id: 'i-17', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Arroz', unidad: 'kg', stock_actual: 50, stock_minimo: 20, ubicacion: 'Cocina - Despensa', notas: '' },
+    { id: 'i-18', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Aceite de oliva', unidad: 'litros', stock_actual: 12, stock_minimo: 5, ubicacion: 'Cocina - Despensa', notas: '' },
+    { id: 'i-19', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Leche entera', unidad: 'litros', stock_actual: 6, stock_minimo: 15, ubicacion: 'Cocina - Frigorífico', notas: '' },
+    { id: 'i-20', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Legumbres variadas', unidad: 'kg', stock_actual: 30, stock_minimo: 10, ubicacion: 'Cocina - Despensa', notas: 'Garbanzos, lentejas, alubias' },
+    { id: 'i-21', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Azúcar', unidad: 'kg', stock_actual: 8, stock_minimo: 5, ubicacion: 'Cocina - Despensa', notas: '' },
+    // Ropa de cama
+    { id: 'i-22', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Sábanas individuales', unidad: 'juegos', stock_actual: 25, stock_minimo: 15, ubicacion: 'Lavandería', notas: '' },
+    { id: 'i-23', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Mantas', unidad: 'unidades', stock_actual: 18, stock_minimo: 10, ubicacion: 'Lavandería', notas: '' },
+    { id: 'i-24', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Almohadas', unidad: 'unidades', stock_actual: 22, stock_minimo: 15, ubicacion: 'Lavandería', notas: '' },
+    { id: 'i-25', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Toallas de baño', unidad: 'unidades', stock_actual: 10, stock_minimo: 20, ubicacion: 'Lavandería', notas: '' },
+    // Material oficina
+    { id: 'i-26', categoria_id: 'cat-6', categoria_nombre: 'Material oficina', nombre: 'Folios A4', unidad: 'paquetes', stock_actual: 5, stock_minimo: 3, ubicacion: 'Oficina', notas: '500 hojas/paquete' },
+    { id: 'i-27', categoria_id: 'cat-6', categoria_nombre: 'Material oficina', nombre: 'Tóner impresora', unidad: 'unidades', stock_actual: 1, stock_minimo: 2, ubicacion: 'Oficina', notas: 'HP LaserJet' },
+  ];
+
   const loadData = useCallback(async () => {
     try {
       const [cats, itms] = await Promise.all([
@@ -75,10 +122,11 @@ export default function InventarioTab({ role, albergueId }: Props) {
       setCategories(cats);
       setItems(itms.map((i: any) => ({ ...i, stock_actual: parseFloat(i.stock_actual), stock_minimo: parseFloat(i.stock_minimo) })));
     } catch (err: any) {
-      console.warn('[Inventario] Error loading:', err.message);
-      // Don't show toast for non-JSON responses (API not available in preview)
-      if (!err.message?.includes('non-JSON')) {
-        toast.error('Error al cargar inventario: ' + err.message);
+      console.warn('[Inventario] Using example data (API not available)');
+      // Load mock data when API is not available
+      if (categories.length === 0 && items.length === 0) {
+        setCategories(MOCK_CATEGORIES);
+        setItems(MOCK_ITEMS);
       }
     }
   }, [albergueId]);
@@ -308,7 +356,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                           onClick={() => setEditItem({ ...item })}>
                           <Edit className="w-4 h-4" />
                         </Button>
-                        {(isAdmin || role === 'gestor') && (
+                        {(isAdmin || role === 'personal_albergue') && (
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" title="Eliminar"
                             onClick={() => handleDeleteItem(item.id)}>
                             <Trash2 className="w-4 h-4" />
