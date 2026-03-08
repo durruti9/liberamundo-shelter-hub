@@ -125,6 +125,15 @@ export interface Translations {
   observationsPlaceholder: string;
   downloadWeeklyPdf: string;
   weekOf: string;
+  uploadMenu: string;
+  currentMenu: string;
+  noMenuUploaded: string;
+  menuUploadedAt: string;
+  deleteMenu: string;
+  downloadMenu: string;
+  uploadingMenu: string;
+  menuUploaded: string;
+  menuDeleted: string;
 
   // Comedor options
   all: string;
@@ -360,6 +369,15 @@ const es: Translations = {
   observationsPlaceholder: 'Anotaciones, información extra, Ramadán, etc.',
   downloadWeeklyPdf: 'Descargar PDF semanal',
   weekOf: 'Semana del',
+  uploadMenu: 'Subir menú',
+  currentMenu: 'Menú actual',
+  noMenuUploaded: 'Sin menú subido',
+  menuUploadedAt: 'Subido',
+  deleteMenu: 'Eliminar menú',
+  downloadMenu: 'Descargar menú',
+  uploadingMenu: 'Subiendo menú...',
+  menuUploaded: 'Menú subido correctamente',
+  menuDeleted: 'Menú eliminado',
   all: 'Todas',
   breakfast: 'Desayuno',
   lunch: 'Comida',
@@ -580,6 +598,15 @@ const fr: Translations = {
   observationsPlaceholder: 'Annotations, informations supplémentaires, Ramadan, etc.',
   downloadWeeklyPdf: 'Télécharger PDF hebdomadaire',
   weekOf: 'Semaine du',
+  uploadMenu: 'Télécharger menu',
+  currentMenu: 'Menu actuel',
+  noMenuUploaded: 'Aucun menu téléchargé',
+  menuUploadedAt: 'Téléchargé',
+  deleteMenu: 'Supprimer le menu',
+  downloadMenu: 'Télécharger le menu',
+  uploadingMenu: 'Téléchargement du menu...',
+  menuUploaded: 'Menu téléchargé avec succès',
+  menuDeleted: 'Menu supprimé',
   all: 'Tous',
   breakfast: 'Petit-déjeuner',
   lunch: 'Déjeuner',
@@ -800,6 +827,15 @@ const ar: Translations = {
   observationsPlaceholder: 'ملاحظات، معلومات إضافية، رمضان، إلخ.',
   downloadWeeklyPdf: 'تحميل PDF أسبوعي',
   weekOf: 'أسبوع',
+  uploadMenu: 'رفع القائمة',
+  currentMenu: 'القائمة الحالية',
+  noMenuUploaded: 'لا توجد قائمة مرفوعة',
+  menuUploadedAt: 'تم الرفع',
+  deleteMenu: 'حذف القائمة',
+  downloadMenu: 'تحميل القائمة',
+  uploadingMenu: 'جاري رفع القائمة...',
+  menuUploaded: 'تم رفع القائمة بنجاح',
+  menuDeleted: 'تم حذف القائمة',
   all: 'الكل',
   breakfast: 'فطور',
   lunch: 'غداء',
@@ -1020,6 +1056,15 @@ const en: Translations = {
   observationsPlaceholder: 'Notes, extra info, Ramadan, etc.',
   downloadWeeklyPdf: 'Download weekly PDF',
   weekOf: 'Week of',
+  uploadMenu: 'Upload menu',
+  currentMenu: 'Current menu',
+  noMenuUploaded: 'No menu uploaded',
+  menuUploadedAt: 'Uploaded',
+  deleteMenu: 'Delete menu',
+  downloadMenu: 'Download menu',
+  uploadingMenu: 'Uploading menu...',
+  menuUploaded: 'Menu uploaded successfully',
+  menuDeleted: 'Menu deleted',
   all: 'All',
   breakfast: 'Breakfast',
   lunch: 'Lunch',
@@ -1240,6 +1285,15 @@ const ru: Translations = {
   observationsPlaceholder: 'Заметки, доп. информация, Рамадан и т.д.',
   downloadWeeklyPdf: 'Скачать недельный PDF',
   weekOf: 'Неделя с',
+  uploadMenu: 'Загрузить меню',
+  currentMenu: 'Текущее меню',
+  noMenuUploaded: 'Меню не загружено',
+  menuUploadedAt: 'Загружено',
+  deleteMenu: 'Удалить меню',
+  downloadMenu: 'Скачать меню',
+  uploadingMenu: 'Загрузка меню...',
+  menuUploaded: 'Меню успешно загружено',
+  menuDeleted: 'Меню удалено',
   all: 'Все',
   breakfast: 'Завтрак',
   lunch: 'Обед',

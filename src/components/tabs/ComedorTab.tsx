@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -7,14 +7,16 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { UtensilsCrossed, Clock, Download } from 'lucide-react';
+import { UtensilsCrossed, Clock, Download, Upload, FileText, Trash2 } from 'lucide-react';
 import ExportButton from '@/components/ExportButton';
+import { api } from '@/lib/api';
 import { UserRole } from '@/types';
 import { formatDistanceToNow, startOfWeek, endOfWeek, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useI18n } from '@/i18n/I18nContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { toast } from 'sonner';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
@@ -81,6 +83,44 @@ function MultiCheckbox({ options, selected, onChange, label }: { options: string
 export default function ComedorTab({ store, role }: Props) {
   const { huespedActivos, comedor, updateComedor, currentAlbergue } = store;
   const { t } = useI18n();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [menuInfo, setMenuInfo] = useState<{ exists: boolean; filename?: string; uploadedAt?: string; size?: number } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const albergueId = currentAlbergue?.id;
+
+  const loadMenuInfo = useCallback(() => {
+    if (!albergueId) return;
+    api.getMenuInfo(albergueId).then(setMenuInfo).catch(() => setMenuInfo({ exists: false }));
+  }, [albergueId]);
+
+  useEffect(() => { loadMenuInfo(); }, [loadMenuInfo]);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !albergueId) return;
+    setUploading(true);
+    try {
+      await api.uploadMenu(albergueId, file);
+      toast.success(t.menuUploaded);
+      loadMenuInfo();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteMenu = async () => {
+    if (!albergueId) return;
+    try {
+      await api.deleteMenu(albergueId);
+      toast.success(t.menuDeleted);
+      setMenuInfo({ exists: false });
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
 
   const canEdit = true;
 
@@ -202,6 +242,57 @@ export default function ComedorTab({ store, role }: Props) {
           </Button>
         </div>
       </div>
+
+      {/* Menu upload section */}
+      <Card>
+        <CardContent className="pt-4 pb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium">{t.currentMenu}:</span>
+            </div>
+            {menuInfo?.exists ? (
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant="secondary" className="text-xs">
+                  {menuInfo.filename}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {t.menuUploadedAt} {menuInfo.uploadedAt ? formatDistanceToNow(new Date(menuInfo.uploadedAt), { addSuffix: true, locale: es }) : ''}
+                </span>
+                <a href={api.getMenuDownloadUrl(albergueId!)} target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
+                    <Download className="w-3 h-3" /> {t.downloadMenu}
+                  </Button>
+                </a>
+                <Button variant="outline" size="sm" className="h-7 text-xs gap-1 text-destructive hover:text-destructive" onClick={handleDeleteMenu}>
+                  <Trash2 className="w-3 h-3" /> {t.deleteMenu}
+                </Button>
+              </div>
+            ) : (
+              <span className="text-xs text-muted-foreground">{t.noMenuUploaded}</span>
+            )}
+            <div className="sm:ml-auto">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx,.doc,.xlsx,.jpg,.png"
+                className="hidden"
+                onChange={handleUpload}
+              />
+              <Button
+                variant="default"
+                size="sm"
+                className="gap-1"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                <Upload className="w-4 h-4" />
+                {uploading ? t.uploadingMenu : t.uploadMenu}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent className="pt-6">

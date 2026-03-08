@@ -17,5 +17,8 @@ RUN npm install --production
 COPY server/ ./
 COPY --from=frontend-builder /app/dist ./public
 
+# Create data directory for menu uploads
+RUN mkdir -p /app/data/menus
+
 EXPOSE 3000
 CMD ["node", "index.js"]

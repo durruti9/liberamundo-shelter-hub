@@ -53,6 +53,25 @@ export const api = {
   updateComedor: (huespedId: string, data: any) =>
     request<any>(`/comedor/${huespedId}`, { method: 'PUT', body: JSON.stringify(data) }),
 
+  // Menu
+  getMenuInfo: (albergueId: string) => request<any>(`/menu/${albergueId}`),
+  uploadMenu: async (albergueId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_BASE}/menu/${albergueId}`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || res.statusText);
+    }
+    return res.json();
+  },
+  getMenuDownloadUrl: (albergueId: string) => `${API_BASE}/menu/${albergueId}/download`,
+  deleteMenu: (albergueId: string) =>
+    request<any>(`/menu/${albergueId}`, { method: 'DELETE' }),
+
   // Llegadas
   getLlegadas: (albergueId: string) => request<any[]>(`/llegadas/${albergueId}`),
   addLlegada: (albergueId: string, data: any) =>
