@@ -510,7 +510,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                 </Button>
                 {canManage && (
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
-                    onClick={() => handleDeleteItem(item.id)}>
+                    onClick={() => setDeleteItemId(item.id)}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 )}
