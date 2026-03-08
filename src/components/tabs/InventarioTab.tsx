@@ -639,28 +639,40 @@ export default function InventarioTab({ role, albergueId }: Props) {
             <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
               {consumoMes.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No hay movimientos registrados en este mes
+                  No hay movimientos registrados en este mes. Usa los botones +/- para registrar entradas y salidas.
                 </p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {consumoMes.map(cat => (
                     <div key={cat.categoria}>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{cat.categoria}</p>
-                      <div className="space-y-1.5">
-                        {cat.items.map(item => (
-                          <div key={item.nombre} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                            <span className="text-sm">{item.nombre}</span>
-                            <div className="flex items-center gap-3 text-sm">
-                              {item.entradas > 0 && (
-                                <span className="text-emerald-600 dark:text-emerald-400">+{item.entradas}</span>
-                              )}
-                              {item.salidas > 0 && (
-                                <span className="text-red-600 dark:text-red-400 font-medium">-{item.salidas}</span>
-                              )}
+                      <button
+                        onClick={() => toggleCatExpand(cat.categoria)}
+                        className="w-full flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <ChevronDown className={`w-4 h-4 transition-transform ${expandedCats.has(cat.categoria) ? 'rotate-180' : ''}`} />
+                          <span className="font-medium text-sm">{cat.categoria}</span>
+                          <Badge variant="secondary" className="text-[10px]">{cat.items.length} producto{cat.items.length !== 1 ? 's' : ''}</Badge>
+                        </div>
+                        <span className="text-sm font-semibold text-red-600 dark:text-red-400">-{cat.totalSalidas}</span>
+                      </button>
+                      {expandedCats.has(cat.categoria) && (
+                        <div className="ml-6 mt-1 space-y-1 mb-2">
+                          {cat.items.sort((a, b) => b.salidas - a.salidas).map(item => (
+                            <div key={item.nombre} className="flex items-center justify-between p-2 rounded-md bg-muted/30 text-sm">
+                              <span>{item.nombre}</span>
+                              <div className="flex items-center gap-3">
+                                {item.entradas > 0 && (
+                                  <span className="text-emerald-600 dark:text-emerald-400 text-xs">+{item.entradas}</span>
+                                )}
+                                {item.salidas > 0 && (
+                                  <span className="text-red-600 dark:text-red-400 font-medium">-{item.salidas}</span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                   <div className="border-t border-border pt-3 flex justify-between text-sm font-medium">
