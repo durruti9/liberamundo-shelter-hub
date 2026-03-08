@@ -215,7 +215,7 @@ export default function SugerenciasTab({ role, albergueId, userName }: Props) {
           </p>
         </div>
         {submitted ? (
-          <Card className="border-[hsl(142,60%,40%)]/30 bg-[hsl(142,60%,95%)]">
+          <Card className="border-[hsl(142,60%,40%)]/30 bg-[hsl(142,60%,95%)] dark:bg-[hsl(142,30%,15%)]">
             <CardContent className="p-6 text-center space-y-3">
               <div className="text-4xl">✅</div>
               <h3 className="font-semibold text-lg">¡Mensaje enviado!</h3>
