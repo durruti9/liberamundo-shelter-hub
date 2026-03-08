@@ -144,4 +144,22 @@ export const EXPORT_CONFIGS = {
       { key: 'observaciones', label: 'Observaciones' },
     ],
   },
+  registroHorario: {
+    title: 'Registro Horario',
+    columns: [
+      { key: 'Día', label: 'Día' },
+      { key: 'Estado', label: 'Estado' },
+      { key: 'E. Mañana', label: 'E. Mañana' },
+      { key: 'S. Mañana', label: 'S. Mañana' },
+      { key: 'E. Tarde', label: 'E. Tarde' },
+      { key: 'S. Tarde', label: 'S. Tarde' },
+      { key: 'E. Noche', label: 'E. Noche' },
+      { key: 'S. Noche', label: 'S. Noche' },
+      { key: 'Pausa', label: 'Pausa' },
+      { key: 'Ordinarias', label: 'Ordinarias' },
+      { key: 'Extra', label: 'Extra' },
+      { key: 'Total', label: 'Total' },
+      { key: 'Firmado', label: 'Firmado' },
+    ],
+  },
 };

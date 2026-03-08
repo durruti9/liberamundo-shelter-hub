@@ -17,6 +17,7 @@ import sugerenciasRoutes from './routes/sugerencias.js';
 import notasRoutes from './routes/notas.js';
 import menuRoutes from './routes/menu.js';
 import accessLogRoutes from './routes/access-logs.js';
+import registroHorarioRoutes from './routes/registro-horario.js';
 
 const app = express();
 
@@ -64,6 +65,7 @@ app.use('/api/tareas', requireAuth, tareasRoutes);
 app.use('/api/notas', requireAuth, notasRoutes);
 app.use('/api/menu', requireAuth, menuRoutes);
 app.use('/api/access-logs', requireAuth, accessLogRoutes);
+app.use('/api/registro-horario', requireAuth, registroHorarioRoutes);
 
 // Catch-all for unknown API routes
 app.all('/api/*', (_, res) => {

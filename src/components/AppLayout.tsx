@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound, ListChecks, Mailbox, StickyNote } from 'lucide-react';
+import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound, ListChecks, Mailbox, StickyNote, Clock } from 'lucide-react';
 import PasswordInput from '@/components/PasswordInput';
 import logo from '@/assets/Logo2Liberamundo.png';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ import DashboardTab from './tabs/DashboardTab';
 import TareasEmpleadosTab from './tabs/TareasEmpleadosTab';
 import SugerenciasTab from './tabs/SugerenciasTab';
 import NotasTab from './tabs/NotasTab';
+import RegistroHorarioTab from './tabs/RegistroHorarioTab';
 import { useAlbergueStore } from '@/hooks/useAlbergueStore';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
@@ -61,7 +62,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
   const adminCount = store.users.filter(u => u.role === 'admin').length;
 
-  const tabCount = role === 'admin' ? 10 : role === 'gestor' ? 7 : 6;
+  const tabCount = role === 'admin' ? 11 : role === 'gestor' ? 7 : 7;
 
   const handleAlbergueDeleted = (deletedId: string) => {
     if (deletedId === albergueId && store.albergues.length > 0) {
@@ -176,6 +177,12 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                 <span className="hidden sm:inline">{t.employeeTasks}</span>
               </TabsTrigger>
             )}
+            {(role === 'admin' || role === 'personal_albergue') && (
+              <TabsTrigger value="registro_horario" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
+                <Clock className="w-4 h-4" />
+                <span className="hidden sm:inline">Horarios</span>
+              </TabsTrigger>
+            )}
             {role === 'admin' && (
               <TabsTrigger value="sugerencias" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
                 <Mailbox className="w-4 h-4" />
@@ -225,6 +232,11 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
           {role === 'admin' && (
             <TabsContent value="notas">
               <NotasTab userEmail={localStorage.getItem('authEmail') || ''} />
+            </TabsContent>
+          )}
+          {(role === 'admin' || role === 'personal_albergue') && (
+            <TabsContent value="registro_horario">
+              <RegistroHorarioTab role={role} albergueId={albergueId} />
             </TabsContent>
           )}
         </Tabs>
