@@ -708,7 +708,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                         </button>
                         {expandedCats.has(cat.categoria) && (
                           <div className="ml-6 mt-1 space-y-1 mb-2">
-                            {cat.items.sort((a, b) => b.salidas - a.salidas).map(item => (
+                            {[...cat.items].sort((a, b) => b.salidas - a.salidas).map(item => (
                               <div key={item.nombre} className="flex items-center justify-between p-2 rounded-md bg-muted/30 text-sm">
                                 <span>{item.nombre}</span>
                                 <div className="flex items-center gap-3">
