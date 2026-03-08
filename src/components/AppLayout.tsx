@@ -61,6 +61,27 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
   const [editingAlberguesFor, setEditingAlberguesFor] = useState<string | null>(null);
   const [editAlbergueIds, setEditAlbergueIds] = useState<string[]>([]);
 
+  // Backup reminder for admin (every 7 days)
+  useEffect(() => {
+    if (role !== 'admin') return;
+    const BACKUP_REMINDER_KEY = 'lm_last_backup_reminder';
+    const BACKUP_INTERVAL = 7 * 24 * 60 * 60 * 1000;
+    const lastReminder = parseInt(localStorage.getItem(BACKUP_REMINDER_KEY) || '0');
+    if (Date.now() - lastReminder > BACKUP_INTERVAL) {
+      const timer = setTimeout(() => {
+        toast.info('💾 Recordatorio: hace más de una semana que no se realiza un backup. Accede a Configuración > Backup.', {
+          duration: 10000,
+          action: {
+            label: 'Ir a backup',
+            onClick: () => setShowSettings(true),
+          },
+        });
+        localStorage.setItem(BACKUP_REMINDER_KEY, Date.now().toString());
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [role]);
+
   const handleTabChange = useCallback((value: string) => {
     setTab(value);
     sessionStorage.setItem(TAB_STORAGE_KEY, value);
