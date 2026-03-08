@@ -30,6 +30,7 @@ export default function HabitacionesTab({ store, role }: Props) {
   const dateFnsLocale = { es, fr, ar, en: enUS, ru }[lang] || es;
   const canClean = role === 'admin' || role === 'personal_albergue';
   const [checkInTarget, setCheckInTarget] = useState<{ habitacion: string; cama: number } | null>(null);
+  const [cleaningPopoverOpen, setCleaningPopoverOpen] = useState<string | null>(null);
   const [editTarget, setEditTarget] = useState<string | null>(null);
   const [checkoutTarget, setCheckoutTarget] = useState<string | null>(null);
   const [checkoutDate, setCheckoutDate] = useState<Date | undefined>(new Date());
