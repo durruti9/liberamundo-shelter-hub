@@ -443,7 +443,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
 
         {/* Admin observation dialog */}
         <Dialog open={obsDialogIdx !== null} onOpenChange={open => { if (!open) setObsDialogIdx(null); }}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md" aria-describedby={undefined}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <MessageCircle className="w-5 h-5 text-destructive" />

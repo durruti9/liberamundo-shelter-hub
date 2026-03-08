@@ -256,7 +256,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
       {/* User management dialog - admin only */}
       <Dialog open={showUsers} onOpenChange={setShowUsers}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
           <DialogHeader><DialogTitle>{t.userManagement}</DialogTitle></DialogHeader>
           <div className="space-y-6">
             <div className="space-y-3 p-4 border rounded-lg">
@@ -360,7 +360,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
       {/* Change password dialog */}
       <Dialog open={!!changingPasswordFor} onOpenChange={() => setChangingPasswordFor(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><KeyRound className="w-5 h-5" /> {t.changePassword}</DialogTitle>
           </DialogHeader>
@@ -387,7 +387,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
       {/* Assign albergues dialog */}
       <Dialog open={!!editingAlberguesFor} onOpenChange={() => setEditingAlberguesFor(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><Building2 className="w-5 h-5" /> Asignar albergues</DialogTitle>
           </DialogHeader>

@@ -61,13 +61,13 @@ interface VacacionesSaldo {
 }
 
 const ESTADOS = [
-  { value: 'trabajado', label: 'Trabajado', icon: '✓', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
-  { value: 'vacaciones', label: 'Vacaciones', icon: '🏖', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
-  { value: 'festivo', label: 'Festivo', icon: '🎉', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' },
-  { value: 'baja', label: 'Baja', icon: '🏥', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
-  { value: 'permiso', label: 'Permiso', icon: '📋', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
-  { value: 'descanso', label: 'Descanso', icon: '😴', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400' },
-  { value: 'teletrabajo', label: 'Teletrabajo', icon: '🏠', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400' },
+  { value: 'trabajado', label: 'Trabajado', icon: '✓', color: 'bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)] dark:bg-[hsl(142,60%,15%)] dark:text-[hsl(142,60%,70%)]' },
+  { value: 'vacaciones', label: 'Vacaciones', icon: '🏖', color: 'bg-[hsl(212,72%,90%)] text-[hsl(212,72%,35%)] dark:bg-[hsl(212,72%,15%)] dark:text-[hsl(212,72%,70%)]' },
+  { value: 'festivo', label: 'Festivo', icon: '🎉', color: 'bg-[hsl(280,60%,92%)] text-[hsl(280,60%,35%)] dark:bg-[hsl(280,60%,15%)] dark:text-[hsl(280,60%,70%)]' },
+  { value: 'baja', label: 'Baja', icon: '🏥', color: 'bg-[hsl(0,72%,92%)] text-[hsl(0,72%,35%)] dark:bg-[hsl(0,72%,15%)] dark:text-[hsl(0,72%,70%)]' },
+  { value: 'permiso', label: 'Permiso', icon: '📋', color: 'bg-[hsl(38,92%,90%)] text-[hsl(38,92%,30%)] dark:bg-[hsl(38,92%,15%)] dark:text-[hsl(38,92%,70%)]' },
+  { value: 'descanso', label: 'Descanso', icon: '😴', color: 'bg-muted text-muted-foreground' },
+  { value: 'teletrabajo', label: 'Teletrabajo', icon: '🏠', color: 'bg-accent text-accent-foreground' },
 ];
 
 const DAYS_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -499,7 +499,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
             <div className="flex gap-2 ml-auto">
               {saving && <Badge variant="outline" className="text-xs animate-pulse">Guardando...</Badge>}
               {lastSaved && !saving && (
-                <Badge variant="outline" className="text-xs text-green-600">
+                <Badge variant="outline" className="text-xs text-[hsl(var(--success))]">
                   <Check className="w-3 h-3 mr-1" /> Guardado
                 </Badge>
               )}
@@ -590,7 +590,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                             {rec?.firma_data ? (
                               <span title="Firmado" className="text-[hsl(var(--success))]">✅</span>
                             ) : rec?.estado ? (
-                              <span title="Pendiente" className="text-amber-500">⚠️</span>
+                              <span title="Pendiente" className="text-[hsl(38,92%,50%)]">⚠️</span>
                             ) : null}
                           </TableCell>
                           <TableCell className="text-xs text-center p-1">
@@ -627,7 +627,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Extra</p>
-                  <p className="text-lg font-bold text-amber-600">{hoursToHM(monthTotals.extra)}</p>
+                  <p className="text-lg font-bold text-[hsl(38,92%,45%)]">{hoursToHM(monthTotals.extra)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Complementarias</p>
@@ -639,11 +639,11 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Vacaciones (mes)</p>
-                  <p className="text-lg font-bold text-blue-600">{monthTotals.vacDays} días</p>
+                  <p className="text-lg font-bold text-primary">{monthTotals.vacDays} días</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Sin firmar</p>
-                  <p className={`text-lg font-bold ${monthTotals.unsigned > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                  <p className={`text-lg font-bold ${monthTotals.unsigned > 0 ? 'text-destructive' : 'text-[hsl(var(--success))]'}`}>
                     {monthTotals.unsigned > 0 ? `${monthTotals.unsigned} ⚠️` : '0 ✅'}
                   </p>
                 </div>
@@ -695,7 +695,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
 
       {/* DAY MODAL */}
       <Dialog open={showDayModal} onOpenChange={setShowDayModal}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CalendarDays className="w-5 h-5" />
@@ -773,7 +773,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                     return (
                       <div className="flex gap-4 text-sm bg-muted/50 rounded-lg p-3">
                         <div><span className="text-muted-foreground">Ord:</span> <b>{calc.horas_ordinarias.toFixed(1)}h</b></div>
-                        <div><span className="text-muted-foreground">Extra:</span> <b className="text-amber-600">{calc.horas_extra.toFixed(1)}h</b></div>
+                        <div><span className="text-muted-foreground">Extra:</span> <b className="text-[hsl(38,92%,45%)]">{calc.horas_extra.toFixed(1)}h</b></div>
                         <div><span className="text-muted-foreground">Total:</span> <b>{calc.horas_totales.toFixed(1)}h</b></div>
                       </div>
                     );
@@ -831,7 +831,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
 
       {/* ADD EMPLOYEE MODAL */}
       <Dialog open={showAddEmployee} onOpenChange={setShowAddEmployee}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader><DialogTitle>Añadir empleado</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1">
@@ -859,7 +859,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
 
       {/* MANAGE EMPLOYEES MODAL */}
       <Dialog open={showManageEmployees} onOpenChange={setShowManageEmployees}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" aria-describedby={undefined}>
           <DialogHeader><DialogTitle>Gestionar empleados</DialogTitle></DialogHeader>
           <div className="space-y-2">
             {empleados.map(emp => (
@@ -884,7 +884,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
 
       {/* EMPRESA CONFIG MODAL (admin only) */}
       <Dialog open={showEmpresaConfig} onOpenChange={setShowEmpresaConfig}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building2 className="w-5 h-5" /> Configuración Empresa

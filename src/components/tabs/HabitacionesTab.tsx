@@ -332,7 +332,7 @@ export default function HabitacionesTab({ store, role }: Props) {
       )}
 
       <Dialog open={!!checkoutTarget} onOpenChange={() => setCheckoutTarget(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>{t.checkoutDate}</DialogTitle>
           </DialogHeader>
@@ -368,7 +368,7 @@ export default function HabitacionesTab({ store, role }: Props) {
       </Dialog>
 
       <Dialog open={!!deleteTarget} onOpenChange={() => { setDeleteTarget(null); setDeleteStep(1); setDeleteConfirmText(''); }}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="w-5 h-5" /> {t.deleteWithoutRecord}
