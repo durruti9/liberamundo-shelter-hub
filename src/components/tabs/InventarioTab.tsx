@@ -538,7 +538,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
     </div>
   );
 }
-                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
