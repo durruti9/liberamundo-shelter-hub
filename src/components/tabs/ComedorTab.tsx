@@ -179,7 +179,7 @@ export default function ComedorTab({ store, role }: Props) {
     updateComedor(huespedId, { [field]: value } as Partial<import('@/types').ComedorEntry>)
       .catch(err => {
         console.error('[ComedorTab] error:', err);
-        toast.error(t.errorSavingComedor || 'Error al guardar cambios en comedor');
+        toast.error('Error al guardar cambios en comedor');
       });
   };
 
