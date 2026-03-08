@@ -492,6 +492,11 @@ const es: Translations = {
   resolveMessage: 'Resolver mensaje',
   upcomingArrivalsBoard: 'Próximas llegadas',
   employeeTasks: 'Tareas Diarias',
+  lastCleaning: 'Limpieza',
+  noCleaningRecorded: 'Sin registrar limpieza',
+  today: 'Hoy',
+  yesterday: 'Ayer',
+  ago: 'hace',
 };
 
 const fr: Translations = {
