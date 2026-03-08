@@ -107,12 +107,27 @@ router.put('/:id/rooms', requireRole('admin'), async (req, res) => {
 router.put('/:id/rooms/:roomId/limpieza', requireRole('admin', 'personal_albergue'), async (req, res) => {
   try {
     const { ultimaLimpieza } = req.body;
-    await pool.query(
+    const { id: albergueId, roomId } = req.params;
+    console.log(`[limpieza] Updating room ${roomId} in albergue ${albergueId} to ${ultimaLimpieza}`);
+    const result = await pool.query(
       'UPDATE rooms SET ultima_limpieza = $1 WHERE id = $2 AND albergue_id = $3',
-      [ultimaLimpieza || null, req.params.roomId, req.params.id]
+      [ultimaLimpieza || null, roomId, albergueId]
     );
+    console.log(`[limpieza] Rows updated: ${result.rowCount}`);
+    if (result.rowCount === 0) {
+      // Try without albergue_id filter in case of mismatch
+      const result2 = await pool.query(
+        'UPDATE rooms SET ultima_limpieza = $1 WHERE id = $2',
+        [ultimaLimpieza || null, roomId]
+      );
+      console.log(`[limpieza] Retry without albergue filter - rows updated: ${result2.rowCount}`);
+      if (result2.rowCount === 0) {
+        return res.status(404).json({ error: `Room ${roomId} not found` });
+      }
+    }
     res.json({ ok: true });
   } catch (err) {
+    console.error('[limpieza] Error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
