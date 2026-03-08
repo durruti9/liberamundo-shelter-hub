@@ -191,6 +191,10 @@ export default function InventarioTab({ role, albergueId }: Props) {
     const delta = tipo === 'entrada' ? 1 : -1;
     const newStock = Math.max(0, item.stock_actual + delta);
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, stock_actual: newStock } : i));
+    // Track locally for stats
+    const now = new Date();
+    const mes = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    setLocalMovements(prev => [...prev, { item_id: item.id, item_nombre: item.nombre, categoria_nombre: item.categoria_nombre, tipo, cantidad: 1, fecha: mes }]);
     api.addInventarioMovimiento(item.id, { tipo, cantidad: 1, motivo: '' }).catch(() => {});
   };
 
