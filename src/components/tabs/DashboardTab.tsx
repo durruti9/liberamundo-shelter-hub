@@ -133,7 +133,7 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
       </h2>
 
       {/* KPI Cards */}
-      <div className={`grid gap-4 ${isAdmin ? 'grid-cols-2 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'}`}>
+      <div className={`grid gap-4 grid-cols-2 ${isAdmin ? 'md:grid-cols-6' : 'md:grid-cols-5'}`}>
         <Card>
           <CardContent className="pt-6 text-center">
             <div className="text-3xl font-bold text-primary">{porcentaje}%</div>
@@ -169,6 +169,15 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
               <span className={`text-3xl font-bold ${activeIncidentCount > 0 ? 'text-destructive' : ''}`}>{activeIncidentCount}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">{t.activeIncidents}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <ListChecks className={`w-5 h-5 ${pendingTareas > 0 ? 'text-warning' : 'text-muted-foreground'}`} />
+              <span className={`text-3xl font-bold ${pendingTareas > 0 ? 'text-warning' : ''}`}>{pendingTareas}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Tareas pendientes hoy</p>
           </CardContent>
         </Card>
         {isAdmin && (
