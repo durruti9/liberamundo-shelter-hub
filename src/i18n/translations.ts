@@ -125,6 +125,15 @@ export interface Translations {
   observationsPlaceholder: string;
   downloadWeeklyPdf: string;
   weekOf: string;
+  uploadMenu: string;
+  currentMenu: string;
+  noMenuUploaded: string;
+  menuUploadedAt: string;
+  deleteMenu: string;
+  downloadMenu: string;
+  uploadingMenu: string;
+  menuUploaded: string;
+  menuDeleted: string;
 
   // Comedor options
   all: string;
