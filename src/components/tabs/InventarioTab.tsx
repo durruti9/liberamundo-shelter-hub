@@ -161,6 +161,26 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   useEffect(() => { if (statsOpen) loadConsumo(); }, [statsOpen, loadConsumo]);
 
+  // Load global movements
+  const loadMovimientos = useCallback(async () => {
+    setMovLoading(true);
+    try {
+      const filters: any = {};
+      if (movFilters.start) filters.start = movFilters.start;
+      if (movFilters.end) filters.end = movFilters.end;
+      if (movFilters.categoria) filters.categoria = movFilters.categoria;
+      if (movFilters.usuario) filters.usuario = movFilters.usuario;
+      const data = await api.getInventarioMovimientosGlobal(albergueId, filters);
+      setMovimientos(data);
+    } catch {
+      setMovimientos([]);
+    } finally {
+      setMovLoading(false);
+    }
+  }, [albergueId, movFilters]);
+
+  useEffect(() => { if (historyOpen) loadMovimientos(); }, [historyOpen, loadMovimientos]);
+
   // Merge API data + local movements into unified stats
   const consumoMes = useMemo(() => {
     const itemMap: Record<string, { nombre: string; categoria: string; salidas: number; entradas: number }> = {};
