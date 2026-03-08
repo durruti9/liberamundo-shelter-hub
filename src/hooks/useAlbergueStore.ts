@@ -64,17 +64,30 @@ export function useAlbergueStore(albergueId: string = 'default') {
   const loadFromApi = useCallback(async () => {
     try {
       console.log('[Store] Loading data for albergueId:', albergueId);
-      // Core data — all roles can access these
+
+      // Load each source independently — if one fails, others still load
+      const safeLoad = async <T,>(name: string, fn: () => Promise<T>, fallback: T): Promise<T> => {
+        try {
+          const result = await fn();
+          return result;
+        } catch (err: any) {
+          console.warn(`[Store] Failed to load ${name}:`, err.message, err.status || '');
+          return fallback;
+        }
+      };
+
       const [albs, huesps, com, llegs, incs, msgs] = await Promise.all([
-        api.getAlbergues(),
-        api.getHuespedes(albergueId),
-        api.getComedor(albergueId),
-        api.getLlegadas(albergueId),
-        api.getIncidencias(albergueId),
-        api.getBoardMessages(albergueId),
+        safeLoad('albergues', () => api.getAlbergues(), []),
+        safeLoad('huespedes', () => api.getHuespedes(albergueId), []),
+        safeLoad('comedor', () => api.getComedor(albergueId), []),
+        safeLoad('llegadas', () => api.getLlegadas(albergueId), []),
+        safeLoad('incidencias', () => api.getIncidencias(albergueId), []),
+        safeLoad('board', () => api.getBoardMessages(albergueId), []),
       ]);
-      console.log('[Store] Loaded:', { albergues: albs.length, huespedes: huesps.length, comedor: com.length });
-      setAlbergues(albs);
+
+      console.log('[Store] Loaded:', { albergues: albs.length, huespedes: huesps.length, comedor: com.length, llegadas: llegs.length, incidencias: incs.length });
+      
+      if (albs.length > 0) setAlbergues(albs);
       setHuespedes(huesps);
       setComedor(com);
       setLlegadas(llegs);
@@ -89,18 +102,12 @@ export function useAlbergueStore(albergueId: string = 'default') {
         // Non-admin users don't have access to user management
       }
     } catch (err: any) {
-      console.error('[Store] Error loading from API:', err);
-      if (err.status === 403) {
-        console.error('[Store] 403 FORBIDDEN - User does not have access to albergue:', albergueId);
-        console.error('[Store] Debug info:', err.message);
-      }
-      // If API call fails, try health check - maybe API went down
-      if (err.status !== 403) {
-        const available = await isApiAvailable();
-        if (!available) {
-          console.warn('[Store] API unavailable, falling back to localStorage');
-          setUseApi(false);
-        }
+      console.error('[Store] Critical error in loadFromApi:', err);
+      // Check if API went down
+      const available = await isApiAvailable();
+      if (!available) {
+        console.warn('[Store] API unavailable, falling back to localStorage');
+        setUseApi(false);
       }
     }
   }, [albergueId]);
