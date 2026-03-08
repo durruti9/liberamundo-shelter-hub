@@ -1,13 +1,15 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'lm_s3cr3t_k3y_' + Math.random().toString(36).slice(2);
 const JWT_EXPIRY = '4h';
 
-// Store the secret so it's consistent for the process lifetime
-let _secret = null;
+// JWT_SECRET is mandatory in production
 export function getJwtSecret() {
-  if (!_secret) _secret = process.env.JWT_SECRET || JWT_SECRET;
-  return _secret;
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    console.error('❌ FATAL: JWT_SECRET environment variable is not set. Server cannot start securely.');
+    process.exit(1);
+  }
+  return secret;
 }
 
 export function generateToken(payload) {
