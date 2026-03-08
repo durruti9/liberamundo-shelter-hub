@@ -443,17 +443,13 @@ export default function InventarioTab({ role, albergueId }: Props) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label>Unidad</Label>
-                  <Input value={editItem.unidad} onChange={e => setEditItem({ ...editItem, unidad: e.target.value })} />
+                  <Label>Unidades (stock actual)</Label>
+                  <Input type="number" min={0} value={editItem.stock_actual} onChange={e => setEditItem({ ...editItem, stock_actual: parseFloat(e.target.value) || 0 })} />
                 </div>
                 <div className="space-y-1">
-                  <Label>Stock mínimo</Label>
-                  <Input type="number" min={0} value={editItem.stock_minimo} onChange={e => setEditItem({ ...editItem, stock_minimo: parseFloat(e.target.value) || 0 })} />
+                  <Label>Aviso stock bajo</Label>
+                  <Input type="number" min={0} value={editItem.stock_minimo} onChange={e => setEditItem({ ...editItem, stock_minimo: parseFloat(e.target.value) || 0 })} placeholder="0 = sin aviso" />
                 </div>
-              </div>
-              <div className="space-y-1">
-                <Label>Ubicación</Label>
-                <Input value={editItem.ubicacion} onChange={e => setEditItem({ ...editItem, ubicacion: e.target.value })} />
               </div>
               <div className="space-y-1">
                 <Label>Notas</Label>
