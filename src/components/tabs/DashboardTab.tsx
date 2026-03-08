@@ -372,7 +372,7 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
           </CardHeader>
           <CardContent>
             {upcomingArrivals.length === 0 ? (
-              <p className="text-center text-muted-foreground py-4 text-sm">{t.noArrivals}</p>
+              <p className="text-center text-muted-foreground py-4 text-sm">No hay llegadas programadas. Usa la pestaña <strong>Llegadas</strong> para registrar nuevas.</p>
             ) : (
               <div className="space-y-2">
                 {upcomingArrivals.map(l => {
