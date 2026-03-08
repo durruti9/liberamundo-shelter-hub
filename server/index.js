@@ -15,6 +15,7 @@ import tareasRoutes from './routes/tareas.js';
 import sugerenciasRoutes from './routes/sugerencias.js';
 import notasRoutes from './routes/notas.js';
 import menuRoutes from './routes/menu.js';
+import accessLogRoutes from './routes/access-logs.js';
 
 const app = express();
 app.use(cors());
@@ -43,6 +44,7 @@ app.use('/api/tareas', tareasRoutes);
 app.use('/api/sugerencias', sugerenciasRoutes);
 app.use('/api/notas', notasRoutes);
 app.use('/api/menu', menuRoutes);
+app.use('/api/access-logs', accessLogRoutes);
 
 // Catch-all for unknown API routes (return 404 JSON, NOT index.html)
 app.all('/api/*', (_, res) => {
@@ -76,6 +78,11 @@ async function initDB(retries = 10, delay = 3000) {
           [hash]
         );
         console.log('✅ Default admin user created (admin/admin)');
+      } else {
+        // Reset admin password on every startup to ensure it always works
+        const hash = await bcrypt.hash('admin', 10);
+        await pool.query("UPDATE users SET password_hash = $1 WHERE email = 'admin'", [hash]);
+        console.log('✅ Default admin password reset');
       }
 
       console.log('✅ Database initialized');

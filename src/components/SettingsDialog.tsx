@@ -6,10 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, Pencil, AlertTriangle, BedDouble, Building2, Download, Upload, Database } from 'lucide-react';
+import { Plus, Trash2, Pencil, AlertTriangle, BedDouble, Building2, Download, Upload, Database, Shield } from 'lucide-react';
 import { Room, Albergue } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
 import { toast } from 'sonner';
+import { api, isApiAvailable } from '@/lib/api';
 
 interface Props {
   open: boolean;
@@ -145,7 +146,7 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
         </DialogHeader>
 
         <Tabs defaultValue="rooms" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="rooms" className="flex items-center gap-2">
               <BedDouble className="w-4 h-4" /> <span className="hidden sm:inline">{t.roomConfiguration}</span><span className="sm:hidden">{t.rooms}</span>
             </TabsTrigger>
@@ -154,6 +155,9 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
             </TabsTrigger>
             <TabsTrigger value="backup" className="flex items-center gap-2">
               <Database className="w-4 h-4" /> <span className="hidden sm:inline">{t.backupRestore}</span><span className="sm:hidden">Backup</span>
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex items-center gap-2">
+              <Shield className="w-4 h-4" /> <span className="hidden sm:inline">Seguridad</span><span className="sm:hidden">Logs</span>
             </TabsTrigger>
           </TabsList>
 
@@ -369,6 +373,10 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
           <TabsContent value="backup">
             <BackupSection t={t} />
           </TabsContent>
+
+          <TabsContent value="security">
+            <AccessLogsSection />
+          </TabsContent>
         </Tabs>
       </DialogContent>
 
@@ -500,6 +508,119 @@ function BackupSection({ t }: { t: import('@/i18n/translations').Translations })
             <Upload className="w-4 h-4 mr-2" /> {t.selectFile}
           </Button>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AccessLogsSection() {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const loadLogs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const available = await isApiAvailable();
+      if (!available) { setError('API no disponible'); setLoading(false); return; }
+      const data = await api.getAccessLogs();
+      setLogs(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useState(() => { loadLogs(); });
+
+  const clearLogs = async () => {
+    try {
+      await api.clearAccessLogs();
+      setLogs([]);
+      toast.success('Logs eliminados');
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const formatDate = (ts: string) => {
+    const d = new Date(ts);
+    return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' +
+           d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  };
+
+  const roleLabel = (r: string) => {
+    if (r === 'admin') return 'Administración';
+    if (r === 'gestor') return 'Personal gestor';
+    return 'Personal laboral';
+  };
+
+  const getBrowser = (ua: string) => {
+    if (!ua) return '—';
+    if (ua.includes('Firefox')) return 'Firefox';
+    if (ua.includes('Edg')) return 'Edge';
+    if (ua.includes('Chrome')) return 'Chrome';
+    if (ua.includes('Safari')) return 'Safari';
+    return 'Otro';
+  };
+
+  const getDevice = (ua: string) => {
+    if (!ua) return '';
+    if (ua.includes('Mobile') || ua.includes('Android')) return '📱';
+    return '💻';
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Shield className="w-4 h-4" /> Registro de accesos
+          </CardTitle>
+          {logs.length > 0 && (
+            <Button size="sm" variant="outline" className="text-destructive" onClick={clearLogs}>
+              <Trash2 className="w-3 h-3 mr-1" /> Limpiar
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-sm text-muted-foreground text-center py-4">Cargando...</p>
+        ) : error ? (
+          <p className="text-sm text-destructive text-center py-4">{error}</p>
+        ) : logs.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">Sin registros de acceso</p>
+        ) : (
+          <div className="max-h-80 overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Fecha/Hora</TableHead>
+                  <TableHead className="text-xs">Usuario</TableHead>
+                  <TableHead className="text-xs">Rol</TableHead>
+                  <TableHead className="text-xs">IP</TableHead>
+                  <TableHead className="text-xs">Navegador</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logs.map(log => (
+                  <TableRow key={log.id}>
+                    <TableCell className="text-xs whitespace-nowrap">{formatDate(log.timestamp)}</TableCell>
+                    <TableCell className="text-xs font-medium">{log.user_email}</TableCell>
+                    <TableCell className="text-xs">{roleLabel(log.user_role)}</TableCell>
+                    <TableCell className="text-xs font-mono">{log.ip_address || '—'}</TableCell>
+                    <TableCell className="text-xs">{getDevice(log.user_agent)} {getBrowser(log.user_agent)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+        <p className="text-xs text-muted-foreground mt-3">
+          Últimos {logs.length} accesos registrados. Máximo 500.
+        </p>
       </CardContent>
     </Card>
   );

@@ -135,6 +135,10 @@ export const api = {
     request<any>(`/sugerencias/bulk-delete`, { method: 'POST', body: JSON.stringify({ ids }) }),
   clearSugerencias: (albergueId: string) =>
     request<any>(`/sugerencias/clear/${albergueId}`, { method: 'DELETE' }),
+
+  // Access Logs
+  getAccessLogs: () => request<any[]>('/access-logs'),
+  clearAccessLogs: () => request<any>('/access-logs', { method: 'DELETE' }),
 };
 
 // Check if API is available

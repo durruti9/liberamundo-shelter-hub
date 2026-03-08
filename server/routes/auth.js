@@ -20,6 +20,18 @@ router.post('/login', async (req, res) => {
     );
     const albergueIds = albergueRows.map(r => r.albergue_id);
 
+    // Log access
+    const ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.socket?.remoteAddress || '';
+    const ua = req.headers['user-agent'] || '';
+    try {
+      await pool.query(
+        'INSERT INTO access_logs (user_email, user_role, ip_address, user_agent) VALUES ($1, $2, $3, $4)',
+        [user.email, user.role, typeof ip === 'string' ? ip : String(ip), ua]
+      );
+    } catch (logErr) {
+      console.error('Error logging access:', logErr.message);
+    }
+
     res.json({
       email: user.email,
       role: user.role,
