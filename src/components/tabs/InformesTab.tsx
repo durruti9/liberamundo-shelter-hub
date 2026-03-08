@@ -281,7 +281,7 @@ export default function InformesTab({ store, role }: Props) {
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                 <YAxis unit="%" tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <Tooltip content={<ChartTooltip />} />
                 <Legend />
                 <Line type="monotone" dataKey="ocupacion" name="Ocupación %" stroke="hsl(212, 72%, 59%)" strokeWidth={2} />
               </LineChart>
