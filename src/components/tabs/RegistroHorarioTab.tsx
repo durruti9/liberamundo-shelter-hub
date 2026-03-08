@@ -155,6 +155,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   const [records, setRecords] = useState<Map<string, RegistroDia>>(new Map());
   const [vacSaldo, setVacSaldo] = useState<VacacionesSaldo>({ asignadas: 22, consumidas: 0 });
   const [loading, setLoading] = useState(false);
+  const [showAuditLog, setShowAuditLog] = useState(false);
 
   // Empresa config
   const [empresaConfig, setEmpresaConfig] = useState({ razon_social: '', cif: '' });
@@ -169,6 +170,9 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   const [newEmp, setNewEmp] = useState({ nombre_completo: '', jornada_diaria_horas: 8, vacaciones_anuales: 22 });
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  // beforeunload when editing a day
+  useBeforeUnload(showDayModal && !!editingDay);
 
   const today = useMemo(() => {
     const d = new Date();
