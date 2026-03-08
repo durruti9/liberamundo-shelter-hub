@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import { es, fr, ar, enUS, ru } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { stayDuration, formatDateES } from '@/lib/dateFormat';
 import { useI18n } from '@/i18n/I18nContext';
+import { toast } from 'sonner';
 
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
@@ -183,13 +184,19 @@ export default function HabitacionesTab({ store, role }: Props) {
                     <Calendar
                       mode="single"
                       selected={room.ultimaLimpieza ? new Date(room.ultimaLimpieza + 'T00:00:00') : undefined}
-                      onSelect={(date) => {
+                      onSelect={async (date) => {
                         if (date) {
                           const year = date.getFullYear();
                           const month = String(date.getMonth() + 1).padStart(2, '0');
                           const day = String(date.getDate()).padStart(2, '0');
                           const dateStr = `${year}-${month}-${day}`;
-                          updateRoomCleaning(room.id, dateStr);
+                          try {
+                            await updateRoomCleaning(room.id, dateStr);
+                            toast.success(`Limpieza registrada: ${room.nombre}`);
+                          } catch (err: any) {
+                            console.error('Error guardando limpieza:', err);
+                            toast.error(`Error guardando limpieza: ${err?.message || 'desconocido'}`);
+                          }
                         }
                       }}
                       disabled={(date) => date > new Date()}
