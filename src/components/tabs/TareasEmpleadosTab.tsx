@@ -38,7 +38,7 @@ const TAREAS_PLANTILLA = [
   'Patio', 'Comedor', 'Hall', 'Pasillos y escaleras', 'Baño planta baja',
   'Planta 1: baño', 'Habitación 1.1', 'Habitación 1.2', 'Habitación 1.3',
   'Planta 2: baño', 'Habitación 2.1', 'Habitación 2.2', 'Habitación 2.3',
-  'Reponer papel', 'Reparaciones varias', 'Servicio de catering',
+  'Reponer productos (papel, jabón, etc.)', 'Reparaciones varias', 'Servicio de catering',
   'Reserva de comidas', 'Otras tareas',
 ];
 
