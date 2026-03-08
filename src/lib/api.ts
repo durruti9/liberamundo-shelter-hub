@@ -174,6 +174,23 @@ export const api = {
   // Access Logs
   getAccessLogs: () => request<any[]>('/access-logs'),
   clearAccessLogs: () => request<any>('/access-logs', { method: 'DELETE' }),
+
+  // Registro Horario
+  getEmpleadosHorario: (albergueId: string) => request<any[]>(`/registro-horario/empleados/${albergueId}`),
+  addEmpleadoHorario: (albergueId: string, data: any) =>
+    request<any>(`/registro-horario/empleados/${albergueId}`, { method: 'POST', body: JSON.stringify(data) }),
+  updateEmpleadoHorario: (id: string, data: any) =>
+    request<any>(`/registro-horario/empleados/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteEmpleadoHorario: (id: string) =>
+    request<any>(`/registro-horario/empleados/${id}`, { method: 'DELETE' }),
+  getRegistrosHorario: (empleadoId: string, start: string, end: string) =>
+    request<any[]>(`/registro-horario/registros/${empleadoId}?start=${start}&end=${end}`),
+  saveRegistroHorario: (empleadoId: string, data: any) =>
+    request<any>(`/registro-horario/registros/${empleadoId}`, { method: 'POST', body: JSON.stringify(data) }),
+  getVacacionesSaldo: (empleadoId: string, anio: number) =>
+    request<any>(`/registro-horario/vacaciones/${empleadoId}/${anio}`),
+  updateVacacionesSaldo: (empleadoId: string, anio: number, data: any) =>
+    request<any>(`/registro-horario/vacaciones/${empleadoId}/${anio}`, { method: 'PUT', body: JSON.stringify(data) }),
 };
 
 // Check if API is available
