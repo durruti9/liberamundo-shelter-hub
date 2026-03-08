@@ -76,17 +76,25 @@ export default function HabitacionesTab({ store, role }: Props) {
     'Alergias e intolerancias': 'bg-[hsl(0,72%,92%)] text-destructive',
   };
 
-  const handleCheckoutConfirm = () => {
+  const handleCheckoutConfirm = async () => {
     if (!checkoutTarget) return;
     const dateStr = checkoutDate ? format(checkoutDate, 'yyyy-MM-dd') : new Date().toISOString().split('T')[0];
-    checkOut(checkoutTarget, dateStr);
-    setCheckoutTarget(null);
-    setCheckoutDate(new Date());
+    try {
+      await checkOut(checkoutTarget, dateStr);
+      setCheckoutTarget(null);
+      setCheckoutDate(new Date());
+    } catch (err: any) {
+      toast.error(err.message || 'Error al hacer check-out');
+    }
   };
 
-  const handleDeleteWithoutRecord = () => {
+  const handleDeleteWithoutRecord = async () => {
     if (!deleteTarget || deleteConfirmText.toUpperCase() !== 'CONFIRMAR') return;
-    deleteHuesped(deleteTarget);
+    try {
+      await deleteHuesped(deleteTarget);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al eliminar');
+    }
     setDeleteTarget(null);
     setDeleteStep(1);
     setDeleteConfirmText('');
