@@ -97,8 +97,25 @@ export function useAlbergueStore(albergueId: string = 'default') {
         console.error('[Store] 403 FORBIDDEN - User does not have access to albergue:', albergueId);
         console.error('[Store] Debug info:', err.message);
       }
+      // If API call fails, try health check - maybe API went down
+      if (err.status !== 403) {
+        const available = await isApiAvailable();
+        if (!available) {
+          console.warn('[Store] API unavailable, falling back to localStorage');
+          setUseApi(false);
+        }
+      }
     }
   }, [albergueId]);
+
+  // Auto-refresh data every 30s when in API mode (keeps data in sync between users)
+  useEffect(() => {
+    if (!useApi) return;
+    const interval = setInterval(() => {
+      loadFromApi();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [useApi, loadFromApi]);
 
   // ── Persist to localStorage only when NOT using API ──
   useEffect(() => { if (!useApi) saveToStorage(`${prefix}_huespedes`, huespedes); }, [huespedes, prefix, useApi]);
