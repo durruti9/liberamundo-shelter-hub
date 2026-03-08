@@ -29,9 +29,11 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
+    console.error(`[API] ${options?.method || 'GET'} ${path} → ${res.status}`, err);
     const error = new Error(err.error || res.statusText);
     (error as any).status = res.status;
     (error as any).code = err.code;
+    (error as any).debug = err.debug;
     
     // Auto-logout on expired/invalid token
     if (res.status === 401 && err.code === 'TOKEN_EXPIRED') {
@@ -178,6 +180,9 @@ export const api = {
   // Access Logs
   getAccessLogs: () => request<any[]>('/access-logs'),
   clearAccessLogs: () => request<any>('/access-logs', { method: 'DELETE' }),
+
+  // Debug
+  getDebugStatus: () => request<any>('/debug/status'),
 
   // Registro Horario
   getEmpleadosHorario: (albergueId: string) => request<any[]>(`/registro-horario/empleados/${albergueId}`),

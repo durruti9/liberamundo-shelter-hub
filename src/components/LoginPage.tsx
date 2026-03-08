@@ -72,6 +72,7 @@ export default function LoginPage({ onLogin }: Props) {
       if (apiAvailable) {
         try {
           const result = await api.login(email, password);
+          console.log('[LOGIN] API response:', { email: result.email, role: result.role, albergueIds: result.albergueIds, isDefaultAdmin: result.isDefaultAdmin });
           if (result.token) setToken(result.token);
           localStorage.setItem('auth', 'true');
           localStorage.setItem('authRole', result.role);

@@ -54,6 +54,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
   // ── Load from API ──
   const loadFromApi = useCallback(async () => {
     try {
+      console.log('[Store] Loading data for albergueId:', albergueId);
       // Core data — all roles can access these
       const [albs, huesps, com, llegs, incs, msgs] = await Promise.all([
         api.getAlbergues(),
@@ -63,6 +64,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
         api.getIncidencias(albergueId),
         api.getBoardMessages(albergueId),
       ]);
+      console.log('[Store] Loaded:', { albergues: albs.length, huespedes: huesps.length, comedor: com.length });
       setAlbergues(albs);
       setHuespedes(huesps);
       setComedor(com);
@@ -77,8 +79,12 @@ export function useAlbergueStore(albergueId: string = 'default') {
       } catch {
         // Non-admin users don't have access to user management
       }
-    } catch (err) {
-      console.error('Error loading from API:', err);
+    } catch (err: any) {
+      console.error('[Store] Error loading from API:', err);
+      if (err.status === 403) {
+        console.error('[Store] 403 FORBIDDEN - User does not have access to albergue:', albergueId);
+        console.error('[Store] Debug info:', err.message);
+      }
     }
   }, [albergueId]);
 

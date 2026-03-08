@@ -50,10 +50,12 @@ router.post('/login', async (req, res) => {
     let { rows: albergueRows } = await pool.query(
       'SELECT albergue_id FROM user_albergues WHERE user_email = $1', [email]
     );
+    console.log(`[AUTH] User ${email} (${user.role}) login. Existing albergue assignments:`, albergueRows.map(r => r.albergue_id));
 
     // Auto-assign all albergues if user has none (safety net for users created before auto-assign fix)
     if (albergueRows.length === 0) {
       const { rows: allAlbs } = await pool.query('SELECT id FROM albergues');
+      console.log(`[AUTH] No assignments found. All albergues in system:`, allAlbs.map(a => a.id));
       if (allAlbs.length > 0) {
         for (const alb of allAlbs) {
           await pool.query(
@@ -62,10 +64,12 @@ router.post('/login', async (req, res) => {
           );
         }
         albergueRows = allAlbs.map(a => ({ albergue_id: a.id }));
+        console.log(`[AUTH] Auto-assigned albergues to ${email}:`, albergueRows.map(r => r.albergue_id));
       }
     }
 
     const albergueIds = albergueRows.map(r => r.albergue_id);
+    console.log(`[AUTH] Final albergueIds for ${email}:`, albergueIds);
 
     // Log access
     const ua = req.headers['user-agent'] || '';
