@@ -339,7 +339,7 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
           </CardHeader>
           <CardContent>
             {upcomingCheckouts.length === 0 ? (
-              <p className="text-center text-muted-foreground py-4 text-sm">{t.noUpcomingCheckouts}</p>
+              <p className="text-center text-muted-foreground py-4 text-sm">No hay salidas programadas en los próximos 14 días.</p>
             ) : (
               <div className="space-y-2">
                 {upcomingCheckouts.map(h => {
