@@ -320,9 +320,13 @@ export default function HabitacionesTab({ store, role }: Props) {
           open={!!checkInTarget}
           onClose={() => setCheckInTarget(null)}
           title={`${t.checkIn}: Hab ${checkInTarget.habitacion} - ${t.bed} ${checkInTarget.cama}`}
-          onSubmit={data => {
-            checkIn({ ...data, habitacion: checkInTarget.habitacion, cama: checkInTarget.cama });
-            setCheckInTarget(null);
+          onSubmit={async data => {
+            try {
+              await checkIn({ ...data, habitacion: checkInTarget.habitacion, cama: checkInTarget.cama });
+              setCheckInTarget(null);
+            } catch (err: any) {
+              toast.error(err.message || 'Error al registrar entrada');
+            }
           }}
         />
       )}
