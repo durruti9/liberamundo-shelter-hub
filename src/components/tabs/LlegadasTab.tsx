@@ -9,8 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { CalendarPlus, Check, Trash2, Pencil } from 'lucide-react';
+import { CalendarPlus, Check, Trash2, Pencil, PackagePlus } from 'lucide-react';
 import ExportButton from '@/components/ExportButton';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { DIETAS, Dieta, UserRole, ProximaLlegada } from '@/types';
 import { formatDateES } from '@/lib/dateFormat';
 import { useI18n } from '@/i18n/I18nContext';
