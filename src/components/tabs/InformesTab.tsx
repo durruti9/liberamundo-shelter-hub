@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContaine
 import { BarChart3, Users, TrendingUp, Globe, Clock, BedDouble, UtensilsCrossed, FileDown } from 'lucide-react';
 import { UserRole } from '@/types';
 import ExportButton from '@/components/ExportButton';
+import ChartTooltip from '@/components/ChartTooltip';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
