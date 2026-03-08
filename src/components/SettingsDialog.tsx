@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, Pencil, AlertTriangle, BedDouble, Building2, Download, Upload, Database } from 'lucide-react';
+import { Plus, Trash2, Pencil, AlertTriangle, BedDouble, Building2, Download, Upload, Database, Shield } from 'lucide-react';
 import { Room, Albergue } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
 import { toast } from 'sonner';
