@@ -512,3 +512,116 @@ function BackupSection({ t }: { t: import('@/i18n/translations').Translations })
     </Card>
   );
 }
+
+function AccessLogsSection() {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const loadLogs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const available = await isApiAvailable();
+      if (!available) { setError('API no disponible'); setLoading(false); return; }
+      const data = await api.getAccessLogs();
+      setLogs(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useState(() => { loadLogs(); });
+
+  const clearLogs = async () => {
+    try {
+      await api.clearAccessLogs();
+      setLogs([]);
+      toast.success('Logs eliminados');
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const formatDate = (ts: string) => {
+    const d = new Date(ts);
+    return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' +
+           d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  };
+
+  const roleLabel = (r: string) => {
+    if (r === 'admin') return 'Administración';
+    if (r === 'gestor') return 'Personal gestor';
+    return 'Personal laboral';
+  };
+
+  const getBrowser = (ua: string) => {
+    if (!ua) return '—';
+    if (ua.includes('Firefox')) return 'Firefox';
+    if (ua.includes('Edg')) return 'Edge';
+    if (ua.includes('Chrome')) return 'Chrome';
+    if (ua.includes('Safari')) return 'Safari';
+    return 'Otro';
+  };
+
+  const getDevice = (ua: string) => {
+    if (!ua) return '';
+    if (ua.includes('Mobile') || ua.includes('Android')) return '📱';
+    return '💻';
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Shield className="w-4 h-4" /> Registro de accesos
+          </CardTitle>
+          {logs.length > 0 && (
+            <Button size="sm" variant="outline" className="text-destructive" onClick={clearLogs}>
+              <Trash2 className="w-3 h-3 mr-1" /> Limpiar
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-sm text-muted-foreground text-center py-4">Cargando...</p>
+        ) : error ? (
+          <p className="text-sm text-destructive text-center py-4">{error}</p>
+        ) : logs.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">Sin registros de acceso</p>
+        ) : (
+          <div className="max-h-80 overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Fecha/Hora</TableHead>
+                  <TableHead className="text-xs">Usuario</TableHead>
+                  <TableHead className="text-xs">Rol</TableHead>
+                  <TableHead className="text-xs">IP</TableHead>
+                  <TableHead className="text-xs">Navegador</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logs.map(log => (
+                  <TableRow key={log.id}>
+                    <TableCell className="text-xs whitespace-nowrap">{formatDate(log.timestamp)}</TableCell>
+                    <TableCell className="text-xs font-medium">{log.user_email}</TableCell>
+                    <TableCell className="text-xs">{roleLabel(log.user_role)}</TableCell>
+                    <TableCell className="text-xs font-mono">{log.ip_address || '—'}</TableCell>
+                    <TableCell className="text-xs">{getDevice(log.user_agent)} {getBrowser(log.user_agent)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+        <p className="text-xs text-muted-foreground mt-3">
+          Últimos {logs.length} accesos registrados. Máximo 500.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
