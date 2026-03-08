@@ -356,7 +356,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                           onClick={() => setEditItem({ ...item })}>
                           <Edit className="w-4 h-4" />
                         </Button>
-                        {(isAdmin || role === 'gestor') && (
+                        {(isAdmin || role === 'personal_albergue') && (
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" title="Eliminar"
                             onClick={() => handleDeleteItem(item.id)}>
                             <Trash2 className="w-4 h-4" />
