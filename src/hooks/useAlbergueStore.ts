@@ -21,29 +21,26 @@ export function useAlbergueStore(albergueId: string = 'default') {
   const prefix = albergueId;
   // Derive API mode from token existence - if we logged in via API, the API is available
   const [useApi, setUseApi] = useState(() => !!localStorage.getItem('authToken'));
-  const apiChecked = useRef(false);
-  const dataLoaded = useRef(false);
+  const initialLoadDone = useRef(false);
 
-  // Load data from API on mount if token exists, or check health as fallback
+  // Load data from API on mount if token exists, and RELOAD when albergueId changes
   useEffect(() => {
-    if (apiChecked.current) return;
-    apiChecked.current = true;
-
     const token = localStorage.getItem('authToken');
     if (token) {
-      // Token exists = API was used for login = API is available
       console.log('[Store] Token found, using API mode. AlbergueId:', albergueId);
       setUseApi(true);
       loadFromApi();
-    } else {
+      initialLoadDone.current = true;
+    } else if (!initialLoadDone.current) {
       // No token, check if API is available (localStorage fallback mode)
+      initialLoadDone.current = true;
       isApiAvailable().then(available => {
         console.log('[Store] Health check result:', available);
         setUseApi(available);
         if (available) loadFromApi();
       });
     }
-  }, []);
+  }, [albergueId]); // Re-run when albergueId changes!
 
   // ── State ──
   const [albergues, setAlbergues] = useState<Albergue[]>(() => {
