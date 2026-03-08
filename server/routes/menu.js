@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { writeFileSync, readFileSync, existsSync, unlinkSync, mkdirSync, readdirSync, statSync } from 'fs';
 import { join, extname } from 'path';
+import { verifyToken } from '../middleware/auth.js';
 
 const router = Router();
 const MENU_DIR = process.env.MENU_DIR || '/app/data/menus';
@@ -35,9 +36,24 @@ router.get('/:albergueId', (req, res) => {
   }
 });
 
-// Download current menu
+// Download current menu — supports token via query param for direct links
 router.get('/:albergueId/download', (req, res) => {
   try {
+    // Verify auth: header OR query param
+    const authHeader = req.headers.authorization;
+    const queryToken = req.query.token;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : queryToken;
+
+    if (!token) {
+      return res.status(401).json({ error: 'Token requerido' });
+    }
+
+    try {
+      verifyToken(token);
+    } catch {
+      return res.status(401).json({ error: 'Token inválido o expirado' });
+    }
+
     const files = readdirSync(MENU_DIR).filter(f => f.startsWith(`${req.params.albergueId}_menu`));
     if (files.length === 0) return res.status(404).json({ error: 'No menu found' });
 
@@ -62,7 +78,7 @@ router.get('/:albergueId/download', (req, res) => {
   }
 });
 
-// Upload menu (replaces previous) — raw body approach
+// Upload menu (replaces previous)
 router.post('/:albergueId', (req, res) => {
   const albergueId = req.params.albergueId;
   const contentType = req.headers['content-type'] || '';
@@ -93,16 +109,13 @@ router.post('/:albergueId', (req, res) => {
         return res.status(400).json({ error: `File type ${ext} not allowed` });
       }
 
-      // Ensure dir exists
       if (!existsSync(MENU_DIR)) {
         mkdirSync(MENU_DIR, { recursive: true });
       }
 
-      // Remove previous menu files for this albergue
       const existing = readdirSync(MENU_DIR).filter(f => f.startsWith(`${albergueId}_menu`));
       existing.forEach(f => unlinkSync(join(MENU_DIR, f)));
 
-      // Save new file
       const newFilename = `${albergueId}_menu${ext}`;
       writeFileSync(join(MENU_DIR, newFilename), filePart.data);
 
@@ -147,28 +160,19 @@ function parseMultipart(body, boundary) {
   if (pos === -1) return parts;
 
   while (pos < body.length) {
-    // Move past boundary + CRLF
     const partStart = pos + boundaryBuf.length;
     if (partStart >= body.length) break;
+    if (body[partStart] === 0x2D && body[partStart + 1] === 0x2D) break;
 
-    // Check for end boundary
-    if (body[partStart] === 0x2D && body[partStart + 1] === 0x2D) break; // "--"
-
-    // Skip CRLF after boundary
-    const headerStart = partStart + 2; // skip \r\n
-
-    // Find end of headers (double CRLF)
+    const headerStart = partStart + 2;
     const headerEnd = body.indexOf('\r\n\r\n', headerStart);
     if (headerEnd === -1) break;
 
     const headers = body.slice(headerStart, headerEnd).toString('utf8');
     const dataStart = headerEnd + 4;
-
-    // Find next boundary
     const nextBoundary = body.indexOf(boundaryBuf, dataStart);
     if (nextBoundary === -1) break;
 
-    // Data ends 2 bytes before next boundary (CRLF)
     const dataEnd = nextBoundary - 2;
     const data = body.slice(dataStart, dataEnd);
 

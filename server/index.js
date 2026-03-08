@@ -19,10 +19,24 @@ import menuRoutes from './routes/menu.js';
 import accessLogRoutes from './routes/access-logs.js';
 
 const app = express();
-app.use(cors());
+
+// CORS: restrict to allowed origins
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || '*').split(',').map(s => s.trim());
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (server-to-server, curl, mobile apps)
+    if (!origin) return callback(null, true);
+    if (ALLOWED_ORIGINS.includes('*') || ALLOWED_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error('CORS: origen no permitido'));
+  },
+  credentials: true,
+}));
+
 app.use(express.json({ limit: '15mb' }));
 
-// Health check (public, no auth)
+// Health check (public)
 app.get('/api/health', async (_, res) => {
   try {
     await pool.query('SELECT 1');
@@ -32,10 +46,10 @@ app.get('/api/health', async (_, res) => {
   }
 });
 
-// Auth routes (public - login)
+// Auth routes (public)
 app.use('/api/auth', authRoutes);
 
-// Sugerencias public endpoint (no auth needed for guest submissions)
+// Sugerencias (mixed: POST public, rest protected inside the router)
 app.use('/api/sugerencias', sugerenciasRoutes);
 
 // All other API routes require JWT
@@ -72,7 +86,6 @@ async function initDB(retries = 10, delay = 3000) {
       const initSQL = readFileSync(new URL('./init.sql', import.meta.url), 'utf8');
       await pool.query(initSQL);
 
-      // Only create default admin on first install
       const { rows: userCount } = await pool.query("SELECT COUNT(*) as cnt FROM users");
       if (parseInt(userCount[0].cnt) === 0) {
         const hash = await bcrypt.hash('admin', 10);
@@ -102,7 +115,12 @@ async function initDB(retries = 10, delay = 3000) {
 async function start() {
   await initDB();
   const port = process.env.PORT || 3000;
-  app.listen(port, '0.0.0.0', () => console.log(`🚀 Server running on port ${port}`));
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`🚀 Server running on port ${port}`);
+    if (!ALLOWED_ORIGINS.includes('*')) {
+      console.log(`🔒 CORS restricted to: ${ALLOWED_ORIGINS.join(', ')}`);
+    }
+  });
 }
 
 start();
