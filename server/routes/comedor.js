@@ -10,7 +10,7 @@ router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
     const { rows } = await pool.query(
       `SELECT c.* FROM comedor c
        JOIN huespedes h ON c.huesped_id = h.id
-       WHERE h.albergue_id = $1`,
+       WHERE h.albergue_id = $1 AND h.activo = true`,
       [req.params.albergueId]
     );
     res.json(rows.map(r => ({

@@ -8,6 +8,24 @@ const router = Router();
 // Get huespedes by albergue (validates access)
 router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
+    // Auto-checkout: mark guests with past checkout dates as inactive and remove their comedor entries
+    const today = new Date().toISOString().split('T')[0];
+    const { rows: expired } = await pool.query(
+      'SELECT id FROM huespedes WHERE albergue_id = $1 AND activo = true AND fecha_checkout IS NOT NULL AND fecha_checkout <= $2',
+      [req.params.albergueId, today]
+    );
+    if (expired.length > 0) {
+      const expiredIds = expired.map(r => r.id);
+      await pool.query(
+        `UPDATE huespedes SET activo = false WHERE id = ANY($1)`,
+        [expiredIds]
+      );
+      await pool.query(
+        `DELETE FROM comedor WHERE huesped_id = ANY($1)`,
+        [expiredIds]
+      );
+    }
+
     const { rows } = await pool.query(
       'SELECT * FROM huespedes WHERE albergue_id = $1 ORDER BY fecha_entrada DESC',
       [req.params.albergueId]

@@ -150,7 +150,7 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
       </h2>
 
       {/* KPI Cards */}
-      <div className={`grid gap-4 grid-cols-2 ${isAdmin ? 'md:grid-cols-6' : 'md:grid-cols-5'}`}>
+      <div className={`grid gap-4 grid-cols-2 ${isAdmin ? 'md:grid-cols-6' : role === 'gestor' ? 'md:grid-cols-4' : 'md:grid-cols-5'}`}>
         <Card>
           <CardContent className="pt-6 text-center">
             <div className="text-3xl font-bold text-primary">{porcentaje}%</div>
@@ -188,25 +188,27 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
             <p className="text-xs text-muted-foreground mt-1">{t.activeIncidents}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <div className="flex items-center justify-center gap-2">
-              <ListChecks className={`w-5 h-5 ${completedTareas > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
-              <span className={`text-3xl font-bold ${completedTareas > 0 ? 'text-primary' : ''}`}>{completedTareas}</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Tareas completadas hoy</p>
-            {tareasBreakdown.length > 0 && (
-              <div className="mt-2 space-y-0.5 text-left">
-                {tareasBreakdown.map(b => (
-                  <div key={b.nombre} className="flex justify-between text-[10px] text-muted-foreground">
-                    <span className="truncate mr-1">{b.nombre}</span>
-                    <span className="font-medium">{b.count}</span>
-                  </div>
-                ))}
+        {role !== 'gestor' && (
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <div className="flex items-center justify-center gap-2">
+                <ListChecks className={`w-5 h-5 ${completedTareas > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
+                <span className={`text-3xl font-bold ${completedTareas > 0 ? 'text-primary' : ''}`}>{completedTareas}</span>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <p className="text-xs text-muted-foreground mt-1">Tareas completadas hoy</p>
+              {tareasBreakdown.length > 0 && (
+                <div className="mt-2 space-y-0.5 text-left">
+                  {tareasBreakdown.map(b => (
+                    <div key={b.nombre} className="flex justify-between text-[10px] text-muted-foreground">
+                      <span className="truncate mr-1">{b.nombre}</span>
+                      <span className="font-medium">{b.count}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
         {isAdmin && (
           <Card>
             <CardContent className="pt-6 text-center">
