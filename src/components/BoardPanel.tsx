@@ -164,7 +164,7 @@ export default function BoardPanel({ title, icon, tipo, messages, role, onAdd, o
                     </Button>
                   )}
                   {(role === 'admin' || role === 'gestor') && (
-                    <Button size="icon" variant="ghost" className="h-7 w-7 hover:bg-destructive/10" onClick={() => onDelete(msg.id)}>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 hover:bg-destructive/10" onClick={() => setDeleteConfirmId(msg.id)}>
                       <Trash2 className="w-3.5 h-3.5 text-destructive" />
                     </Button>
                   )}
