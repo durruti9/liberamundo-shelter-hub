@@ -555,6 +555,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
                       const estado = ESTADOS.find(e => e.value === rec?.estado);
                       const hasWork = rec && ['trabajado', 'teletrabajo'].includes(rec.estado);
+                      const hasRevision = rec?.marcado_revision;
 
                       return (
                         <TableRow
