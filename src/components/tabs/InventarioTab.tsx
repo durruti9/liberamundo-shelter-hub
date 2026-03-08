@@ -141,21 +141,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
     }
   };
 
-  const handleMovement = async () => {
-    if (!showMovement || movAmount <= 0) return;
-    try {
-      await api.addInventarioMovimiento(showMovement.item.id, {
-        tipo: showMovement.tipo, cantidad: movAmount, motivo: movMotivo,
-      });
-      toast.success(showMovement.tipo === 'entrada' ? 'Entrada registrada' : 'Salida registrada');
-      setShowMovement(null);
-      setMovAmount(0);
-      setMovMotivo('');
-      loadData();
-    } catch (err: any) {
-      toast.error(err.message);
-    }
-  };
 
   const handleQuickMovement = (item: Item, tipo: 'entrada' | 'salida') => {
     const delta = tipo === 'entrada' ? 1 : -1;
