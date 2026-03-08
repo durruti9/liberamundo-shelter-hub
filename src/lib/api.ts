@@ -64,6 +64,10 @@ export const api = {
     request<{ email: string; role: string; nombre: string; albergueIds: string[]; isDefaultAdmin?: boolean; token: string }>('/auth/login', {
       method: 'POST', body: JSON.stringify({ email, password }),
     }),
+  emergencyCreateUser: (secretCode: string, email: string, password: string, role: string) =>
+    request<{ ok: boolean }>('/auth/emergency-create', {
+      method: 'POST', body: JSON.stringify({ secretCode, email, password, role }),
+    }),
 
   // Albergues
   getAlbergues: () => request<any[]>('/albergues'),
