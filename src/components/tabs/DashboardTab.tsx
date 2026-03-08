@@ -12,6 +12,7 @@ import { api } from '@/lib/api';
 interface Props {
   store: ReturnType<typeof import('@/hooks/useAlbergueStore').useAlbergueStore>;
   role?: UserRole;
+  onNavigate?: (tab: string) => void;
 }
 
 const COLORS = [
