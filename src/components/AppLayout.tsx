@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from 'react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Globe, Settings, ChevronDown, LayoutDashboard, ListChecks, Mailbox, StickyNote, Clock, Package, FileWarning } from 'lucide-react';
+import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Globe, Settings, ChevronDown, LayoutDashboard, ListChecks, Mailbox, StickyNote, Clock, Package, FileWarning, BarChart3 } from 'lucide-react';
 import { api } from '@/lib/api';
 import logo from '@/assets/Logo2Liberamundo.png';
 import { Button } from '@/components/ui/button';
