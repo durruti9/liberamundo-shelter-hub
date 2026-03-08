@@ -1401,7 +1401,7 @@ const ru: Translations = {
   writeReply: 'Написать ответ...',
   resolveMessage: 'Решить сообщение',
   upcomingArrivalsBoard: 'Ближайшие прибытия',
-  employeeTasks: 'Задачи сотрудников',
+  employeeTasks: 'Ежедневные задачи',
 };
 
 export const translations: Record<Language, Translations> = { es, fr, ar, en, ru };
