@@ -184,13 +184,19 @@ export default function HabitacionesTab({ store, role }: Props) {
                     <Calendar
                       mode="single"
                       selected={room.ultimaLimpieza ? new Date(room.ultimaLimpieza + 'T00:00:00') : undefined}
-                      onSelect={(date) => {
+                      onSelect={async (date) => {
                         if (date) {
                           const year = date.getFullYear();
                           const month = String(date.getMonth() + 1).padStart(2, '0');
                           const day = String(date.getDate()).padStart(2, '0');
                           const dateStr = `${year}-${month}-${day}`;
-                          updateRoomCleaning(room.id, dateStr);
+                          try {
+                            await updateRoomCleaning(room.id, dateStr);
+                            toast.success(`Limpieza registrada: ${room.nombre}`);
+                          } catch (err: any) {
+                            console.error('Error guardando limpieza:', err);
+                            toast.error(`Error guardando limpieza: ${err?.message || 'desconocido'}`);
+                          }
                         }
                       }}
                       disabled={(date) => date > new Date()}
