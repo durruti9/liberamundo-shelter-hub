@@ -281,29 +281,59 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     setReplyText('');
   };
 
-  const saveAdminObs = () => {
+  const saveAdminObs = async () => {
     if (obsDialogIdx === null) return;
-    handleUpdateTarea(obsDialogIdx, 'adminObs', obsText);
+    const updated = tareas.map((t, i) => i === obsDialogIdx ? { ...t, adminObs: obsText } : t);
+    setTareas(updated);
     setObsDialogIdx(null);
+    if (selectedDate) {
+      try {
+        await api.saveTareasDia(albergueId, selectedDate, updated);
+        await loadMonth();
+        toast.success('Observación guardada');
+      } catch { toast.error('Error al guardar observación'); }
+    }
   };
 
-  const clearAdminObs = () => {
+  const clearAdminObs = async () => {
     if (obsDialogIdx === null) return;
-    handleUpdateTarea(obsDialogIdx, 'adminObs', '');
+    const updated = tareas.map((t, i) => i === obsDialogIdx ? { ...t, adminObs: '' } : t);
+    setTareas(updated);
     setObsText('');
+    if (selectedDate) {
+      try {
+        await api.saveTareasDia(albergueId, selectedDate, updated);
+        await loadMonth();
+      } catch { toast.error('Error al borrar observación'); }
+    }
   };
 
-  const saveEmployeeReply = () => {
+  const saveEmployeeReply = async () => {
     if (obsDialogIdx === null || !replyText.trim()) return;
     const current = tareas[obsDialogIdx].respuestaEmpleado;
     const newReply = current ? `${current}\n---\n${replyText}` : replyText;
-    handleUpdateTarea(obsDialogIdx, 'respuestaEmpleado', newReply);
+    const updated = tareas.map((t, i) => i === obsDialogIdx ? { ...t, respuestaEmpleado: newReply } : t);
+    setTareas(updated);
     setReplyText('');
+    if (selectedDate) {
+      try {
+        await api.saveTareasDia(albergueId, selectedDate, updated);
+        await loadMonth();
+        toast.success('Respuesta enviada');
+      } catch { toast.error('Error al enviar respuesta'); }
+    }
   };
 
-  const clearEmployeeReply = () => {
+  const clearEmployeeReply = async () => {
     if (obsDialogIdx === null) return;
-    handleUpdateTarea(obsDialogIdx, 'respuestaEmpleado', '');
+    const updated = tareas.map((t, i) => i === obsDialogIdx ? { ...t, respuestaEmpleado: '' } : t);
+    setTareas(updated);
+    if (selectedDate) {
+      try {
+        await api.saveTareasDia(albergueId, selectedDate, updated);
+        await loadMonth();
+      } catch { toast.error('Error al borrar respuestas'); }
+    }
   };
 
   // Calendar grid
