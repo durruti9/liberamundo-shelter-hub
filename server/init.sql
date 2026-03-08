@@ -219,3 +219,28 @@ CREATE TABLE IF NOT EXISTS vacaciones_saldo (
   consumidas NUMERIC(4,1) NOT NULL DEFAULT 0,
   UNIQUE(empleado_id, anio)
 );
+
+-- Configuración empresa (registro horario)
+CREATE TABLE IF NOT EXISTS config_empresa (
+  id TEXT PRIMARY KEY DEFAULT 'default',
+  albergue_id TEXT NOT NULL REFERENCES albergues(id) ON DELETE CASCADE,
+  razon_social TEXT NOT NULL DEFAULT '',
+  cif TEXT NOT NULL DEFAULT '',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(albergue_id)
+);
+
+-- Auditoría de cambios en registros horarios
+CREATE TABLE IF NOT EXISTS auditoria_registros (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  empleado_id TEXT NOT NULL,
+  empleado_nombre TEXT NOT NULL DEFAULT '',
+  fecha_registro DATE NOT NULL,
+  campo_modificado TEXT NOT NULL DEFAULT '',
+  valor_anterior TEXT NOT NULL DEFAULT '',
+  valor_nuevo TEXT NOT NULL DEFAULT '',
+  modificado_por TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_auditoria_created ON auditoria_registros(created_at DESC);

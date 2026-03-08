@@ -6,9 +6,10 @@ import { exportToCSV, exportToPDF, EXPORT_CONFIGS } from '@/lib/export';
 interface Props {
   type: keyof typeof EXPORT_CONFIGS;
   getData: () => Record<string, any>[];
+  pdfOptions?: { empresa?: string; cif?: string; legalText?: string; employeeName?: string };
 }
 
-export default function ExportButton({ type, getData }: Props) {
+export default function ExportButton({ type, getData, pdfOptions }: Props) {
   const config = EXPORT_CONFIGS[type];
   const timestamp = new Date().toISOString().slice(0, 10);
 
@@ -18,7 +19,7 @@ export default function ExportButton({ type, getData }: Props) {
     if (format === 'csv') {
       exportToCSV(data, filename, config.columns);
     } else {
-      exportToPDF(data, filename, config.columns, config.title);
+      exportToPDF(data, filename, config.columns, config.title, pdfOptions);
     }
   };
 

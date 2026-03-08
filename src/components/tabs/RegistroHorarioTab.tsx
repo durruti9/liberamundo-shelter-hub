@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import {
   Clock, ChevronLeft, ChevronRight, Plus, Trash2, UserPlus, Users,
-  Check, X, CalendarDays, FileDown, Lock, Pencil, Save
+  Check, X, CalendarDays, FileDown, Lock, Pencil, Save, Building2, Settings2
 } from 'lucide-react';
 import { UserRole } from '@/types';
 import { api } from '@/lib/api';
@@ -151,6 +151,11 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   const [vacSaldo, setVacSaldo] = useState<VacacionesSaldo>({ asignadas: 22, consumidas: 0 });
   const [loading, setLoading] = useState(false);
 
+  // Empresa config
+  const [empresaConfig, setEmpresaConfig] = useState({ razon_social: '', cif: '' });
+  const [showEmpresaConfig, setShowEmpresaConfig] = useState(false);
+  const [editEmpresa, setEditEmpresa] = useState({ razon_social: '', cif: '' });
+
   // Modal states
   const [showDayModal, setShowDayModal] = useState(false);
   const [editingDay, setEditingDay] = useState<RegistroDia | null>(null);
@@ -206,6 +211,15 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   useEffect(() => { loadEmpleados(); }, [loadEmpleados]);
   useEffect(() => { loadRecords(); loadVacaciones(); }, [loadRecords, loadVacaciones]);
 
+  // Load empresa config
+  const loadEmpresaConfig = useCallback(async () => {
+    try {
+      const data = await api.getConfigEmpresa(albergueId);
+      setEmpresaConfig({ razon_social: data.razon_social || '', cif: data.cif || '' });
+    } catch { /* ignore */ }
+  }, [albergueId]);
+  useEffect(() => { loadEmpresaConfig(); }, [loadEmpresaConfig]);
+
   const currentEmpleado = empleados.find(e => e.id === selectedEmpleado);
   const numDays = daysInMonth(year, month);
 
@@ -227,10 +241,11 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   // Check if date is future
   const isFuture = (dateStr: string) => dateStr > today;
 
-  // Save a record
+  // Save a record with audit log
   const saveRecord = useCallback(async (record: RegistroDia) => {
     setSaving(true);
     try {
+      const oldRecord = records.get(record.fecha);
       await api.saveRegistroHorario(record.empleado_id, record);
       setRecords(prev => {
         const next = new Map(prev);
@@ -238,11 +253,32 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
         return next;
       });
       setLastSaved(new Date());
+
+      // Audit log (silent, don't block)
+      const empName = currentEmpleado?.nombre_completo || '';
+      const userEmail = localStorage.getItem('authEmail') || '';
+      const changes: string[] = [];
+      if (!oldRecord || oldRecord.estado !== record.estado) changes.push(`estado: ${oldRecord?.estado || '(vacío)'} → ${record.estado}`);
+      if (oldRecord?.entrada_manana !== record.entrada_manana) changes.push(`entrada_mañana`);
+      if (oldRecord?.salida_manana !== record.salida_manana) changes.push(`salida_mañana`);
+      if (oldRecord?.firma_data !== record.firma_data) changes.push(`firma`);
+      
+      if (changes.length > 0) {
+        api.logAuditoria({
+          empleado_id: record.empleado_id,
+          empleado_nombre: empName,
+          fecha_registro: record.fecha,
+          campo_modificado: changes.join(', '),
+          valor_anterior: oldRecord?.estado || '',
+          valor_nuevo: record.estado,
+          modificado_por: userEmail,
+        }).catch(() => {});
+      }
     } catch (err: any) {
       toast.error('Error al guardar: ' + (err.message || ''));
     }
     setSaving(false);
-  }, []);
+  }, [records, currentEmpleado]);
 
   // Open day modal
   const openDay = (dayNum: number) => {
@@ -374,6 +410,15 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
       {/* HEADER */}
       <Card>
         <CardContent className="p-4 space-y-4">
+          {/* Empresa header */}
+          {(empresaConfig.razon_social || empresaConfig.cif) && (
+            <div className="flex items-center gap-2 text-sm bg-muted/50 rounded-lg px-3 py-2">
+              <Building2 className="w-4 h-4 text-muted-foreground" />
+              <span className="font-medium">EMPRESA: {empresaConfig.razon_social}</span>
+              {empresaConfig.cif && <span className="text-muted-foreground">CIF: {empresaConfig.cif}</span>}
+            </div>
+          )}
+
           {/* Row 1: Title + employee selector */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex items-center gap-2">
@@ -399,6 +444,12 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setShowManageEmployees(true)}>
                   <Users className="w-4 h-4 mr-1" /> Gestionar
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => {
+                  setEditEmpresa({ ...empresaConfig });
+                  setShowEmpresaConfig(true);
+                }}>
+                  <Settings2 className="w-4 h-4" />
                 </Button>
               </div>
             )}
@@ -429,6 +480,12 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 <ExportButton
                   type="registroHorario"
                   getData={() => exportData}
+                  pdfOptions={{
+                    empresa: empresaConfig.razon_social,
+                    cif: empresaConfig.cif,
+                    employeeName: currentEmpleado?.nombre_completo,
+                    legalText: 'Registro conservado durante 4 años conforme al Art. 34.9 del Estatuto de los Trabajadores (Real Decreto Legislativo 2/2015).',
+                  }}
                 />
               )}
             </div>
@@ -698,6 +755,11 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                   value={editingDay.firma_data}
                   onChange={dataUrl => setEditingDay({ ...editingDay, firma_data: dataUrl, firmado_en: dataUrl ? new Date().toISOString() : null })}
                 />
+                {editingDay.firmado_en && (
+                  <p className="text-xs text-muted-foreground">
+                    Firmado el {new Date(editingDay.firmado_en).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} {new Date(editingDay.firmado_en).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -760,6 +822,42 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
             {empleados.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">No hay empleados</p>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* EMPRESA CONFIG MODAL (admin only) */}
+      <Dialog open={showEmpresaConfig} onOpenChange={setShowEmpresaConfig}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="w-5 h-5" /> Configuración Empresa
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Estos datos aparecerán en la cabecera del registro horario y en las exportaciones PDF. Requisito legal Art. 34.9 ET.
+            </p>
+            <div className="space-y-1">
+              <Label>Razón Social</Label>
+              <Input value={editEmpresa.razon_social} onChange={e => setEditEmpresa({ ...editEmpresa, razon_social: e.target.value })} placeholder="Nombre de la empresa" />
+            </div>
+            <div className="space-y-1">
+              <Label>CIF</Label>
+              <Input value={editEmpresa.cif} onChange={e => setEditEmpresa({ ...editEmpresa, cif: e.target.value })} placeholder="B12345678" />
+            </div>
+            <Button className="w-full" onClick={async () => {
+              try {
+                await api.updateConfigEmpresa(albergueId, editEmpresa);
+                setEmpresaConfig({ ...editEmpresa });
+                setShowEmpresaConfig(false);
+                toast.success('Configuración de empresa guardada');
+              } catch (err: any) {
+                toast.error(err.message);
+              }
+            }}>
+              <Save className="w-4 h-4 mr-1" /> Guardar
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
