@@ -184,16 +184,25 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     });
   };
 
-  const handleResetTarea = (idx: number) => {
-    setTareas(prev => prev.map((t, i) => i === idx ? {
+  const handleResetTarea = async (idx: number) => {
+    const updated = tareas.map((t, i) => i === idx ? {
       ...t,
-      estado: 'pendiente',
+      estado: 'pendiente' as const,
       hechoPor: '',
       observacion: '',
       adminObs: '',
       respuestaEmpleado: '',
-    } : t));
-    toast.success('Tarea reseteada. Pulsa "Guardar todo" para confirmar.');
+    } : t);
+    setTareas(updated);
+    if (selectedDate) {
+      try {
+        await api.saveTareasDia(albergueId, selectedDate, updated);
+        await loadMonth();
+        toast.success('Tarea reseteada');
+      } catch {
+        toast.error('Error al resetear');
+      }
+    }
   };
 
   const handleSave = async () => {
