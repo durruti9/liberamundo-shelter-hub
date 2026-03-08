@@ -51,6 +51,8 @@ interface RegistroDia {
   observaciones: string;
   firma_data: string;
   firmado_en: string | null;
+  marcado_revision: boolean;
+  motivo_revision: string;
 }
 
 interface VacacionesSaldo {
