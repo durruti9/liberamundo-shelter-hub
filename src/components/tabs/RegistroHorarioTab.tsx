@@ -773,7 +773,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                     return (
                       <div className="flex gap-4 text-sm bg-muted/50 rounded-lg p-3">
                         <div><span className="text-muted-foreground">Ord:</span> <b>{calc.horas_ordinarias.toFixed(1)}h</b></div>
-                        <div><span className="text-muted-foreground">Extra:</span> <b className="text-amber-600">{calc.horas_extra.toFixed(1)}h</b></div>
+                        <div><span className="text-muted-foreground">Extra:</span> <b className="text-[hsl(38,92%,45%)]">{calc.horas_extra.toFixed(1)}h</b></div>
                         <div><span className="text-muted-foreground">Total:</span> <b>{calc.horas_totales.toFixed(1)}h</b></div>
                       </div>
                     );
