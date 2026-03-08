@@ -26,7 +26,7 @@ import SugerenciasTab from './tabs/SugerenciasTab';
 import NotasTab from './tabs/NotasTab';
 import RegistroHorarioTab from './tabs/RegistroHorarioTab';
 import InventarioTab from './tabs/InventarioTab';
-import InformesTab from './tabs/InformesTab';
+
 import ThemeToggle from './ThemeToggle';
 import GlobalSearch from './GlobalSearch';
 import NotificationBell from './NotificationBell';
