@@ -258,39 +258,43 @@ export default function InventarioTab({ role, albergueId }: Props) {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Package className="w-5 h-5 text-primary" />
-          <h2 className="text-xl font-bold">Inventario</h2>
-          <Badge variant="secondary">{items.length} artículos</Badge>
-        </div>
-        <div className="flex gap-2">
-          <ExportButton type="inventario" getData={() => items} />
-          {canManage && (
-            <Button variant="outline" size="sm" onClick={() => setShowAddCategory(true)}>
-              + Categoría
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Package className="w-5 h-5 text-primary" />
+            <h2 className="text-lg sm:text-xl font-bold">Inventario</h2>
+            <Badge variant="secondary">{items.length}</Badge>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <ExportButton type="inventario" getData={() => items} />
+            <Button size="sm" onClick={() => setShowAddItem(true)}>
+              <Plus className="w-4 h-4 mr-1" /> Artículo
             </Button>
-          )}
-          <Button size="sm" onClick={() => setShowAddItem(true)}>
-            <Plus className="w-4 h-4 mr-1" /> Nuevo artículo
-          </Button>
+          </div>
         </div>
-      </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Input placeholder="Buscar artículo..." value={search} onChange={e => setSearch(e.target.value)} className="sm:max-w-xs" />
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="sm:max-w-[200px]">
-            <SelectValue placeholder="Categoría" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas las categorías</SelectItem>
-            {categories.map(c => (
-              <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Input placeholder="Buscar artículo..." value={search} onChange={e => setSearch(e.target.value)} className="sm:max-w-xs" />
+          <div className="flex gap-2">
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectValue placeholder="Categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las categorías</SelectItem>
+                {categories.map(c => (
+                  <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {canManage && (
+              <Button variant="outline" size="icon" className="shrink-0" title="Gestionar categorías" onClick={() => setShowCategoryManager(true)}>
+                <Edit className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Items table */}
