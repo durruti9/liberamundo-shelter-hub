@@ -14,6 +14,7 @@ import { Package, Plus, Minus, AlertTriangle, Trash2, Edit, ChevronDown, BarChar
 import { api } from '@/lib/api';
 import { UserRole } from '@/types';
 import ExportButton from '@/components/ExportButton';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 const PIE_COLORS = ['hsl(221, 83%, 53%)', 'hsl(142, 71%, 45%)', 'hsl(38, 92%, 50%)', 'hsl(0, 84%, 60%)', 'hsl(270, 76%, 55%)', 'hsl(187, 85%, 43%)', 'hsl(330, 81%, 60%)'];
 

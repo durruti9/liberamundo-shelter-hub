@@ -386,6 +386,19 @@ export default function LlegadasTab({ store, role }: Props) {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteLlegadaId}
+        onClose={() => setDeleteLlegadaId(null)}
+        onConfirm={async () => {
+          if (deleteLlegadaId) {
+            try { await deleteLlegada(deleteLlegadaId); } catch (err: any) { toast.error(err.message || 'Error al eliminar'); }
+          }
+          setDeleteLlegadaId(null);
+        }}
+        title="¿Eliminar esta llegada programada?"
+        description="Se eliminará permanentemente el registro de llegada. Esta acción no se puede deshacer."
+      />
     </div>
   );
 }
