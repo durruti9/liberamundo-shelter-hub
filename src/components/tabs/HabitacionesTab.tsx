@@ -88,9 +88,13 @@ export default function HabitacionesTab({ store, role }: Props) {
     }
   };
 
-  const handleDeleteWithoutRecord = () => {
+  const handleDeleteWithoutRecord = async () => {
     if (!deleteTarget || deleteConfirmText.toUpperCase() !== 'CONFIRMAR') return;
-    deleteHuesped(deleteTarget);
+    try {
+      await deleteHuesped(deleteTarget);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al eliminar');
+    }
     setDeleteTarget(null);
     setDeleteStep(1);
     setDeleteConfirmText('');
