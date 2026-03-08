@@ -702,6 +702,11 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
         </Card>
       )}
 
+      {/* AUDIT LOG PANEL */}
+      {isAdmin && showAuditLog && (
+        <AuditLogPanel albergueId={albergueId} empleados={empleados.map(e => ({ id: e.id, nombre_completo: e.nombre_completo }))} />
+      )}
+
       {/* DAY MODAL */}
       <Dialog open={showDayModal} onOpenChange={setShowDayModal}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
