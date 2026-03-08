@@ -1,24 +1,29 @@
 import { Router } from 'express';
-import { writeFileSync, readFileSync, existsSync, unlinkSync, mkdirSync, readdirSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync, unlinkSync, mkdirSync, readdirSync, statSync } from 'fs';
 import { join, extname } from 'path';
 
 const router = Router();
-const MENU_DIR = '/app/data/menus';
+const MENU_DIR = process.env.MENU_DIR || '/app/data/menus';
 
 // Ensure directory exists
-if (!existsSync(MENU_DIR)) {
-  mkdirSync(MENU_DIR, { recursive: true });
+try {
+  if (!existsSync(MENU_DIR)) {
+    mkdirSync(MENU_DIR, { recursive: true });
+  }
+} catch (e) {
+  console.warn('⚠️ Could not create menu directory:', e.message);
 }
 
 // Get current menu info for an albergue
 router.get('/:albergueId', (req, res) => {
   try {
+    if (!existsSync(MENU_DIR)) return res.json({ exists: false });
     const files = readdirSync(MENU_DIR).filter(f => f.startsWith(`${req.params.albergueId}_menu`));
     if (files.length === 0) return res.json({ exists: false });
 
     const filename = files[0];
     const ext = extname(filename);
-    const stats = require('fs').statSync(join(MENU_DIR, filename));
+    const stats = statSync(join(MENU_DIR, filename));
     res.json({
       exists: true,
       filename: `menu${ext}`,
@@ -57,37 +62,40 @@ router.get('/:albergueId/download', (req, res) => {
   }
 });
 
-// Upload menu (replaces previous)
-router.post('/:albergueId', express_upload_handler);
-
-function express_upload_handler(req, res) {
+// Upload menu (replaces previous) — raw body approach
+router.post('/:albergueId', (req, res) => {
   const albergueId = req.params.albergueId;
-  const chunks = [];
+  const contentType = req.headers['content-type'] || '';
 
+  if (!contentType.includes('multipart/form-data')) {
+    return res.status(400).json({ error: 'Must be multipart/form-data' });
+  }
+
+  const boundary = contentType.split('boundary=')[1];
+  if (!boundary) return res.status(400).json({ error: 'No boundary found' });
+
+  const chunks = [];
   req.on('data', chunk => chunks.push(chunk));
   req.on('end', () => {
     try {
       const body = Buffer.concat(chunks);
-
-      // Parse multipart form data manually (simple parser)
-      const contentType = req.headers['content-type'] || '';
-      if (!contentType.includes('multipart/form-data')) {
-        return res.status(400).json({ error: 'Must be multipart/form-data' });
-      }
-
-      const boundary = contentType.split('boundary=')[1];
-      if (!boundary) return res.status(400).json({ error: 'No boundary found' });
-
       const parts = parseMultipart(body, boundary);
       const filePart = parts.find(p => p.name === 'file');
-      if (!filePart) return res.status(400).json({ error: 'No file provided' });
 
-      // Determine extension from original filename
+      if (!filePart || !filePart.data || filePart.data.length === 0) {
+        return res.status(400).json({ error: 'No file provided' });
+      }
+
       const origName = filePart.filename || 'menu.pdf';
       const ext = extname(origName).toLowerCase() || '.pdf';
       const allowed = ['.pdf', '.docx', '.doc', '.xlsx', '.jpg', '.png'];
       if (!allowed.includes(ext)) {
         return res.status(400).json({ error: `File type ${ext} not allowed` });
+      }
+
+      // Ensure dir exists
+      if (!existsSync(MENU_DIR)) {
+        mkdirSync(MENU_DIR, { recursive: true });
       }
 
       // Remove previous menu files for this albergue
@@ -98,6 +106,8 @@ function express_upload_handler(req, res) {
       const newFilename = `${albergueId}_menu${ext}`;
       writeFileSync(join(MENU_DIR, newFilename), filePart.data);
 
+      console.log(`✅ Menu uploaded: ${newFilename} (${filePart.data.length} bytes)`);
+
       res.json({
         ok: true,
         filename: `menu${ext}`,
@@ -105,14 +115,21 @@ function express_upload_handler(req, res) {
         size: filePart.data.length,
       });
     } catch (err) {
+      console.error('❌ Menu upload error:', err);
       res.status(500).json({ error: err.message });
     }
   });
-}
+
+  req.on('error', err => {
+    console.error('❌ Menu upload stream error:', err);
+    res.status(500).json({ error: err.message });
+  });
+});
 
 // Delete menu
 router.delete('/:albergueId', (req, res) => {
   try {
+    if (!existsSync(MENU_DIR)) return res.json({ ok: true });
     const files = readdirSync(MENU_DIR).filter(f => f.startsWith(`${req.params.albergueId}_menu`));
     files.forEach(f => unlinkSync(join(MENU_DIR, f)));
     res.json({ ok: true });
@@ -124,21 +141,36 @@ router.delete('/:albergueId', (req, res) => {
 // Simple multipart parser
 function parseMultipart(body, boundary) {
   const parts = [];
-  const boundaryBuffer = Buffer.from(`--${boundary}`);
-  const endBuffer = Buffer.from(`--${boundary}--`);
+  const boundaryBuf = Buffer.from(`--${boundary}`);
 
-  let start = body.indexOf(boundaryBuffer) + boundaryBuffer.length + 2; // skip \r\n
+  let pos = body.indexOf(boundaryBuf);
+  if (pos === -1) return parts;
 
-  while (start < body.length) {
-    const nextBoundary = body.indexOf(boundaryBuffer, start);
+  while (pos < body.length) {
+    // Move past boundary + CRLF
+    const partStart = pos + boundaryBuf.length;
+    if (partStart >= body.length) break;
+
+    // Check for end boundary
+    if (body[partStart] === 0x2D && body[partStart + 1] === 0x2D) break; // "--"
+
+    // Skip CRLF after boundary
+    const headerStart = partStart + 2; // skip \r\n
+
+    // Find end of headers (double CRLF)
+    const headerEnd = body.indexOf('\r\n\r\n', headerStart);
+    if (headerEnd === -1) break;
+
+    const headers = body.slice(headerStart, headerEnd).toString('utf8');
+    const dataStart = headerEnd + 4;
+
+    // Find next boundary
+    const nextBoundary = body.indexOf(boundaryBuf, dataStart);
     if (nextBoundary === -1) break;
 
-    const partData = body.slice(start, nextBoundary - 2); // -2 for \r\n before boundary
-    const headerEnd = partData.indexOf('\r\n\r\n');
-    if (headerEnd === -1) { start = nextBoundary + boundaryBuffer.length + 2; continue; }
-
-    const headers = partData.slice(0, headerEnd).toString();
-    const content = partData.slice(headerEnd + 4);
+    // Data ends 2 bytes before next boundary (CRLF)
+    const dataEnd = nextBoundary - 2;
+    const data = body.slice(dataStart, dataEnd);
 
     const nameMatch = headers.match(/name="([^"]+)"/);
     const filenameMatch = headers.match(/filename="([^"]+)"/);
@@ -147,12 +179,11 @@ function parseMultipart(body, boundary) {
       parts.push({
         name: nameMatch[1],
         filename: filenameMatch ? filenameMatch[1] : null,
-        data: content,
+        data,
       });
     }
 
-    start = nextBoundary + boundaryBuffer.length + 2;
-    if (body.indexOf(endBuffer, nextBoundary) === nextBoundary) break;
+    pos = nextBoundary;
   }
 
   return parts;
