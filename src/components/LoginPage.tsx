@@ -56,6 +56,7 @@ export default function LoginPage({ onLogin }: Props) {
   const [showSecret, setShowSecret] = useState(false);
   const [secretInput, setSecretInput] = useState('');
   const [secretUnlocked, setSecretUnlocked] = useState(false);
+  const [secretCode, setSecretCode] = useState('');
 
   // User creation form
   const [newUser, setNewUser] = useState({ email: '', password: '', role: 'personal_albergue' as UserRole });
