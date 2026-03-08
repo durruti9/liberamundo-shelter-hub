@@ -265,7 +265,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
         </div>
         <div className="flex gap-2">
           <ExportButton type="inventario" getData={() => items} />
-          {isAdmin && (
+          {canManage && (
             <Button variant="outline" size="sm" onClick={() => setShowAddCategory(true)}>
               + Categoría
             </Button>
