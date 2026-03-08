@@ -150,7 +150,7 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
       </h2>
 
       {/* KPI Cards */}
-      <div className={`grid gap-4 grid-cols-2 ${isAdmin ? 'md:grid-cols-6' : 'md:grid-cols-5'}`}>
+      <div className={`grid gap-4 grid-cols-2 ${isAdmin ? 'md:grid-cols-6' : role === 'gestor' ? 'md:grid-cols-4' : 'md:grid-cols-5'}`}>
         <Card>
           <CardContent className="pt-6 text-center">
             <div className="text-3xl font-bold text-primary">{porcentaje}%</div>
