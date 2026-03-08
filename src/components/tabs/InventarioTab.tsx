@@ -32,6 +32,15 @@ interface Item {
   notas: string;
 }
 
+interface LocalMovement {
+  item_id: string;
+  item_nombre: string;
+  categoria_nombre: string;
+  tipo: 'entrada' | 'salida';
+  cantidad: number;
+  fecha: string; // YYYY-MM
+}
+
 interface Props {
   role: UserRole;
   albergueId: string;
@@ -51,6 +60,8 @@ export default function InventarioTab({ role, albergueId }: Props) {
     categoria_id: '', nombre: '', unidad: 'unidades', stock_actual: 0, stock_minimo: 0, ubicacion: '', notas: '',
   });
   const [statsOpen, setStatsOpen] = useState(false);
+  const [localMovements, setLocalMovements] = useState<LocalMovement[]>([]);
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
   const [consumoData, setConsumoData] = useState<any[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -137,25 +148,54 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   useEffect(() => { if (statsOpen) loadConsumo(); }, [statsOpen, loadConsumo]);
 
-  // Filter consumption by selected month
+  // Merge API data + local movements into unified stats
   const consumoMes = useMemo(() => {
-    const filtered = consumoData.filter((r: any) => r.mes === selectedMonth);
-    // Group by category
-    const byCat: Record<string, { categoria: string; items: { nombre: string; salidas: number; entradas: number }[] }> = {};
-    for (const r of filtered) {
-      if (!byCat[r.categoria_nombre]) byCat[r.categoria_nombre] = { categoria: r.categoria_nombre, items: [] };
-      byCat[r.categoria_nombre].items.push({ nombre: r.item_nombre, salidas: parseFloat(r.total_salidas), entradas: parseFloat(r.total_entradas) });
+    const itemMap: Record<string, { nombre: string; categoria: string; salidas: number; entradas: number }> = {};
+
+    // API data
+    for (const r of consumoData.filter((r: any) => r.mes === selectedMonth)) {
+      const key = `${r.categoria_nombre}::${r.item_nombre}`;
+      if (!itemMap[key]) itemMap[key] = { nombre: r.item_nombre, categoria: r.categoria_nombre, salidas: 0, entradas: 0 };
+      itemMap[key].salidas += parseFloat(r.total_salidas);
+      itemMap[key].entradas += parseFloat(r.total_entradas);
     }
-    return Object.values(byCat);
-  }, [consumoData, selectedMonth]);
+
+    // Local movements
+    for (const m of localMovements.filter(m => m.fecha === selectedMonth)) {
+      const key = `${m.categoria_nombre}::${m.item_nombre}`;
+      if (!itemMap[key]) itemMap[key] = { nombre: m.item_nombre, categoria: m.categoria_nombre, salidas: 0, entradas: 0 };
+      if (m.tipo === 'salida') itemMap[key].salidas += m.cantidad;
+      else itemMap[key].entradas += m.cantidad;
+    }
+
+    // Group by category
+    const byCat: Record<string, { categoria: string; totalSalidas: number; items: { nombre: string; salidas: number; entradas: number }[] }> = {};
+    for (const item of Object.values(itemMap)) {
+      if (!byCat[item.categoria]) byCat[item.categoria] = { categoria: item.categoria, totalSalidas: 0, items: [] };
+      byCat[item.categoria].items.push({ nombre: item.nombre, salidas: item.salidas, entradas: item.entradas });
+      byCat[item.categoria].totalSalidas += item.salidas;
+    }
+    return Object.values(byCat).sort((a, b) => b.totalSalidas - a.totalSalidas);
+  }, [consumoData, localMovements, selectedMonth]);
 
   const availableMonths = useMemo(() => {
-    const months = new Set(consumoData.map((r: any) => r.mes));
+    const months = new Set([
+      ...consumoData.map((r: any) => r.mes),
+      ...localMovements.map(m => m.fecha),
+    ]);
     if (!months.has(selectedMonth)) months.add(selectedMonth);
     return Array.from(months).sort().reverse();
-  }, [consumoData, selectedMonth]);
+  }, [consumoData, localMovements, selectedMonth]);
 
-  const totalSalidasMes = consumoMes.reduce((sum, cat) => sum + cat.items.reduce((s, i) => s + i.salidas, 0), 0);
+  const totalSalidasMes = consumoMes.reduce((sum, cat) => sum + cat.totalSalidas, 0);
+
+  const toggleCatExpand = (cat: string) => {
+    setExpandedCats(prev => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat); else next.add(cat);
+      return next;
+    });
+  };
 
   const handleAddItem = async () => {
     if (!newItem.nombre || !newItem.categoria_id) return;
@@ -180,6 +220,10 @@ export default function InventarioTab({ role, albergueId }: Props) {
     const delta = tipo === 'entrada' ? 1 : -1;
     const newStock = Math.max(0, item.stock_actual + delta);
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, stock_actual: newStock } : i));
+    // Track locally for stats
+    const now = new Date();
+    const mes = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    setLocalMovements(prev => [...prev, { item_id: item.id, item_nombre: item.nombre, categoria_nombre: item.categoria_nombre, tipo, cantidad: 1, fecha: mes }]);
     api.addInventarioMovimiento(item.id, { tipo, cantidad: 1, motivo: '' }).catch(() => {});
   };
 
@@ -595,28 +639,40 @@ export default function InventarioTab({ role, albergueId }: Props) {
             <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
               {consumoMes.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No hay movimientos registrados en este mes
+                  No hay movimientos registrados en este mes. Usa los botones +/- para registrar entradas y salidas.
                 </p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {consumoMes.map(cat => (
                     <div key={cat.categoria}>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{cat.categoria}</p>
-                      <div className="space-y-1.5">
-                        {cat.items.map(item => (
-                          <div key={item.nombre} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                            <span className="text-sm">{item.nombre}</span>
-                            <div className="flex items-center gap-3 text-sm">
-                              {item.entradas > 0 && (
-                                <span className="text-emerald-600 dark:text-emerald-400">+{item.entradas}</span>
-                              )}
-                              {item.salidas > 0 && (
-                                <span className="text-red-600 dark:text-red-400 font-medium">-{item.salidas}</span>
-                              )}
+                      <button
+                        onClick={() => toggleCatExpand(cat.categoria)}
+                        className="w-full flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <ChevronDown className={`w-4 h-4 transition-transform ${expandedCats.has(cat.categoria) ? 'rotate-180' : ''}`} />
+                          <span className="font-medium text-sm">{cat.categoria}</span>
+                          <Badge variant="secondary" className="text-[10px]">{cat.items.length} producto{cat.items.length !== 1 ? 's' : ''}</Badge>
+                        </div>
+                        <span className="text-sm font-semibold text-red-600 dark:text-red-400">-{cat.totalSalidas}</span>
+                      </button>
+                      {expandedCats.has(cat.categoria) && (
+                        <div className="ml-6 mt-1 space-y-1 mb-2">
+                          {cat.items.sort((a, b) => b.salidas - a.salidas).map(item => (
+                            <div key={item.nombre} className="flex items-center justify-between p-2 rounded-md bg-muted/30 text-sm">
+                              <span>{item.nombre}</span>
+                              <div className="flex items-center gap-3">
+                                {item.entradas > 0 && (
+                                  <span className="text-emerald-600 dark:text-emerald-400 text-xs">+{item.entradas}</span>
+                                )}
+                                {item.salidas > 0 && (
+                                  <span className="text-red-600 dark:text-red-400 font-medium">-{item.salidas}</span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                   <div className="border-t border-border pt-3 flex justify-between text-sm font-medium">
