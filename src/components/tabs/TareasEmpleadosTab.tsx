@@ -357,13 +357,22 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                       {canDelete && <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-muted-foreground/30 text-muted-foreground">duplicado</Badge>}
                       {/* Edit pencil icon */}
                       {editable && !isEditing && (
-                        <button
-                          onClick={() => startEditing(idx)}
-                          className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-primary"
-                          title="Editar tarea"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-0.5">
+                          <button
+                            onClick={() => startEditing(idx)}
+                            className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-primary"
+                            title="Editar tarea"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleResetTarea(idx)}
+                            className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-amber-600"
+                            title="Dejar en blanco"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       )}
                       {/* Delete icon for duplicates when editing */}
                       {editable && isEditing && canDelete && (
