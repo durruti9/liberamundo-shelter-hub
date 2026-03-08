@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS empleados_horario (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   albergue_id TEXT NOT NULL REFERENCES albergues(id) ON DELETE CASCADE,
   nombre_completo TEXT NOT NULL,
-  jornada_diaria_horas NUMERIC(4,2) NOT NULL DEFAULT 8,
+  jornada_diaria_horas NUMERIC(4,2) NOT NULL DEFAULT 40,
   vacaciones_anuales INTEGER NOT NULL DEFAULT 22,
   activo BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
