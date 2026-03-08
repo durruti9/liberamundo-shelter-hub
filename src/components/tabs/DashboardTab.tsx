@@ -7,6 +7,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 import { useI18n } from '@/i18n/I18nContext';
 import { formatDateES } from '@/lib/dateFormat';
 import BoardPanel from '@/components/BoardPanel';
+import ChartTooltip from '@/components/ChartTooltip';
 import { UserRole } from '@/types';
 import { api } from '@/lib/api';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -268,7 +269,7 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip content={<ChartTooltip />} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="flex-1 space-y-1.5">
@@ -295,7 +296,7 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis dataKey="month" className="text-xs" tick={{ fontSize: 11 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <Tooltip content={<ChartTooltip />} />
                 <Bar dataKey="count" fill="hsl(212, 72%, 59%)" radius={[4, 4, 0, 0]} name={t.guestsOverTime} />
               </BarChart>
             </ResponsiveContainer>

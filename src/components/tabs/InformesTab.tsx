@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContaine
 import { BarChart3, Users, TrendingUp, Globe, Clock, BedDouble, UtensilsCrossed, FileDown } from 'lucide-react';
 import { UserRole } from '@/types';
 import ExportButton from '@/components/ExportButton';
+import ChartTooltip from '@/components/ChartTooltip';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -280,7 +281,7 @@ export default function InformesTab({ store, role }: Props) {
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                 <YAxis unit="%" tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <Tooltip content={<ChartTooltip />} />
                 <Legend />
                 <Line type="monotone" dataKey="ocupacion" name="Ocupación %" stroke="hsl(212, 72%, 59%)" strokeWidth={2} />
               </LineChart>
@@ -299,7 +300,7 @@ export default function InformesTab({ store, role }: Props) {
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <Tooltip content={<ChartTooltip />} />
                 <Legend />
                 <Bar dataKey="entradas" name="Entradas" fill="hsl(142, 60%, 45%)" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="salidas" name="Salidas" fill="hsl(0, 72%, 55%)" radius={[4, 4, 0, 0]} />
@@ -327,7 +328,7 @@ export default function InformesTab({ store, role }: Props) {
                   <Pie data={nationalityData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`} labelLine={false}>
                     {nationalityData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip content={<ChartTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -350,7 +351,7 @@ export default function InformesTab({ store, role }: Props) {
                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                   <XAxis type="number" tick={{ fontSize: 11 }} />
                   <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 10 }} />
-                  <Tooltip />
+                   <Tooltip content={<ChartTooltip />} />
                   <Bar dataKey="value" name="Huéspedes" fill="hsl(38, 92%, 55%)" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -372,7 +373,7 @@ export default function InformesTab({ store, role }: Props) {
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <Tooltip content={<ChartTooltip />} />
                 <Legend />
                 <Bar dataKey="ocupadas" name="Ocupadas" stackId="a" fill="hsl(212, 72%, 59%)" radius={[0, 0, 0, 0]} />
                 <Bar dataKey="libres" name="Libres" stackId="a" fill="hsl(212, 72%, 85%)" radius={[4, 4, 0, 0]} />
@@ -395,7 +396,7 @@ export default function InformesTab({ store, role }: Props) {
                   <Pie data={languageData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`} labelLine={false}>
                     {languageData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip content={<ChartTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
             )}
