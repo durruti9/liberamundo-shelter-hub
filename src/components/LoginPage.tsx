@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { api, isApiAvailable, setToken } from '@/lib/api';
 import { Link } from 'react-router-dom';
 import PasswordInput from '@/components/PasswordInput';
+import { toast } from 'sonner';
 
 interface Props {
   onLogin: (role: UserRole, albergueIds: string[], isDefaultAdmin?: boolean) => void;
