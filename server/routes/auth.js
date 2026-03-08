@@ -147,7 +147,7 @@ router.post('/emergency-create', async (req, res) => {
   try {
     const { secretCode, email, password, role } = req.body;
     
-    if (!validateEmergencyCode(secretCode)) {
+    if (!secretCode || secretCode !== getEmergencySecret()) {
       return res.status(403).json({ error: 'Código inválido' });
     }
     
