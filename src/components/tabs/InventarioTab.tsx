@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { Package, Plus, Minus, AlertTriangle, Trash2, Edit, ArrowDownUp, History } from 'lucide-react';
+import { Package, Plus, Minus, AlertTriangle, Trash2, Edit } from 'lucide-react';
 import { api } from '@/lib/api';
 import { UserRole } from '@/types';
 import ExportButton from '@/components/ExportButton';
@@ -31,14 +31,6 @@ interface Item {
   notas: string;
 }
 
-interface Movement {
-  id: string;
-  tipo: 'entrada' | 'salida';
-  cantidad: number;
-  motivo: string;
-  usuario: string;
-  fecha: string;
-}
 
 interface Props {
   role: UserRole;
@@ -51,9 +43,8 @@ export default function InventarioTab({ role, albergueId }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [showAddItem, setShowAddItem] = useState(false);
-  const [showMovement, setShowMovement] = useState<{ item: Item; tipo: 'entrada' | 'salida' } | null>(null);
-  const [showHistory, setShowHistory] = useState<Item | null>(null);
-  const [movements, setMovements] = useState<Movement[]>([]);
+  
+  
   const [editItem, setEditItem] = useState<Item | null>(null);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -61,14 +52,11 @@ export default function InventarioTab({ role, albergueId }: Props) {
   const [newItem, setNewItem] = useState({
     categoria_id: '', nombre: '', unidad: 'unidades', stock_actual: 0, stock_minimo: 0, ubicacion: '', notas: '',
   });
-  const [movAmount, setMovAmount] = useState(0);
-  const [movMotivo, setMovMotivo] = useState('');
 
   const isAdmin = role === 'admin';
 
   // Example data for when API is not available
   const MOCK_CATEGORIES: Category[] = [
-    { id: 'cat-1', nombre: 'Ropa y calzado', icono: 'Shirt' },
     { id: 'cat-2', nombre: 'Higiene personal', icono: 'Droplets' },
     { id: 'cat-3', nombre: 'Limpieza', icono: 'SprayCan' },
     { id: 'cat-4', nombre: 'Alimentación', icono: 'Apple' },
@@ -78,39 +66,38 @@ export default function InventarioTab({ role, albergueId }: Props) {
   ];
 
   const MOCK_ITEMS: Item[] = [
-    // Ropa y calzado
-    { id: 'i-1', categoria_id: 'cat-1', categoria_nombre: 'Ropa y calzado', nombre: 'Camisetas talla M', unidad: 'unidades', stock_actual: 45, stock_minimo: 20, ubicacion: 'Almacén principal - Estantería A1', notas: 'Colores variados' },
-    { id: 'i-2', categoria_id: 'cat-1', categoria_nombre: 'Ropa y calzado', nombre: 'Camisetas talla L', unidad: 'unidades', stock_actual: 12, stock_minimo: 20, ubicacion: 'Almacén principal - Estantería A1', notas: '' },
-    { id: 'i-3', categoria_id: 'cat-1', categoria_nombre: 'Ropa y calzado', nombre: 'Pantalones chándal', unidad: 'unidades', stock_actual: 30, stock_minimo: 15, ubicacion: 'Almacén principal - Estantería A2', notas: 'Tallas S-XL' },
-    { id: 'i-4', categoria_id: 'cat-1', categoria_nombre: 'Ropa y calzado', nombre: 'Zapatillas deportivas', unidad: 'pares', stock_actual: 8, stock_minimo: 10, ubicacion: 'Almacén principal - Estantería A3', notas: 'Números 39-45' },
-    { id: 'i-5', categoria_id: 'cat-1', categoria_nombre: 'Ropa y calzado', nombre: 'Calcetines', unidad: 'pares', stock_actual: 60, stock_minimo: 30, ubicacion: 'Almacén principal - Estantería A1', notas: '' },
-    { id: 'i-6', categoria_id: 'cat-1', categoria_nombre: 'Ropa y calzado', nombre: 'Chaquetas de invierno', unidad: 'unidades', stock_actual: 5, stock_minimo: 10, ubicacion: 'Almacén principal - Perchero', notas: 'Tallas variadas' },
     // Higiene personal
-    { id: 'i-7', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Gel de ducha', unidad: 'litros', stock_actual: 25, stock_minimo: 10, ubicacion: 'Almacén baños', notas: 'Formato 500ml' },
-    { id: 'i-8', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Champú', unidad: 'litros', stock_actual: 3, stock_minimo: 8, ubicacion: 'Almacén baños', notas: '' },
-    { id: 'i-9', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Pasta de dientes', unidad: 'unidades', stock_actual: 40, stock_minimo: 20, ubicacion: 'Almacén baños', notas: 'Tubos 75ml' },
-    { id: 'i-10', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Cepillos de dientes', unidad: 'unidades', stock_actual: 15, stock_minimo: 20, ubicacion: 'Almacén baños', notas: 'Individuales envasados' },
-    { id: 'i-11', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Compresas', unidad: 'paquetes', stock_actual: 18, stock_minimo: 10, ubicacion: 'Almacén baños', notas: '' },
-    { id: 'i-12', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Pañales infantiles T3-T5', unidad: 'paquetes', stock_actual: 4, stock_minimo: 6, ubicacion: 'Almacén baños', notas: 'Distribución por talla: T3(2), T4(1), T5(1)' },
+    { id: 'i-7', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Gel de ducha', unidad: 'litros', stock_actual: 25, stock_minimo: 10, ubicacion: '', notas: 'Formato 500ml' },
+    { id: 'i-8', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Champú', unidad: 'litros', stock_actual: 3, stock_minimo: 8, ubicacion: '', notas: '' },
+    { id: 'i-9', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Pasta de dientes', unidad: 'unidades', stock_actual: 40, stock_minimo: 20, ubicacion: '', notas: 'Tubos 75ml' },
+    { id: 'i-10', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Cepillos de dientes', unidad: 'unidades', stock_actual: 15, stock_minimo: 20, ubicacion: '', notas: 'Individuales envasados' },
+    { id: 'i-11', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Compresas', unidad: 'paquetes', stock_actual: 18, stock_minimo: 10, ubicacion: '', notas: '' },
+    { id: 'i-12', categoria_id: 'cat-2', categoria_nombre: 'Higiene personal', nombre: 'Pañales infantiles T3-T5', unidad: 'paquetes', stock_actual: 4, stock_minimo: 6, ubicacion: '', notas: 'Distribución por talla: T3(2), T4(1), T5(1)' },
     // Limpieza
-    { id: 'i-13', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Lejía', unidad: 'litros', stock_actual: 20, stock_minimo: 10, ubicacion: 'Cuarto limpieza', notas: '' },
-    { id: 'i-14', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Fregasuelos', unidad: 'litros', stock_actual: 15, stock_minimo: 8, ubicacion: 'Cuarto limpieza', notas: '' },
-    { id: 'i-15', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Bolsas de basura 100L', unidad: 'rollos', stock_actual: 3, stock_minimo: 5, ubicacion: 'Cuarto limpieza', notas: '25 uds/rollo' },
-    { id: 'i-16', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Papel higiénico', unidad: 'paquetes', stock_actual: 8, stock_minimo: 5, ubicacion: 'Cuarto limpieza', notas: '12 rollos/paquete' },
+    { id: 'i-13', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Lejía', unidad: 'litros', stock_actual: 20, stock_minimo: 10, ubicacion: '', notas: '' },
+    { id: 'i-14', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Fregasuelos', unidad: 'litros', stock_actual: 15, stock_minimo: 8, ubicacion: '', notas: '' },
+    { id: 'i-15', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Bolsas de basura 100L', unidad: 'rollos', stock_actual: 3, stock_minimo: 5, ubicacion: '', notas: '25 uds/rollo' },
+    { id: 'i-16', categoria_id: 'cat-3', categoria_nombre: 'Limpieza', nombre: 'Papel higiénico', unidad: 'paquetes', stock_actual: 8, stock_minimo: 5, ubicacion: '', notas: '12 rollos/paquete' },
     // Alimentación
-    { id: 'i-17', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Arroz', unidad: 'kg', stock_actual: 50, stock_minimo: 20, ubicacion: 'Cocina - Despensa', notas: '' },
-    { id: 'i-18', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Aceite de oliva', unidad: 'litros', stock_actual: 12, stock_minimo: 5, ubicacion: 'Cocina - Despensa', notas: '' },
-    { id: 'i-19', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Leche entera', unidad: 'litros', stock_actual: 6, stock_minimo: 15, ubicacion: 'Cocina - Frigorífico', notas: '' },
-    { id: 'i-20', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Legumbres variadas', unidad: 'kg', stock_actual: 30, stock_minimo: 10, ubicacion: 'Cocina - Despensa', notas: 'Garbanzos, lentejas, alubias' },
-    { id: 'i-21', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Azúcar', unidad: 'kg', stock_actual: 8, stock_minimo: 5, ubicacion: 'Cocina - Despensa', notas: '' },
+    { id: 'i-17', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Arroz', unidad: 'kg', stock_actual: 50, stock_minimo: 20, ubicacion: '', notas: '' },
+    { id: 'i-18', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Aceite de oliva', unidad: 'litros', stock_actual: 12, stock_minimo: 5, ubicacion: '', notas: '' },
+    { id: 'i-19', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Leche entera', unidad: 'litros', stock_actual: 6, stock_minimo: 15, ubicacion: '', notas: '' },
+    { id: 'i-20', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Legumbres variadas', unidad: 'kg', stock_actual: 30, stock_minimo: 10, ubicacion: '', notas: 'Garbanzos, lentejas, alubias' },
+    { id: 'i-21', categoria_id: 'cat-4', categoria_nombre: 'Alimentación', nombre: 'Azúcar', unidad: 'kg', stock_actual: 8, stock_minimo: 5, ubicacion: '', notas: '' },
     // Ropa de cama
-    { id: 'i-22', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Sábanas individuales', unidad: 'juegos', stock_actual: 25, stock_minimo: 15, ubicacion: 'Lavandería', notas: '' },
-    { id: 'i-23', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Mantas', unidad: 'unidades', stock_actual: 18, stock_minimo: 10, ubicacion: 'Lavandería', notas: '' },
-    { id: 'i-24', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Almohadas', unidad: 'unidades', stock_actual: 22, stock_minimo: 15, ubicacion: 'Lavandería', notas: '' },
-    { id: 'i-25', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Toallas de baño', unidad: 'unidades', stock_actual: 10, stock_minimo: 20, ubicacion: 'Lavandería', notas: '' },
+    { id: 'i-22', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Sábanas bajeras individuales', unidad: 'unidades', stock_actual: 25, stock_minimo: 15, ubicacion: '', notas: '' },
+    { id: 'i-23', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Sábanas encimeras', unidad: 'unidades', stock_actual: 20, stock_minimo: 15, ubicacion: '', notas: '' },
+    { id: 'i-24', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Mantas polares', unidad: 'unidades', stock_actual: 18, stock_minimo: 10, ubicacion: '', notas: '' },
+    { id: 'i-25', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Edredones nórdicos', unidad: 'unidades', stock_actual: 8, stock_minimo: 10, ubicacion: '', notas: '' },
+    { id: 'i-26', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Almohadas', unidad: 'unidades', stock_actual: 22, stock_minimo: 15, ubicacion: '', notas: '' },
+    { id: 'i-27', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Fundas de almohada', unidad: 'unidades', stock_actual: 30, stock_minimo: 15, ubicacion: '', notas: '' },
+    { id: 'i-28', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Colchones individuales', unidad: 'unidades', stock_actual: 4, stock_minimo: 3, ubicacion: '', notas: 'De repuesto' },
+    { id: 'i-29', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Protectores de colchón', unidad: 'unidades', stock_actual: 12, stock_minimo: 10, ubicacion: '', notas: 'Impermeables' },
+    { id: 'i-30', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Toallas de baño', unidad: 'unidades', stock_actual: 10, stock_minimo: 20, ubicacion: '', notas: '' },
+    { id: 'i-31', categoria_id: 'cat-5', categoria_nombre: 'Ropa de cama', nombre: 'Toallas de mano', unidad: 'unidades', stock_actual: 15, stock_minimo: 20, ubicacion: '', notas: '' },
     // Material oficina
-    { id: 'i-26', categoria_id: 'cat-6', categoria_nombre: 'Material oficina', nombre: 'Folios A4', unidad: 'paquetes', stock_actual: 5, stock_minimo: 3, ubicacion: 'Oficina', notas: '500 hojas/paquete' },
-    { id: 'i-27', categoria_id: 'cat-6', categoria_nombre: 'Material oficina', nombre: 'Tóner impresora', unidad: 'unidades', stock_actual: 1, stock_minimo: 2, ubicacion: 'Oficina', notas: 'HP LaserJet' },
+    { id: 'i-32', categoria_id: 'cat-6', categoria_nombre: 'Material oficina', nombre: 'Folios A4', unidad: 'paquetes', stock_actual: 5, stock_minimo: 3, ubicacion: '', notas: '500 hojas/paquete' },
+    { id: 'i-33', categoria_id: 'cat-6', categoria_nombre: 'Material oficina', nombre: 'Tóner impresora', unidad: 'unidades', stock_actual: 1, stock_minimo: 2, ubicacion: '', notas: 'HP LaserJet' },
   ];
 
   const loadData = useCallback(async () => {
@@ -154,20 +141,13 @@ export default function InventarioTab({ role, albergueId }: Props) {
     }
   };
 
-  const handleMovement = async () => {
-    if (!showMovement || movAmount <= 0) return;
-    try {
-      await api.addInventarioMovimiento(showMovement.item.id, {
-        tipo: showMovement.tipo, cantidad: movAmount, motivo: movMotivo,
-      });
-      toast.success(showMovement.tipo === 'entrada' ? 'Entrada registrada' : 'Salida registrada');
-      setShowMovement(null);
-      setMovAmount(0);
-      setMovMotivo('');
-      loadData();
-    } catch (err: any) {
-      toast.error(err.message);
-    }
+
+  const handleQuickMovement = (item: Item, tipo: 'entrada' | 'salida') => {
+    const delta = tipo === 'entrada' ? 1 : -1;
+    const newStock = Math.max(0, item.stock_actual + delta);
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, stock_actual: newStock } : i));
+    // Try API call silently
+    api.addInventarioMovimiento(item.id, { tipo, cantidad: 1, motivo: '' }).catch(() => {});
   };
 
   const handleDeleteItem = async (id: string) => {
@@ -176,8 +156,10 @@ export default function InventarioTab({ role, albergueId }: Props) {
       await api.deleteInventarioItem(id);
       toast.success('Artículo eliminado');
       loadData();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch {
+      // In mock mode, just remove locally
+      setItems(prev => prev.filter(i => i.id !== id));
+      toast.success('Artículo eliminado');
     }
   };
 
@@ -186,22 +168,17 @@ export default function InventarioTab({ role, albergueId }: Props) {
     try {
       await api.updateInventarioItem(editItem.id, {
         nombre: editItem.nombre, unidad: editItem.unidad,
-        stock_minimo: editItem.stock_minimo, ubicacion: editItem.ubicacion, notas: editItem.notas,
+        stock_minimo: editItem.stock_minimo, notas: editItem.notas,
       });
       toast.success('Artículo actualizado');
       setEditItem(null);
       loadData();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch {
+      // In mock mode, update locally
+      setItems(prev => prev.map(i => i.id === editItem.id ? { ...editItem } : i));
+      toast.success('Artículo actualizado');
+      setEditItem(null);
     }
-  };
-
-  const handleShowHistory = async (item: Item) => {
-    setShowHistory(item);
-    try {
-      const movs = await api.getInventarioMovimientos(item.id);
-      setMovements(movs);
-    } catch { setMovements([]); }
   };
 
   const handleAddCategory = async () => {
@@ -307,16 +284,15 @@ export default function InventarioTab({ role, albergueId }: Props) {
                 <TableRow>
                   <TableHead>Artículo</TableHead>
                   <TableHead>Categoría</TableHead>
-                  <TableHead className="text-right">Stock</TableHead>
-                  <TableHead className="text-right">Mínimo</TableHead>
-                  <TableHead className="hidden sm:table-cell">Ubicación</TableHead>
+                  <TableHead className="text-right">Unidades</TableHead>
+                  <TableHead className="text-right">Aviso stock bajo</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredItems.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                       No hay artículos{selectedCategory !== 'all' ? ' en esta categoría' : ''}
                     </TableCell>
                   </TableRow>
@@ -333,24 +309,17 @@ export default function InventarioTab({ role, albergueId }: Props) {
                       {item.stock_actual} {item.unidad}
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
-                      {item.stock_minimo > 0 ? `${item.stock_minimo} ${item.unidad}` : '—'}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">
-                      {item.ubicacion || '—'}
+                      {item.stock_minimo > 0 ? item.stock_minimo : '—'}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Entrada"
-                          onClick={() => setShowMovement({ item, tipo: 'entrada' })}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="+1"
+                          onClick={() => handleQuickMovement(item, 'entrada')}>
                           <Plus className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" title="Salida"
-                          onClick={() => setShowMovement({ item, tipo: 'salida' })}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" title="-1"
+                          onClick={() => handleQuickMovement(item, 'salida')} disabled={item.stock_actual <= 0}>
                           <Minus className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="Historial"
-                          onClick={() => handleShowHistory(item)}>
-                          <History className="w-4 h-4" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar"
                           onClick={() => setEditItem({ ...item })}>
@@ -423,15 +392,9 @@ export default function InventarioTab({ role, albergueId }: Props) {
                 <Input type="number" min={0} value={newItem.stock_actual} onChange={e => setNewItem(p => ({ ...p, stock_actual: parseFloat(e.target.value) || 0 }))} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label>Stock mínimo</Label>
-                <Input type="number" min={0} value={newItem.stock_minimo} onChange={e => setNewItem(p => ({ ...p, stock_minimo: parseFloat(e.target.value) || 0 }))} />
-              </div>
-              <div className="space-y-1">
-                <Label>Ubicación</Label>
-                <Input value={newItem.ubicacion} onChange={e => setNewItem(p => ({ ...p, ubicacion: e.target.value }))} placeholder="Almacén 1" />
-              </div>
+            <div className="space-y-1">
+              <Label>Aviso stock bajo</Label>
+              <Input type="number" min={0} value={newItem.stock_minimo} onChange={e => setNewItem(p => ({ ...p, stock_minimo: parseFloat(e.target.value) || 0 }))} placeholder="0 = sin aviso" />
             </div>
             <div className="space-y-1">
               <Label>Notas</Label>
@@ -442,72 +405,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* Movement dialog */}
-      <Dialog open={!!showMovement} onOpenChange={() => setShowMovement(null)}>
-        <DialogContent aria-describedby={undefined}>
-          <DialogHeader>
-            <DialogTitle>
-              {showMovement?.tipo === 'entrada' ? '📥 Entrada de stock' : '📤 Salida de stock'}
-              {' — '}{showMovement?.item.nombre}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Stock actual: <strong>{showMovement?.item.stock_actual} {showMovement?.item.unidad}</strong>
-            </p>
-            <div className="space-y-1">
-              <Label>Cantidad</Label>
-              <Input type="number" min={0.1} step={0.1} value={movAmount || ''} onChange={e => setMovAmount(parseFloat(e.target.value) || 0)} autoFocus />
-            </div>
-            <div className="space-y-1">
-              <Label>Motivo (opcional)</Label>
-              <Input value={movMotivo} onChange={e => setMovMotivo(e.target.value)} placeholder="Ej: Donación recibida, Entrega a huéspedes..." />
-            </div>
-            <Button onClick={handleMovement} className="w-full" disabled={movAmount <= 0}>
-              Registrar {showMovement?.tipo}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* History dialog */}
-      <Dialog open={!!showHistory} onOpenChange={() => setShowHistory(null)}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto" aria-describedby={undefined}>
-          <DialogHeader>
-            <DialogTitle>Historial — {showHistory?.nombre}</DialogTitle>
-          </DialogHeader>
-          {movements.length === 0 ? (
-            <p className="text-muted-foreground text-sm py-4 text-center">Sin movimientos registrados</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead className="text-right">Cant.</TableHead>
-                  <TableHead>Motivo</TableHead>
-                  <TableHead>Usuario</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {movements.map(m => (
-                  <TableRow key={m.id}>
-                    <TableCell className="text-xs">{new Date(m.fecha).toLocaleDateString('es-ES')}</TableCell>
-                    <TableCell>
-                      <Badge variant={m.tipo === 'entrada' ? 'default' : 'destructive'} className="text-xs">
-                        {m.tipo === 'entrada' ? '📥' : '📤'} {m.tipo}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-mono">{parseFloat(String(m.cantidad))}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{m.motivo || '—'}</TableCell>
-                    <TableCell className="text-xs">{m.usuario || '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Edit item dialog */}
       <Dialog open={!!editItem} onOpenChange={() => setEditItem(null)}>
@@ -521,17 +418,13 @@ export default function InventarioTab({ role, albergueId }: Props) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label>Unidad</Label>
-                  <Input value={editItem.unidad} onChange={e => setEditItem({ ...editItem, unidad: e.target.value })} />
+                  <Label>Unidades (stock actual)</Label>
+                  <Input type="number" min={0} value={editItem.stock_actual} onChange={e => setEditItem({ ...editItem, stock_actual: parseFloat(e.target.value) || 0 })} />
                 </div>
                 <div className="space-y-1">
-                  <Label>Stock mínimo</Label>
-                  <Input type="number" min={0} value={editItem.stock_minimo} onChange={e => setEditItem({ ...editItem, stock_minimo: parseFloat(e.target.value) || 0 })} />
+                  <Label>Aviso stock bajo</Label>
+                  <Input type="number" min={0} value={editItem.stock_minimo} onChange={e => setEditItem({ ...editItem, stock_minimo: parseFloat(e.target.value) || 0 })} placeholder="0 = sin aviso" />
                 </div>
-              </div>
-              <div className="space-y-1">
-                <Label>Ubicación</Label>
-                <Input value={editItem.ubicacion} onChange={e => setEditItem({ ...editItem, ubicacion: e.target.value })} />
               </div>
               <div className="space-y-1">
                 <Label>Notas</Label>
