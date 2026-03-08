@@ -113,6 +113,7 @@ export default function LoginPage({ onLogin }: Props) {
     setSecretInput(value);
     if (_v(value)) {
       setSecretUnlocked(true);
+      setSecretCode(value); // Save the code for API validation
       setSecretInput('');
     }
   };
