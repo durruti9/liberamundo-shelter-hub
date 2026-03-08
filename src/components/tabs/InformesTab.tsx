@@ -373,7 +373,7 @@ export default function InformesTab({ store, role }: Props) {
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <Tooltip content={<ChartTooltip />} />
                 <Legend />
                 <Bar dataKey="ocupadas" name="Ocupadas" stackId="a" fill="hsl(212, 72%, 59%)" radius={[0, 0, 0, 0]} />
                 <Bar dataKey="libres" name="Libres" stackId="a" fill="hsl(212, 72%, 85%)" radius={[4, 4, 0, 0]} />
