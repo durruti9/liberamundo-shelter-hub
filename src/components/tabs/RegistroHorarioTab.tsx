@@ -639,7 +639,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Vacaciones (mes)</p>
-                  <p className="text-lg font-bold text-blue-600">{monthTotals.vacDays} días</p>
+                  <p className="text-lg font-bold text-primary">{monthTotals.vacDays} días</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Sin firmar</p>
