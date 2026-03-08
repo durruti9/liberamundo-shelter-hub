@@ -32,11 +32,15 @@ router.post('/login', async (req, res) => {
       console.error('Error logging access:', logErr.message);
     }
 
+    // Check if this is the default admin account
+    const isDefaultAdmin = user.email === 'admin';
+
     res.json({
       email: user.email,
       role: user.role,
       nombre: user.nombre,
       albergueIds,
+      isDefaultAdmin,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

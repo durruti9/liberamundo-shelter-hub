@@ -20,7 +20,7 @@ export const api = {
 
   // Auth
   login: (email: string, password: string) =>
-    request<{ email: string; role: string; nombre: string; albergueIds: string[] }>('/auth/login', {
+    request<{ email: string; role: string; nombre: string; albergueIds: string[]; isDefaultAdmin?: boolean }>('/auth/login', {
       method: 'POST', body: JSON.stringify({ email, password }),
     }),
 
