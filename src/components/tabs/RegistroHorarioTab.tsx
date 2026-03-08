@@ -151,6 +151,11 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   const [vacSaldo, setVacSaldo] = useState<VacacionesSaldo>({ asignadas: 22, consumidas: 0 });
   const [loading, setLoading] = useState(false);
 
+  // Empresa config
+  const [empresaConfig, setEmpresaConfig] = useState({ razon_social: '', cif: '' });
+  const [showEmpresaConfig, setShowEmpresaConfig] = useState(false);
+  const [editEmpresa, setEditEmpresa] = useState({ razon_social: '', cif: '' });
+
   // Modal states
   const [showDayModal, setShowDayModal] = useState(false);
   const [editingDay, setEditingDay] = useState<RegistroDia | null>(null);
