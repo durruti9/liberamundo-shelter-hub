@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import {
   Clock, ChevronLeft, ChevronRight, Plus, Trash2, UserPlus, Users,
-  Check, X, CalendarDays, FileDown, Lock, Pencil, Save, Building2, Settings2
+  Check, X, CalendarDays, FileDown, Lock, Pencil, Save, Building2, Settings2, AlertTriangle
 } from 'lucide-react';
 import { UserRole } from '@/types';
 import { api } from '@/lib/api';
@@ -51,6 +51,8 @@ interface RegistroDia {
   observaciones: string;
   firma_data: string;
   firmado_en: string | null;
+  marcado_revision: boolean;
+  motivo_revision: string;
 }
 
 interface VacacionesSaldo {
@@ -138,6 +140,7 @@ function emptyRecord(empleadoId: string, fecha: string): RegistroDia {
     horas_ordinarias: 0, horas_extra: 0, horas_complementarias: 0,
     horas_vacaciones: 0, horas_totales: 0,
     observaciones: '', firma_data: '', firmado_en: null,
+    marcado_revision: false, motivo_revision: '',
   };
 }
 
@@ -280,14 +283,38 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
     setSaving(false);
   }, [records, currentEmpleado]);
 
-  // Open day modal
+  // Open day modal (only for non-admin)
   const openDay = (dayNum: number) => {
     if (!selectedEmpleado) return;
     const fecha = formatDate(year, month, dayNum);
     if (isFuture(fecha)) return;
+    if (isAdmin) return; // Admin cannot edit records
     const existing = records.get(fecha) || emptyRecord(selectedEmpleado, fecha);
     setEditingDay({ ...existing });
     setShowDayModal(true);
+  };
+
+  // Toggle review flag (admin only)
+  const toggleRevision = async (dayNum: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAdmin || !selectedEmpleado) return;
+    const fecha = formatDate(year, month, dayNum);
+    const rec = records.get(fecha);
+    if (!rec || !rec.estado) return;
+
+    const newFlag = !rec.marcado_revision;
+    let motivo = rec.motivo_revision || '';
+    if (newFlag) {
+      const reason = prompt('Motivo de la revisión (opcional):');
+      if (reason === null) return; // cancelled
+      motivo = reason;
+    } else {
+      motivo = '';
+    }
+
+    const updated = { ...rec, marcado_revision: newFlag, motivo_revision: motivo };
+    await saveRecord(updated);
+    toast.success(newFlag ? 'Marcado para revisión' : 'Revisión resuelta');
   };
 
   // Save day from modal
@@ -515,6 +542,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                       <TableHead className="text-xs text-center hidden sm:table-cell">Extra</TableHead>
                       <TableHead className="text-xs text-center">Total</TableHead>
                       <TableHead className="text-xs text-center w-12">Firma</TableHead>
+                      <TableHead className="text-xs text-center w-10">Rev.</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -527,11 +555,12 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
                       const estado = ESTADOS.find(e => e.value === rec?.estado);
                       const hasWork = rec && ['trabajado', 'teletrabajo'].includes(rec.estado);
+                      const hasRevision = rec?.marcado_revision;
 
                       return (
                         <TableRow
                           key={dayNum}
-                          className={`cursor-pointer transition-colors ${future ? 'opacity-40 cursor-not-allowed' : 'hover:bg-muted/50'} ${isToday ? 'bg-primary/5 border-l-2 border-l-primary' : ''} ${isWeekend && !rec?.estado ? 'bg-muted/30' : ''}`}
+                          className={`transition-colors ${future ? 'opacity-40 cursor-not-allowed' : isAdmin ? 'cursor-default' : 'cursor-pointer hover:bg-muted/50'} ${isToday ? 'bg-primary/5 border-l-2 border-l-primary' : ''} ${isWeekend && !rec?.estado ? 'bg-muted/30' : ''} ${hasRevision ? 'bg-destructive/5 border-l-2 border-l-destructive' : ''}`}
                           onClick={() => openDay(dayNum)}
                         >
                           <TableCell className="text-xs font-medium sticky left-0 bg-inherit z-10">
@@ -559,9 +588,24 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                           <TableCell className="text-xs text-center font-bold">{hasWork ? Number(rec.horas_totales).toFixed(1) : ''}</TableCell>
                           <TableCell className="text-xs text-center">
                             {rec?.firma_data ? (
-                              <span title="Firmado" className="text-green-600">✅</span>
+                              <span title="Firmado" className="text-[hsl(var(--success))]">✅</span>
                             ) : rec?.estado ? (
                               <span title="Pendiente" className="text-amber-500">⚠️</span>
+                            ) : null}
+                          </TableCell>
+                          <TableCell className="text-xs text-center p-1">
+                            {isAdmin && rec?.estado && !future ? (
+                              <button
+                                onClick={(e) => toggleRevision(dayNum, e)}
+                                className={`p-1 rounded transition-colors ${hasRevision ? 'text-destructive hover:text-destructive/70' : 'text-muted-foreground/30 hover:text-destructive/50'}`}
+                                title={hasRevision ? `Revisión: ${rec.motivo_revision || 'Sin motivo'}` : 'Marcar para revisión'}
+                              >
+                                <AlertTriangle className="w-4 h-4" />
+                              </button>
+                            ) : hasRevision ? (
+                              <span title={`Revisión: ${rec?.motivo_revision || 'Revisar este registro'}`} className="text-destructive">
+                                <AlertTriangle className="w-4 h-4 inline" />
+                              </span>
                             ) : null}
                           </TableCell>
                         </TableRow>
@@ -665,6 +709,18 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
           </DialogHeader>
           {editingDay && (
             <div className="space-y-4">
+              {/* Admin review banner */}
+              {editingDay.marcado_revision && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-destructive">Marcado para revisión</p>
+                    {editingDay.motivo_revision && (
+                      <p className="text-xs text-muted-foreground mt-1">{editingDay.motivo_revision}</p>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>Estado</Label>
                 <Select value={editingDay.estado} onValueChange={v => setEditingDay({ ...editingDay, estado: v })}>

@@ -205,6 +205,8 @@ CREATE TABLE IF NOT EXISTS registros_horario (
   observaciones TEXT NOT NULL DEFAULT '',
   firma_data TEXT NOT NULL DEFAULT '',
   firmado_en TIMESTAMPTZ,
+  marcado_revision BOOLEAN NOT NULL DEFAULT false,
+  motivo_revision TEXT NOT NULL DEFAULT '',
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(empleado_id, fecha)
 );
