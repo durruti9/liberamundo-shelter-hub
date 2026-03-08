@@ -12,7 +12,8 @@ router.get('/', async (_, res) => {
     const result = albergues.map(a => ({
       ...a,
       rooms: rooms.filter(r => r.albergue_id === a.id).map(r => ({
-        id: r.id, nombre: r.nombre, camas: r.camas, ultimaLimpieza: r.ultima_limpieza || null,
+        id: r.id, nombre: r.nombre, camas: r.camas,
+        ultimaLimpieza: r.ultima_limpieza ? r.ultima_limpieza.toISOString().split('T')[0] : null,
       })),
     }));
     res.json(result);
