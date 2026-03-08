@@ -24,7 +24,7 @@ interface Props {
 }
 
 export default function HabitacionesTab({ store, role }: Props) {
-  const { huespedActivos, rooms, totalCamas, checkIn, checkOut, cambiarCama, editHuesped, deleteHuesped, getOccupant, updateRooms } = store;
+  const { huespedActivos, rooms, totalCamas, checkIn, checkOut, cambiarCama, editHuesped, deleteHuesped, getOccupant, updateRooms, updateRoomCleaning } = store;
   const { t, lang } = useI18n();
   const dateFnsLocale = { es, fr, ar, en: enUS, ru }[lang] || es;
   const canClean = role === 'admin' || role === 'personal_albergue';
