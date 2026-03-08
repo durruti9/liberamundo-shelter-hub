@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Package, Plus, Minus, AlertTriangle, Trash2, Edit, ArrowDownUp, History } from 'lucide-react';
 import { api } from '@/lib/api';
 import { UserRole } from '@/types';
+import ExportButton from '@/components/ExportButton';
 
 interface Category {
   id: string;
