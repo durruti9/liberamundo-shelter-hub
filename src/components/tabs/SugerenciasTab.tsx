@@ -215,7 +215,7 @@ export default function SugerenciasTab({ role, albergueId, userName }: Props) {
           </p>
         </div>
         {submitted ? (
-          <Card className="border-[hsl(142,60%,40%)]/30 bg-[hsl(142,60%,95%)]">
+          <Card className="border-[hsl(142,60%,40%)]/30 bg-[hsl(142,60%,95%)] dark:bg-[hsl(142,30%,15%)]">
             <CardContent className="p-6 text-center space-y-3">
               <div className="text-4xl">✅</div>
               <h3 className="font-semibold text-lg">¡Mensaje enviado!</h3>
@@ -358,8 +358,8 @@ export default function SugerenciasTab({ role, albergueId, userName }: Props) {
               key={sug.id}
               className={`border-2 transition-colors ${
                 sug.resuelta
-                  ? 'border-[hsl(142,60%,40%)]/40 bg-[hsl(142,60%,97%)]'
-                  : 'border-[hsl(30,90%,50%)]/40 bg-[hsl(30,90%,97%)]'
+                  ? 'border-[hsl(142,60%,40%)]/40 bg-[hsl(142,60%,97%)] dark:bg-[hsl(142,30%,15%)]'
+                  : 'border-[hsl(30,90%,50%)]/40 bg-[hsl(30,90%,97%)] dark:bg-[hsl(30,40%,15%)]'
               }`}
             >
               <CardContent className="p-4 space-y-2">
