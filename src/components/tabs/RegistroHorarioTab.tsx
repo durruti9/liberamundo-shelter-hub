@@ -211,6 +211,15 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   useEffect(() => { loadEmpleados(); }, [loadEmpleados]);
   useEffect(() => { loadRecords(); loadVacaciones(); }, [loadRecords, loadVacaciones]);
 
+  // Load empresa config
+  const loadEmpresaConfig = useCallback(async () => {
+    try {
+      const data = await api.getConfigEmpresa(albergueId);
+      setEmpresaConfig({ razon_social: data.razon_social || '', cif: data.cif || '' });
+    } catch { /* ignore */ }
+  }, [albergueId]);
+  useEffect(() => { loadEmpresaConfig(); }, [loadEmpresaConfig]);
+
   const currentEmpleado = empleados.find(e => e.id === selectedEmpleado);
   const numDays = daysInMonth(year, month);
 
