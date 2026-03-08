@@ -44,6 +44,14 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     
     throw error;
   }
+
+  // Validate response is actually JSON (proxy/nginx can return HTML with 200)
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    console.error(`[API] ${options?.method || 'GET'} ${path} → unexpected content-type: ${contentType}`);
+    throw new Error(`API returned non-JSON response for ${path}`);
+  }
+
   return res.json();
 }
 
