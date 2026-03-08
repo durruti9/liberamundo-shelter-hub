@@ -148,6 +148,27 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
     return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   };
 
+  if (store.isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-7 w-48" />
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="pt-6 text-center space-y-2">
+              <Skeleton className="h-8 w-16 mx-auto" />
+              <Skeleton className="h-3 w-24 mx-auto" />
+              <Skeleton className="h-2 w-full" />
+            </CardContent></Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-bold flex items-center gap-2">
