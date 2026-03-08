@@ -1428,6 +1428,11 @@ const ru: Translations = {
   resolveMessage: 'Решить сообщение',
   upcomingArrivalsBoard: 'Ближайшие прибытия',
   employeeTasks: 'Ежедневные задачи',
+  lastCleaning: 'Уборка',
+  noCleaningRecorded: 'Уборка не зарегистрирована',
+  today: 'Сегодня',
+  yesterday: 'Вчера',
+  ago: 'назад',
 };
 
 export const translations: Record<Language, Translations> = { es, fr, ar, en, ru };
