@@ -70,7 +70,7 @@ export default function LoginPage({ onLogin }: Props) {
           localStorage.setItem('auth', 'true');
           localStorage.setItem('authRole', result.role);
           localStorage.setItem('authEmail', email);
-          onLogin(result.role as UserRole, result.albergueIds);
+          onLogin(result.role as UserRole, result.albergueIds, result.isDefaultAdmin);
           return;
         } catch (err: any) {
           // If server error (500 = DB issue), fall through to localStorage
