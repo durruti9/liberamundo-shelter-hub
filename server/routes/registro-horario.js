@@ -1,0 +1,182 @@
+import { Router } from 'express';
+import pool from '../db.js';
+
+const router = Router();
+
+// ====== EMPLEADOS ======
+
+// Get all employees for an albergue
+router.get('/empleados/:albergueId', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM empleados_horario WHERE albergue_id = $1 ORDER BY nombre_completo',
+      [req.params.albergueId]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Create employee
+router.post('/empleados/:albergueId', async (req, res) => {
+  try {
+    const { nombre_completo, jornada_diaria_horas, vacaciones_anuales } = req.body;
+    const { rows } = await pool.query(
+      `INSERT INTO empleados_horario (albergue_id, nombre_completo, jornada_diaria_horas, vacaciones_anuales)
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [req.params.albergueId, nombre_completo, jornada_diaria_horas || 8, vacaciones_anuales || 22]
+    );
+    // Create vacation balance for current year
+    const year = new Date().getFullYear();
+    await pool.query(
+      `INSERT INTO vacaciones_saldo (empleado_id, anio, asignadas) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
+      [rows[0].id, year, vacaciones_anuales || 22]
+    );
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update employee
+router.put('/empleados/:id', async (req, res) => {
+  try {
+    const { nombre_completo, jornada_diaria_horas, vacaciones_anuales, activo } = req.body;
+    const updates = [];
+    const values = [];
+    let idx = 1;
+    if (nombre_completo !== undefined) { updates.push(`nombre_completo = $${idx++}`); values.push(nombre_completo); }
+    if (jornada_diaria_horas !== undefined) { updates.push(`jornada_diaria_horas = $${idx++}`); values.push(jornada_diaria_horas); }
+    if (vacaciones_anuales !== undefined) { updates.push(`vacaciones_anuales = $${idx++}`); values.push(vacaciones_anuales); }
+    if (activo !== undefined) { updates.push(`activo = $${idx++}`); values.push(activo); }
+    if (updates.length === 0) return res.json({ ok: true });
+    values.push(req.params.id);
+    await pool.query(`UPDATE empleados_horario SET ${updates.join(', ')} WHERE id = $${idx}`, values);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete employee
+router.delete('/empleados/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM empleados_horario WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ====== REGISTROS DIARIOS ======
+
+// Get records for employee + month
+router.get('/registros/:empleadoId', async (req, res) => {
+  try {
+    const { start, end } = req.query;
+    const { rows } = await pool.query(
+      'SELECT * FROM registros_horario WHERE empleado_id = $1 AND fecha >= $2 AND fecha <= $3 ORDER BY fecha',
+      [req.params.empleadoId, start, end]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Upsert a single day record
+router.post('/registros/:empleadoId', async (req, res) => {
+  try {
+    const { fecha, estado, entrada_manana, salida_manana, entrada_tarde, salida_tarde,
+            entrada_noche, salida_noche, pausa_min, horas_ordinarias, horas_extra,
+            horas_complementarias, horas_vacaciones, horas_totales, observaciones,
+            firma_data, firmado_en } = req.body;
+    
+    const { rows } = await pool.query(
+      `INSERT INTO registros_horario 
+        (empleado_id, fecha, estado, entrada_manana, salida_manana, entrada_tarde, salida_tarde,
+         entrada_noche, salida_noche, pausa_min, horas_ordinarias, horas_extra,
+         horas_complementarias, horas_vacaciones, horas_totales, observaciones, firma_data, firmado_en, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18, NOW())
+       ON CONFLICT (empleado_id, fecha) DO UPDATE SET
+         estado = EXCLUDED.estado,
+         entrada_manana = EXCLUDED.entrada_manana,
+         salida_manana = EXCLUDED.salida_manana,
+         entrada_tarde = EXCLUDED.entrada_tarde,
+         salida_tarde = EXCLUDED.salida_tarde,
+         entrada_noche = EXCLUDED.entrada_noche,
+         salida_noche = EXCLUDED.salida_noche,
+         pausa_min = EXCLUDED.pausa_min,
+         horas_ordinarias = EXCLUDED.horas_ordinarias,
+         horas_extra = EXCLUDED.horas_extra,
+         horas_complementarias = EXCLUDED.horas_complementarias,
+         horas_vacaciones = EXCLUDED.horas_vacaciones,
+         horas_totales = EXCLUDED.horas_totales,
+         observaciones = EXCLUDED.observaciones,
+         firma_data = EXCLUDED.firma_data,
+         firmado_en = EXCLUDED.firmado_en,
+         updated_at = NOW()
+       RETURNING *`,
+      [req.params.empleadoId, fecha, estado || 'trabajado',
+       entrada_manana || null, salida_manana || null,
+       entrada_tarde || null, salida_tarde || null,
+       entrada_noche || null, salida_noche || null,
+       pausa_min || 0, horas_ordinarias || 0, horas_extra || 0,
+       horas_complementarias || 0, horas_vacaciones || 0, horas_totales || 0,
+       observaciones || '', firma_data || '', firmado_en || null]
+    );
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ====== VACACIONES SALDO ======
+
+// Get vacation balance
+router.get('/vacaciones/:empleadoId/:anio', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM vacaciones_saldo WHERE empleado_id = $1 AND anio = $2',
+      [req.params.empleadoId, req.params.anio]
+    );
+    if (rows.length === 0) {
+      // Get employee defaults
+      const { rows: emp } = await pool.query('SELECT vacaciones_anuales FROM empleados_horario WHERE id = $1', [req.params.empleadoId]);
+      const asignadas = emp[0]?.vacaciones_anuales || 22;
+      const { rows: created } = await pool.query(
+        'INSERT INTO vacaciones_saldo (empleado_id, anio, asignadas) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING RETURNING *',
+        [req.params.empleadoId, req.params.anio, asignadas]
+      );
+      if (created.length > 0) return res.json(created[0]);
+      // If ON CONFLICT, fetch it
+      const { rows: existing } = await pool.query(
+        'SELECT * FROM vacaciones_saldo WHERE empleado_id = $1 AND anio = $2',
+        [req.params.empleadoId, req.params.anio]
+      );
+      return res.json(existing[0] || { asignadas, consumidas: 0 });
+    }
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update vacation balance
+router.put('/vacaciones/:empleadoId/:anio', async (req, res) => {
+  try {
+    const { asignadas, consumidas } = req.body;
+    await pool.query(
+      `INSERT INTO vacaciones_saldo (empleado_id, anio, asignadas, consumidas)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (empleado_id, anio) DO UPDATE SET asignadas = $3, consumidas = $4`,
+      [req.params.empleadoId, req.params.anio, asignadas, consumidas]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+export default router;

@@ -173,3 +173,49 @@ CREATE TABLE IF NOT EXISTS access_logs (
 );
 
 CREATE INDEX IF NOT EXISTS idx_access_logs_timestamp ON access_logs(timestamp DESC);
+
+-- Registro Horario Empleados
+CREATE TABLE IF NOT EXISTS empleados_horario (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  albergue_id TEXT NOT NULL REFERENCES albergues(id) ON DELETE CASCADE,
+  nombre_completo TEXT NOT NULL,
+  jornada_diaria_horas NUMERIC(4,2) NOT NULL DEFAULT 8,
+  vacaciones_anuales INTEGER NOT NULL DEFAULT 22,
+  activo BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS registros_horario (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  empleado_id TEXT NOT NULL REFERENCES empleados_horario(id) ON DELETE CASCADE,
+  fecha DATE NOT NULL,
+  estado TEXT NOT NULL DEFAULT 'trabajado',
+  entrada_manana TIME,
+  salida_manana TIME,
+  entrada_tarde TIME,
+  salida_tarde TIME,
+  entrada_noche TIME,
+  salida_noche TIME,
+  pausa_min INTEGER NOT NULL DEFAULT 0,
+  horas_ordinarias NUMERIC(5,2) NOT NULL DEFAULT 0,
+  horas_extra NUMERIC(5,2) NOT NULL DEFAULT 0,
+  horas_complementarias NUMERIC(5,2) NOT NULL DEFAULT 0,
+  horas_vacaciones NUMERIC(3,1) NOT NULL DEFAULT 0,
+  horas_totales NUMERIC(5,2) NOT NULL DEFAULT 0,
+  observaciones TEXT NOT NULL DEFAULT '',
+  firma_data TEXT NOT NULL DEFAULT '',
+  firmado_en TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(empleado_id, fecha)
+);
+
+CREATE INDEX IF NOT EXISTS idx_registros_horario_emp_fecha ON registros_horario(empleado_id, fecha);
+
+CREATE TABLE IF NOT EXISTS vacaciones_saldo (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  empleado_id TEXT NOT NULL REFERENCES empleados_horario(id) ON DELETE CASCADE,
+  anio INTEGER NOT NULL,
+  asignadas INTEGER NOT NULL DEFAULT 22,
+  consumidas NUMERIC(4,1) NOT NULL DEFAULT 0,
+  UNIQUE(empleado_id, anio)
+);
