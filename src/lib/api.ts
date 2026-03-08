@@ -199,6 +199,8 @@ export const api = {
     request<any>(`/registro-horario/config-empresa/${albergueId}`, { method: 'PUT', body: JSON.stringify(data) }),
   logAuditoria: (data: any) =>
     request<any>(`/registro-horario/auditoria`, { method: 'POST', body: JSON.stringify(data) }),
+  getAuditoria: (albergueId: string) =>
+    request<any[]>(`/registro-horario/auditoria/${albergueId}`),
 };
 
 // Check if API is available

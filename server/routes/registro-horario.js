@@ -214,6 +214,23 @@ router.put('/config-empresa/:albergueId', async (req, res) => {
 
 // ====== AUDITORÍA ======
 
+// Get audit entries for an albergue
+router.get('/auditoria/:albergueId', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT a.* FROM auditoria_registros a
+       JOIN empleados_horario e ON a.empleado_id = e.id
+       WHERE e.albergue_id = $1
+       ORDER BY a.created_at DESC
+       LIMIT 200`,
+      [req.params.albergueId]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Log audit entry (called internally when saving records)
 router.post('/auditoria', async (req, res) => {
   try {
