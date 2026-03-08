@@ -13,6 +13,7 @@ import CheckInModal from '@/components/CheckInModal';
 import { BedDouble, MoreVertical, AlertTriangle, SprayCan } from 'lucide-react';
 import ExportButton from '@/components/ExportButton';
 import { format, differenceInDays } from 'date-fns';
+import { es, fr, ar, enUS, ru } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { stayDuration, formatDateES } from '@/lib/dateFormat';
 import { useI18n } from '@/i18n/I18nContext';
