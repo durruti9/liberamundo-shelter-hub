@@ -583,7 +583,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                 )}
 
                 <p className="text-xs text-muted-foreground">
-                  ⚠️ Recuerda pulsar "Guardar todo" para que los cambios se persistan.
+                  ⚠️ Recuerda pulsar "Registrar" en la tarea correspondiente para guardar los cambios.
                 </p>
               </div>
             )}
