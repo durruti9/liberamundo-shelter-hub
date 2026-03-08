@@ -308,11 +308,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
   };
 
   const handleDeleteCategory = async (id: string) => {
-    const catItems = items.filter(i => i.categoria_id === id);
-    const msg = catItems.length > 0
-      ? `Esta categoría tiene ${catItems.length} artículo(s). ¿Eliminar la categoría y todos sus artículos?`
-      : '¿Eliminar esta categoría?';
-    if (!confirm(msg)) return;
     try {
       await api.deleteInventarioCategoria(id);
       toast.success('Categoría eliminada');
@@ -323,6 +318,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
       if (selectedCategory === id) setSelectedCategory('all');
       toast.success('Categoría eliminada');
     }
+    setDeleteCategoryId(null);
   };
 
   const handleEditCategory = async () => {
