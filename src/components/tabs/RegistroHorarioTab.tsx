@@ -734,11 +734,14 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
             <DialogTitle className="flex items-center gap-2">
               <CalendarDays className="w-5 h-5" />
               {editingDay && formatDisplayDate(editingDay.fecha)}
-              {editingDay && (
-                <span className="text-sm font-normal text-muted-foreground">
-                  ({DAYS_ES[new Date(editingDay.fecha).getDay()]})
-                </span>
-              )}
+              {editingDay && (() => {
+                const [y, m, d] = editingDay.fecha.split('-').map(Number);
+                return (
+                  <span className="text-sm font-normal text-muted-foreground">
+                    ({DAYS_ES[new Date(y, m - 1, d).getDay()]})
+                  </span>
+                );
+              })()}
             </DialogTitle>
           </DialogHeader>
           {editingDay && (
