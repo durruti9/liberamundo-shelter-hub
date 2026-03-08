@@ -148,25 +148,54 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   useEffect(() => { if (statsOpen) loadConsumo(); }, [statsOpen, loadConsumo]);
 
-  // Filter consumption by selected month
+  // Merge API data + local movements into unified stats
   const consumoMes = useMemo(() => {
-    const filtered = consumoData.filter((r: any) => r.mes === selectedMonth);
-    // Group by category
-    const byCat: Record<string, { categoria: string; items: { nombre: string; salidas: number; entradas: number }[] }> = {};
-    for (const r of filtered) {
-      if (!byCat[r.categoria_nombre]) byCat[r.categoria_nombre] = { categoria: r.categoria_nombre, items: [] };
-      byCat[r.categoria_nombre].items.push({ nombre: r.item_nombre, salidas: parseFloat(r.total_salidas), entradas: parseFloat(r.total_entradas) });
+    const itemMap: Record<string, { nombre: string; categoria: string; salidas: number; entradas: number }> = {};
+
+    // API data
+    for (const r of consumoData.filter((r: any) => r.mes === selectedMonth)) {
+      const key = `${r.categoria_nombre}::${r.item_nombre}`;
+      if (!itemMap[key]) itemMap[key] = { nombre: r.item_nombre, categoria: r.categoria_nombre, salidas: 0, entradas: 0 };
+      itemMap[key].salidas += parseFloat(r.total_salidas);
+      itemMap[key].entradas += parseFloat(r.total_entradas);
     }
-    return Object.values(byCat);
-  }, [consumoData, selectedMonth]);
+
+    // Local movements
+    for (const m of localMovements.filter(m => m.fecha === selectedMonth)) {
+      const key = `${m.categoria_nombre}::${m.item_nombre}`;
+      if (!itemMap[key]) itemMap[key] = { nombre: m.item_nombre, categoria: m.categoria_nombre, salidas: 0, entradas: 0 };
+      if (m.tipo === 'salida') itemMap[key].salidas += m.cantidad;
+      else itemMap[key].entradas += m.cantidad;
+    }
+
+    // Group by category
+    const byCat: Record<string, { categoria: string; totalSalidas: number; items: { nombre: string; salidas: number; entradas: number }[] }> = {};
+    for (const item of Object.values(itemMap)) {
+      if (!byCat[item.categoria]) byCat[item.categoria] = { categoria: item.categoria, totalSalidas: 0, items: [] };
+      byCat[item.categoria].items.push({ nombre: item.nombre, salidas: item.salidas, entradas: item.entradas });
+      byCat[item.categoria].totalSalidas += item.salidas;
+    }
+    return Object.values(byCat).sort((a, b) => b.totalSalidas - a.totalSalidas);
+  }, [consumoData, localMovements, selectedMonth]);
 
   const availableMonths = useMemo(() => {
-    const months = new Set(consumoData.map((r: any) => r.mes));
+    const months = new Set([
+      ...consumoData.map((r: any) => r.mes),
+      ...localMovements.map(m => m.fecha),
+    ]);
     if (!months.has(selectedMonth)) months.add(selectedMonth);
     return Array.from(months).sort().reverse();
-  }, [consumoData, selectedMonth]);
+  }, [consumoData, localMovements, selectedMonth]);
 
-  const totalSalidasMes = consumoMes.reduce((sum, cat) => sum + cat.items.reduce((s, i) => s + i.salidas, 0), 0);
+  const totalSalidasMes = consumoMes.reduce((sum, cat) => sum + cat.totalSalidas, 0);
+
+  const toggleCatExpand = (cat: string) => {
+    setExpandedCats(prev => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat); else next.add(cat);
+      return next;
+    });
+  };
 
   const handleAddItem = async () => {
     if (!newItem.nombre || !newItem.categoria_id) return;
