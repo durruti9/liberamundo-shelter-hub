@@ -726,6 +726,11 @@ const fr: Translations = {
   resolveMessage: 'Résoudre le message',
   upcomingArrivalsBoard: 'Prochaines arrivées',
   employeeTasks: 'Tâches Quotidiennes',
+  lastCleaning: 'Nettoyage',
+  noCleaningRecorded: 'Aucun nettoyage enregistré',
+  today: "Aujourd'hui",
+  yesterday: 'Hier',
+  ago: 'il y a',
 };
 
 const ar: Translations = {
