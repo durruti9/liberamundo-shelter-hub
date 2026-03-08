@@ -859,7 +859,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
 
       {/* MANAGE EMPLOYEES MODAL */}
       <Dialog open={showManageEmployees} onOpenChange={setShowManageEmployees}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" aria-describedby={undefined}>
           <DialogHeader><DialogTitle>Gestionar empleados</DialogTitle></DialogHeader>
           <div className="space-y-2">
             {empleados.map(emp => (
