@@ -484,6 +484,9 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 }}>
                   <Settings2 className="w-4 h-4" />
                 </Button>
+                <Button size="sm" variant="outline" onClick={() => setShowAuditLog(!showAuditLog)}>
+                  <History className="w-4 h-4 mr-1" /> Auditoría
+                </Button>
               </div>
             )}
           </div>
