@@ -112,7 +112,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   const canManage = role === 'admin' || role === 'personal_albergue';
 
-  const loadedRef = React.useRef(false);
+  const loadedRef = useRef(false);
 
   const loadData = useCallback(async () => {
     try {
