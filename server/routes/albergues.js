@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { requireRole } from '../middleware/auth.js';
+import { requireAlbergueAccess } from '../middleware/albergueAccess.js';
 
 const router = Router();
 
