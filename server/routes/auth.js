@@ -5,8 +5,8 @@ import pool from '../db.js';
 const router = Router();
 
 // --- Rate limiting: max 5 attempts per IP per 15 min ---
-const loginAttempts = new Map(); // ip -> { count, firstAttempt }
-const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 min
+const loginAttempts = new Map();
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000;
 const RATE_LIMIT_MAX = 5;
 
 function checkRateLimit(ip) {
@@ -21,7 +21,6 @@ function checkRateLimit(ip) {
   return true;
 }
 
-// Cleanup old entries every 10 min
 setInterval(() => {
   const now = Date.now();
   for (const [ip, record] of loginAttempts.entries()) {
@@ -34,12 +33,12 @@ router.post('/login', async (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.socket?.remoteAddress || '';
     const ipStr = typeof ip === 'string' ? ip : String(ip);
 
-    // Rate limit check
     if (!checkRateLimit(ipStr)) {
       return res.status(429).json({ error: 'Demasiados intentos. Espera 15 minutos.' });
     }
 
     const { email, password } = req.body;
+    const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (rows.length === 0) return res.status(401).json({ error: 'Credenciales inválidas' });
 
     const user = rows[0];
@@ -53,18 +52,16 @@ router.post('/login', async (req, res) => {
     const albergueIds = albergueRows.map(r => r.albergue_id);
 
     // Log access
-    const ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.socket?.remoteAddress || '';
     const ua = req.headers['user-agent'] || '';
     try {
       await pool.query(
         'INSERT INTO access_logs (user_email, user_role, ip_address, user_agent) VALUES ($1, $2, $3, $4)',
-        [user.email, user.role, typeof ip === 'string' ? ip : String(ip), ua]
+        [user.email, user.role, ipStr, ua]
       );
     } catch (logErr) {
       console.error('Error logging access:', logErr.message);
     }
 
-    // Check if this is the default admin account
     const isDefaultAdmin = user.email === 'admin';
 
     res.json({
