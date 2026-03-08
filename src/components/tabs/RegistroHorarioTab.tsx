@@ -831,7 +831,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
 
       {/* ADD EMPLOYEE MODAL */}
       <Dialog open={showAddEmployee} onOpenChange={setShowAddEmployee}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader><DialogTitle>Añadir empleado</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1">
