@@ -120,6 +120,10 @@ const Index = () => {
 
   const handleReplaceAdmin = async () => {
     if (!newAdminUser.trim() || !newAdminPass.trim()) return;
+    if (newAdminPass.trim().length < 4) {
+      setReplaceError('La contraseña debe tener al menos 4 caracteres');
+      return;
+    }
     setReplacingAdmin(true);
     setReplaceError('');
     try {
@@ -129,11 +133,24 @@ const Index = () => {
         await api.addUser({ email: newAdminUser, password: newAdminPass, role: newAdminRole });
         // Delete default admin
         await api.removeUser('admin');
-        // Log in as new user
-        localStorage.setItem('authEmail', newAdminUser);
-        localStorage.setItem('authRole', newAdminRole);
-        setIsDefaultAdmin(false);
-        setRole(newAdminRole);
+        // Re-login as the new user to get a valid JWT
+        try {
+          const result = await api.login(newAdminUser, newAdminPass);
+          if (result.token) {
+            const { setToken } = await import('@/lib/api');
+            setToken(result.token);
+          }
+          localStorage.setItem('authEmail', result.email);
+          localStorage.setItem('authRole', result.role);
+          setIsDefaultAdmin(false);
+          setRole(result.role as UserRole);
+          setUserAlbergueIds(result.albergueIds || []);
+          localStorage.setItem('userAlbergueIds', JSON.stringify(result.albergueIds || []));
+        } catch {
+          // If re-login fails, just log out and let them log in manually
+          handleLogout();
+          return;
+        }
       } else {
         // localStorage fallback
         const users = JSON.parse(localStorage.getItem('users') || '[]');

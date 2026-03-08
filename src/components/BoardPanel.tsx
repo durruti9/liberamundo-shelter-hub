@@ -270,7 +270,7 @@ export default function BoardPanel({ title, icon, tipo, messages, role, onAdd, o
 
       {/* Resolve dialog */}
       <Dialog open={!!resolveId} onOpenChange={open => !open && setResolveId(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-[hsl(var(--success))]" /> {t.resolveMessage}

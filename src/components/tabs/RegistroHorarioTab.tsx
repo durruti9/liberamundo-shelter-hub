@@ -61,13 +61,13 @@ interface VacacionesSaldo {
 }
 
 const ESTADOS = [
-  { value: 'trabajado', label: 'Trabajado', icon: '✓', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
-  { value: 'vacaciones', label: 'Vacaciones', icon: '🏖', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
-  { value: 'festivo', label: 'Festivo', icon: '🎉', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' },
-  { value: 'baja', label: 'Baja', icon: '🏥', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
-  { value: 'permiso', label: 'Permiso', icon: '📋', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
-  { value: 'descanso', label: 'Descanso', icon: '😴', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400' },
-  { value: 'teletrabajo', label: 'Teletrabajo', icon: '🏠', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400' },
+  { value: 'trabajado', label: 'Trabajado', icon: '✓', color: 'bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)] dark:bg-[hsl(142,60%,15%)] dark:text-[hsl(142,60%,70%)]' },
+  { value: 'vacaciones', label: 'Vacaciones', icon: '🏖', color: 'bg-[hsl(212,72%,90%)] text-[hsl(212,72%,35%)] dark:bg-[hsl(212,72%,15%)] dark:text-[hsl(212,72%,70%)]' },
+  { value: 'festivo', label: 'Festivo', icon: '🎉', color: 'bg-[hsl(280,60%,92%)] text-[hsl(280,60%,35%)] dark:bg-[hsl(280,60%,15%)] dark:text-[hsl(280,60%,70%)]' },
+  { value: 'baja', label: 'Baja', icon: '🏥', color: 'bg-[hsl(0,72%,92%)] text-[hsl(0,72%,35%)] dark:bg-[hsl(0,72%,15%)] dark:text-[hsl(0,72%,70%)]' },
+  { value: 'permiso', label: 'Permiso', icon: '📋', color: 'bg-[hsl(38,92%,90%)] text-[hsl(38,92%,30%)] dark:bg-[hsl(38,92%,15%)] dark:text-[hsl(38,92%,70%)]' },
+  { value: 'descanso', label: 'Descanso', icon: '😴', color: 'bg-muted text-muted-foreground' },
+  { value: 'teletrabajo', label: 'Teletrabajo', icon: '🏠', color: 'bg-accent text-accent-foreground' },
 ];
 
 const DAYS_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];

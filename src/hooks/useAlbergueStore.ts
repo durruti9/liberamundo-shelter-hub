@@ -14,7 +14,7 @@ function saveToStorage(key: string, data: unknown) {
 }
 
 const DEFAULT_USERS: UserAccount[] = [
-  { email: 'admin', password: 'admin123', role: 'admin' },
+  { email: 'admin', password: 'admin', role: 'admin' },
 ];
 
 export function useAlbergueStore(albergueId: string = 'default') {
