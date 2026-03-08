@@ -156,6 +156,8 @@ export default function InventarioTab({ role, albergueId }: Props) {
   }, [consumoData, selectedMonth]);
 
   const totalSalidasMes = consumoMes.reduce((sum, cat) => sum + cat.items.reduce((s, i) => s + i.salidas, 0), 0);
+
+  const handleAddItem = async () => {
     if (!newItem.nombre || !newItem.categoria_id) return;
     try {
       await api.addInventarioItem(albergueId, newItem);
