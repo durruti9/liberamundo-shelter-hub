@@ -156,8 +156,8 @@ router.post('/emergency-create', async (req, res) => {
     if (!email || typeof email !== 'string' || email.trim().length === 0) {
       return res.status(400).json({ error: 'Usuario requerido' });
     }
-    if (!password || typeof password !== 'string' || password.length < 8) {
-      return res.status(400).json({ error: 'Contraseña mínimo 8 caracteres' });
+    if (!password || typeof password !== 'string' || password.length < 4) {
+      return res.status(400).json({ error: 'Contraseña mínimo 4 caracteres' });
     }
     const validRoles = ['admin', 'gestor', 'personal_albergue'];
     if (!validRoles.includes(role)) {
