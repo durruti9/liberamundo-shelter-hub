@@ -496,12 +496,6 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                     <Badge className={`text-xs border ${ESTADO_COLORS[tarea.estado]}`} variant="outline">
                       {tarea.estado}
                     </Badge>
-                    {/* Registrar button: for pending tasks or when editing a hecha task */}
-                    {editable && ((!isHecha) || isEditing) && (
-                      <Button size="sm" onClick={() => registerTarea(idx)} className="text-xs gap-1 bg-[hsl(142,60%,40%)] hover:bg-[hsl(142,60%,35%)] text-white">
-                        <Save className="w-3 h-3" /> Registrar
-                      </Button>
-                    )}
                     {editable && isEditing && isHecha && (
                       <Button variant="outline" size="sm" onClick={() => cancelEditing(idx)} className="text-xs gap-1">
                         <X className="w-3 h-3" /> Cancelar
