@@ -19,28 +19,9 @@ const DEFAULT_USERS: UserAccount[] = [
 
 export function useAlbergueStore(albergueId: string = 'default') {
   const prefix = albergueId;
-  // Derive API mode from token existence - if we logged in via API, the API is available
   const [useApi, setUseApi] = useState(() => !!localStorage.getItem('authToken'));
+  const [isLoading, setIsLoading] = useState(true);
   const initialLoadDone = useRef(false);
-
-  // Load data from API on mount if token exists, and RELOAD when albergueId changes
-  useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      console.log('[Store] Token found, using API mode. AlbergueId:', albergueId);
-      setUseApi(true);
-      loadFromApi();
-      initialLoadDone.current = true;
-    } else if (!initialLoadDone.current) {
-      // No token, check if API is available (localStorage fallback mode)
-      initialLoadDone.current = true;
-      isApiAvailable().then(available => {
-        console.log('[Store] Health check result:', available);
-        setUseApi(available);
-        if (available) loadFromApi();
-      });
-    }
-  }, [albergueId]); // Re-run when albergueId changes!
 
   // ── State ──
   const [albergues, setAlbergues] = useState<Albergue[]>(() => {
@@ -60,18 +41,66 @@ export function useAlbergueStore(albergueId: string = 'default') {
     return loadFromStorage<UserAccount[]>('users', DEFAULT_USERS);
   });
 
-  // ── Load from API ──
+  // ── Granular reload helpers ──
+  const reloadHuespedes = useCallback(async () => {
+    try {
+      const data = await api.getHuespedes(albergueId);
+      setHuespedes(data);
+    } catch {}
+  }, [albergueId]);
+
+  const reloadComedor = useCallback(async () => {
+    try {
+      const data = await api.getComedor(albergueId);
+      setComedor(data);
+    } catch {}
+  }, [albergueId]);
+
+  const reloadLlegadas = useCallback(async () => {
+    try {
+      const data = await api.getLlegadas(albergueId);
+      setLlegadas(data);
+    } catch {}
+  }, [albergueId]);
+
+  const reloadIncidencias = useCallback(async () => {
+    try {
+      const data = await api.getIncidencias(albergueId);
+      setIncidencias(data);
+    } catch {}
+  }, [albergueId]);
+
+  const reloadBoard = useCallback(async () => {
+    try {
+      const data = await api.getBoardMessages(albergueId);
+      setBoardMessages(data);
+    } catch {}
+  }, [albergueId]);
+
+  const reloadAlbergues = useCallback(async () => {
+    try {
+      const data = await api.getAlbergues();
+      if (data.length > 0) setAlbergues(data);
+    } catch {}
+  }, []);
+
+  const reloadUsers = useCallback(async () => {
+    try {
+      const data = await api.getUsers();
+      setUsers(data);
+    } catch {}
+  }, []);
+
+  // ── Full load (used on mount and periodic refresh) ──
   const loadFromApi = useCallback(async () => {
     try {
       console.log('[Store] Loading data for albergueId:', albergueId);
 
-      // Load each source independently — if one fails, others still load
       const safeLoad = async <T,>(name: string, fn: () => Promise<T>, fallback: T): Promise<T> => {
         try {
-          const result = await fn();
-          return result;
+          return await fn();
         } catch (err: any) {
-          console.warn(`[Store] Failed to load ${name}:`, err.message, err.status || '');
+          console.warn(`[Store] Failed to load ${name}:`, err.message);
           return fallback;
         }
       };
@@ -85,8 +114,6 @@ export function useAlbergueStore(albergueId: string = 'default') {
         safeLoad('board', () => api.getBoardMessages(albergueId), []),
       ]);
 
-      console.log('[Store] Loaded:', { albergues: albs.length, huespedes: huesps.length, comedor: com.length, llegadas: llegs.length, incidencias: incs.length });
-      
       if (albs.length > 0) setAlbergues(albs);
       setHuespedes(huesps);
       setComedor(com);
@@ -94,34 +121,48 @@ export function useAlbergueStore(albergueId: string = 'default') {
       setIncidencias(incs);
       setBoardMessages(msgs);
 
-      // Admin-only: user list (non-admins get 403, ignore gracefully)
       try {
         const usrs = await api.getUsers();
         setUsers(usrs);
-      } catch {
-        // Non-admin users don't have access to user management
-      }
+      } catch {}
     } catch (err: any) {
-      console.error('[Store] Critical error in loadFromApi:', err);
-      // Check if API went down
+      console.error('[Store] Critical error:', err);
       const available = await isApiAvailable();
       if (!available) {
         console.warn('[Store] API unavailable, falling back to localStorage');
         setUseApi(false);
       }
+    } finally {
+      setIsLoading(false);
     }
   }, [albergueId]);
 
-  // Auto-refresh data every 30s when in API mode (keeps data in sync between users)
+  // Load on mount / albergueId change
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      setUseApi(true);
+      setIsLoading(true);
+      loadFromApi();
+      initialLoadDone.current = true;
+    } else if (!initialLoadDone.current) {
+      initialLoadDone.current = true;
+      isApiAvailable().then(available => {
+        setUseApi(available);
+        if (available) loadFromApi();
+        else setIsLoading(false);
+      });
+    }
+  }, [albergueId]);
+
+  // Auto-refresh every 30s
   useEffect(() => {
     if (!useApi) return;
-    const interval = setInterval(() => {
-      loadFromApi();
-    }, 30000);
+    const interval = setInterval(loadFromApi, 30000);
     return () => clearInterval(interval);
   }, [useApi, loadFromApi]);
 
-  // ── Persist to localStorage only when NOT using API ──
+  // Persist to localStorage when NOT using API
   useEffect(() => { if (!useApi) saveToStorage(`${prefix}_huespedes`, huespedes); }, [huespedes, prefix, useApi]);
   useEffect(() => { if (!useApi) saveToStorage(`${prefix}_comedor`, comedor); }, [comedor, prefix, useApi]);
   useEffect(() => { if (!useApi) saveToStorage(`${prefix}_llegadas`, llegadas); }, [llegadas, prefix, useApi]);
@@ -130,7 +171,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
   useEffect(() => { if (!useApi) saveToStorage('users', users); }, [users, useApi]);
   useEffect(() => { if (!useApi) saveToStorage('albergues', albergues); }, [albergues, useApi]);
 
-  // Auto-checkout past dates
+  // Auto-checkout
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     setHuespedes(prev => {
@@ -143,11 +184,12 @@ export function useAlbergueStore(albergueId: string = 'default') {
     });
   }, []);
 
-  // ── Actions (API-aware) ──
+  // ── Actions (optimistic where safe) ──
   const checkIn = useCallback(async (huesped: Omit<Huesped, 'id' | 'activo'>) => {
     if (useApi) {
       const result = await api.checkIn(albergueId, huesped);
-      await loadFromApi();
+      // Granular: only reload huespedes + comedor
+      await Promise.all([reloadHuespedes(), reloadComedor()]);
       return result;
     }
     const newHuesped: Huesped = { ...huesped, id: crypto.randomUUID(), activo: true };
@@ -159,13 +201,20 @@ export function useAlbergueStore(albergueId: string = 'default') {
       ultimaModificacion: new Date().toISOString(),
     }]);
     return newHuesped;
-  }, [useApi, albergueId, loadFromApi]);
+  }, [useApi, albergueId, reloadHuespedes, reloadComedor]);
 
   const checkOut = useCallback(async (id: string, fecha?: string) => {
     const checkoutDate = fecha || new Date().toISOString().split('T')[0];
     if (useApi) {
+      // Optimistic
+      const today = new Date().toISOString().split('T')[0];
+      if (checkoutDate <= today) {
+        setHuespedes(prev => prev.map(h => h.id === id ? { ...h, activo: false, fechaCheckout: checkoutDate } : h));
+      } else {
+        setHuespedes(prev => prev.map(h => h.id === id ? { ...h, fechaCheckout: checkoutDate } : h));
+      }
       await api.checkOut(id, checkoutDate);
-      await loadFromApi();
+      await reloadHuespedes();
       return;
     }
     const today = new Date().toISOString().split('T')[0];
@@ -175,22 +224,33 @@ export function useAlbergueStore(albergueId: string = 'default') {
       setHuespedes(prev => prev.map(h => h.id === id ? { ...h, activo: false, fechaCheckout: checkoutDate } : h));
       setComedor(prev => prev.filter(c => c.huespedId !== id));
     }
-  }, [useApi, loadFromApi]);
+  }, [useApi, reloadHuespedes]);
 
   const deleteHuesped = useCallback(async (id: string) => {
-    if (useApi) { await api.deleteHuesped(id); await loadFromApi(); return; }
+    // Optimistic
     setHuespedes(prev => prev.filter(h => h.id !== id));
     setComedor(prev => prev.filter(c => c.huespedId !== id));
-    setIncidencias(prev => prev.filter(i => i.huespedId !== id));
-  }, [useApi, loadFromApi]);
+    if (useApi) {
+      await api.deleteHuesped(id);
+    } else {
+      setIncidencias(prev => prev.filter(i => i.huespedId !== id));
+    }
+  }, [useApi]);
 
   const editHuesped = useCallback(async (id: string, data: Partial<Huesped>) => {
-    if (useApi) { await api.editHuesped(id, data); await loadFromApi(); return; }
+    // Optimistic
     setHuespedes(prev => prev.map(h => h.id === id ? { ...h, ...data } : h));
-  }, [useApi, loadFromApi]);
+    if (useApi) {
+      await api.editHuesped(id, data);
+    }
+  }, [useApi]);
 
   const reincorporar = useCallback(async (id: string, habitacion: string, cama: number) => {
-    if (useApi) { await api.reincorporar(id, habitacion, cama); await loadFromApi(); return; }
+    if (useApi) {
+      await api.reincorporar(id, habitacion, cama);
+      await Promise.all([reloadHuespedes(), reloadComedor()]);
+      return;
+    }
     setHuespedes(prev => prev.map(h =>
       h.id === id ? { ...h, activo: true, habitacion, cama, fechaCheckout: undefined, fechaEntrada: new Date().toISOString().split('T')[0] } : h
     ));
@@ -200,22 +260,32 @@ export function useAlbergueStore(albergueId: string = 'default') {
       motivoAusencia: '', observaciones: '', particularidades: '',
       ultimaModificacion: new Date().toISOString(),
     }]);
-  }, [useApi, loadFromApi]);
+  }, [useApi, reloadHuespedes, reloadComedor]);
 
   const cambiarCama = useCallback(async (id: string, habitacion: string, cama: number) => {
-    if (useApi) { await api.editHuesped(id, { habitacion, cama }); await loadFromApi(); return; }
+    // Optimistic
     setHuespedes(prev => prev.map(h => h.id === id ? { ...h, habitacion, cama } : h));
-  }, [useApi, loadFromApi]);
+    if (useApi) {
+      await api.editHuesped(id, { habitacion, cama });
+    }
+  }, [useApi]);
 
   const addLlegada = useCallback(async (llegada: Omit<ProximaLlegada, 'id'>) => {
-    if (useApi) { await api.addLlegada(albergueId, llegada); await loadFromApi(); return; }
+    if (useApi) {
+      await api.addLlegada(albergueId, llegada);
+      await reloadLlegadas();
+      return;
+    }
     setLlegadas(prev => [...prev, { ...llegada, id: crypto.randomUUID() }]);
-  }, [useApi, albergueId, loadFromApi]);
+  }, [useApi, albergueId, reloadLlegadas]);
 
   const editLlegada = useCallback(async (id: string, data: Partial<ProximaLlegada>) => {
-    if (useApi) { await api.editLlegada(id, data); await loadFromApi(); return; }
+    // Optimistic
     setLlegadas(prev => prev.map(l => l.id === id ? { ...l, ...data } : l));
-  }, [useApi, loadFromApi]);
+    if (useApi) {
+      await api.editLlegada(id, data);
+    }
+  }, [useApi]);
 
   const confirmarLlegada = useCallback(async (llegadaId: string) => {
     const llegada = llegadas.find(l => l.id === llegadaId);
@@ -225,16 +295,15 @@ export function useAlbergueStore(albergueId: string = 'default') {
       idioma: llegada.idioma, dieta: llegada.dieta, fechaEntrada: llegada.fechaLlegada,
       notas: llegada.notas, habitacion: llegada.habitacionAsignada, cama: llegada.camaAsignada,
     });
-    if (useApi) { await api.deleteLlegada(llegadaId); await loadFromApi(); }
-    else setLlegadas(prev => prev.filter(l => l.id !== llegadaId));
-  }, [llegadas, checkIn, useApi, loadFromApi]);
+    // Optimistic remove
+    setLlegadas(prev => prev.filter(l => l.id !== llegadaId));
+    if (useApi) {
+      await api.deleteLlegada(llegadaId);
+    }
+  }, [llegadas, checkIn, useApi]);
 
   const updateComedor = useCallback(async (huespedId: string, data: Partial<ComedorEntry>) => {
-    if (useApi) {
-      await api.updateComedor(huespedId, data);
-      await loadFromApi();
-      return;
-    }
+    // Optimistic
     setComedor(prev => {
       const idx = prev.findIndex(c => c.huespedId === huespedId);
       if (idx >= 0) {
@@ -249,27 +318,43 @@ export function useAlbergueStore(albergueId: string = 'default') {
         ...data, ultimaModificacion: new Date().toISOString(),
       }];
     });
-  }, [useApi, loadFromApi]);
+    if (useApi) {
+      await api.updateComedor(huespedId, data);
+    }
+  }, [useApi]);
 
   const deleteLlegada = useCallback(async (id: string) => {
-    if (useApi) { await api.deleteLlegada(id); await loadFromApi(); return; }
+    // Optimistic
     setLlegadas(prev => prev.filter(l => l.id !== id));
-  }, [useApi, loadFromApi]);
+    if (useApi) {
+      await api.deleteLlegada(id);
+    }
+  }, [useApi]);
 
   const addIncidencia = useCallback(async (data: Omit<Incidencia, 'id'>) => {
-    if (useApi) { await api.addIncidencia(albergueId, data); await loadFromApi(); return; }
+    if (useApi) {
+      await api.addIncidencia(albergueId, data);
+      await reloadIncidencias();
+      return;
+    }
     setIncidencias(prev => [...prev, { ...data, id: crypto.randomUUID() }]);
-  }, [useApi, albergueId, loadFromApi]);
+  }, [useApi, albergueId, reloadIncidencias]);
 
   const toggleIncidenciaResuelta = useCallback(async (id: string) => {
-    if (useApi) { await api.toggleIncidencia(id); await loadFromApi(); return; }
+    // Optimistic
     setIncidencias(prev => prev.map(i => i.id === id ? { ...i, resuelta: !i.resuelta } : i));
-  }, [useApi, loadFromApi]);
+    if (useApi) {
+      await api.toggleIncidencia(id);
+    }
+  }, [useApi]);
 
   const deleteIncidencia = useCallback(async (id: string) => {
-    if (useApi) { await api.deleteIncidencia(id); await loadFromApi(); return; }
+    // Optimistic
     setIncidencias(prev => prev.filter(i => i.id !== id));
-  }, [useApi, loadFromApi]);
+    if (useApi) {
+      await api.deleteIncidencia(id);
+    }
+  }, [useApi]);
 
   const huespedActivos = useMemo(() => huespedes.filter(h => h.activo), [huespedes]);
 
@@ -289,14 +374,15 @@ export function useAlbergueStore(albergueId: string = 'default') {
   }, [huespedActivos, rooms]);
 
   const addUser = useCallback(async (account: UserAccount) => {
-    if (useApi) { await api.addUser(account); await loadFromApi(); return; }
+    if (useApi) { await api.addUser(account); await reloadUsers(); return; }
     setUsers(prev => [...prev, account]);
-  }, [useApi, loadFromApi]);
+  }, [useApi, reloadUsers]);
 
   const removeUser = useCallback(async (email: string) => {
-    if (useApi) { await api.removeUser(email); await loadFromApi(); return; }
+    // Optimistic
     setUsers(prev => prev.filter(u => u.email !== email));
-  }, [useApi, loadFromApi]);
+    if (useApi) { await api.removeUser(email); }
+  }, [useApi]);
 
   const changePassword = useCallback(async (email: string, newPassword: string) => {
     if (useApi) { await api.changePassword(email, newPassword); return; }
@@ -304,74 +390,86 @@ export function useAlbergueStore(albergueId: string = 'default') {
   }, [useApi]);
 
   const authenticate = useCallback((email: string, password: string): UserAccount | null => {
-    // For API mode, authentication is handled via api.login() in LoginPage
     return users.find(u => u.email === email && u.password === password) || null;
   }, [users]);
 
   const addAlbergue = useCallback(async (nombre: string, initialRooms: Room[] = []) => {
     if (useApi) {
       const result = await api.createAlbergue(nombre, initialRooms);
-      await loadFromApi();
+      await reloadAlbergues();
       return result;
     }
     const newAlbergue: Albergue = { id: crypto.randomUUID(), nombre, rooms: initialRooms };
     setAlbergues(prev => [...prev, newAlbergue]);
     return newAlbergue;
-  }, [useApi, loadFromApi]);
+  }, [useApi, reloadAlbergues]);
 
   const editAlbergueName = useCallback(async (id: string, nombre: string) => {
-    if (useApi) { await api.updateAlbergueName(id, nombre); await loadFromApi(); return; }
+    // Optimistic
     setAlbergues(prev => prev.map(a => a.id === id ? { ...a, nombre } : a));
-  }, [useApi, loadFromApi]);
+    if (useApi) { await api.updateAlbergueName(id, nombre); }
+  }, [useApi]);
 
   const deleteAlbergue = useCallback(async (id: string) => {
-    if (useApi) { await api.deleteAlbergue(id); await loadFromApi(); return; }
+    // Optimistic
     setAlbergues(prev => prev.filter(a => a.id !== id));
-    localStorage.removeItem(`${id}_huespedes`);
-    localStorage.removeItem(`${id}_comedor`);
-    localStorage.removeItem(`${id}_llegadas`);
-    localStorage.removeItem(`${id}_incidencias`);
-  }, [useApi, loadFromApi]);
+    if (useApi) { await api.deleteAlbergue(id); }
+    else {
+      localStorage.removeItem(`${id}_huespedes`);
+      localStorage.removeItem(`${id}_comedor`);
+      localStorage.removeItem(`${id}_llegadas`);
+      localStorage.removeItem(`${id}_incidencias`);
+    }
+  }, [useApi]);
 
   const updateRooms = useCallback(async (newRooms: Room[]) => {
-    if (useApi) { await api.updateRooms(albergueId, newRooms); await loadFromApi(); return; }
+    // Optimistic
     setAlbergues(prev => prev.map(a => a.id === albergueId ? { ...a, rooms: newRooms } : a));
-  }, [useApi, albergueId, loadFromApi]);
+    if (useApi) { await api.updateRooms(albergueId, newRooms); }
+  }, [useApi, albergueId]);
 
   const updateRoomCleaning = useCallback(async (roomId: string, ultimaLimpieza: string) => {
-    if (useApi) { await api.updateRoomCleaning(albergueId, roomId, ultimaLimpieza); await loadFromApi(); return; }
+    // Optimistic
     setAlbergues(prev => prev.map(a => a.id === albergueId ? {
       ...a, rooms: a.rooms.map(r => r.id === roomId ? { ...r, ultimaLimpieza } : r)
     } : a));
-  }, [useApi, albergueId, loadFromApi]);
+    if (useApi) { await api.updateRoomCleaning(albergueId, roomId, ultimaLimpieza); }
+  }, [useApi, albergueId]);
 
   const addBoardMessage = useCallback(async (msg: Omit<BoardMessage, 'id' | 'resuelta' | 'respuestas'>) => {
-    if (useApi) { await api.addBoardMessage(albergueId, msg); await loadFromApi(); return; }
+    if (useApi) {
+      await api.addBoardMessage(albergueId, msg);
+      await reloadBoard();
+      return;
+    }
     setBoardMessages(prev => [...prev, { ...msg, id: crypto.randomUUID(), resuelta: false, respuestas: [] }]);
-  }, [useApi, albergueId, loadFromApi]);
+  }, [useApi, albergueId, reloadBoard]);
 
   const addBoardReply = useCallback(async (messageId: string, reply: Omit<BoardReply, 'id'>) => {
-    if (useApi) { await api.addBoardReply(messageId, reply); await loadFromApi(); return; }
+    // Optimistic
     setBoardMessages(prev => prev.map(m =>
       m.id === messageId ? { ...m, respuestas: [...m.respuestas, { ...reply, id: crypto.randomUUID() }] } : m
     ));
-  }, [useApi, loadFromApi]);
+    if (useApi) { await api.addBoardReply(messageId, reply); }
+  }, [useApi]);
 
   const resolveBoardMessage = useCallback(async (messageId: string, resolucion: { autor: string; fecha: string; descripcion: string }) => {
-    if (useApi) { await api.resolveBoardMessage(messageId, resolucion); await loadFromApi(); return; }
+    // Optimistic
     setBoardMessages(prev => prev.map(m =>
       m.id === messageId ? { ...m, resuelta: true, resolucion } : m
     ));
-  }, [useApi, loadFromApi]);
+    if (useApi) { await api.resolveBoardMessage(messageId, resolucion); }
+  }, [useApi]);
 
   const deleteBoardMessage = useCallback(async (messageId: string) => {
-    if (useApi) { await api.deleteBoardMessage(messageId); await loadFromApi(); return; }
+    // Optimistic
     setBoardMessages(prev => prev.filter(m => m.id !== messageId));
-  }, [useApi, loadFromApi]);
+    if (useApi) { await api.deleteBoardMessage(messageId); }
+  }, [useApi]);
 
   return {
     huespedes, huespedActivos, comedor, llegadas, users, incidencias, boardMessages,
-    rooms, totalCamas, albergues, currentAlbergue, useApi,
+    rooms, totalCamas, albergues, currentAlbergue, useApi, isLoading,
     checkIn, checkOut, cambiarCama, deleteHuesped, editHuesped, reincorporar,
     addLlegada, editLlegada, confirmarLlegada, deleteLlegada,
     updateComedor,

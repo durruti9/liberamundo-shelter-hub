@@ -14,6 +14,7 @@ import { Package, Plus, Minus, AlertTriangle, Trash2, Edit, ChevronDown, BarChar
 import { api } from '@/lib/api';
 import { UserRole } from '@/types';
 import ExportButton from '@/components/ExportButton';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 const PIE_COLORS = ['hsl(221, 83%, 53%)', 'hsl(142, 71%, 45%)', 'hsl(38, 92%, 50%)', 'hsl(0, 84%, 60%)', 'hsl(270, 76%, 55%)', 'hsl(187, 85%, 43%)', 'hsl(330, 81%, 60%)'];
 
@@ -117,6 +118,8 @@ export default function InventarioTab({ role, albergueId }: Props) {
   const [movFilters, setMovFilters] = useState({
     start: '', end: '', categoria: '', usuario: '',
   });
+  const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
+  const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null);
 
   const canManage = role === 'admin' || role === 'personal_albergue';
 
@@ -261,7 +264,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (!confirm('¿Eliminar este artículo y su historial?')) return;
     try {
       await api.deleteInventarioItem(id);
       toast.success('Artículo eliminado');
@@ -270,6 +272,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
       setItems(prev => prev.filter(i => i.id !== id));
       toast.success('Artículo eliminado');
     }
+    setDeleteItemId(null);
   };
 
   const handleUpdateItem = async () => {
@@ -305,11 +308,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
   };
 
   const handleDeleteCategory = async (id: string) => {
-    const catItems = items.filter(i => i.categoria_id === id);
-    const msg = catItems.length > 0
-      ? `Esta categoría tiene ${catItems.length} artículo(s). ¿Eliminar la categoría y todos sus artículos?`
-      : '¿Eliminar esta categoría?';
-    if (!confirm(msg)) return;
     try {
       await api.deleteInventarioCategoria(id);
       toast.success('Categoría eliminada');
@@ -320,6 +318,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
       if (selectedCategory === id) setSelectedCategory('all');
       toast.success('Categoría eliminada');
     }
+    setDeleteCategoryId(null);
   };
 
   const handleEditCategory = async () => {
@@ -460,7 +459,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                         </Button>
                         {canManage && (
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" title="Eliminar"
-                            onClick={() => handleDeleteItem(item.id)}>
+                            onClick={() => setDeleteItemId(item.id)}>
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         )}
@@ -511,7 +510,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                 </Button>
                 {canManage && (
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
-                    onClick={() => handleDeleteItem(item.id)}>
+                    onClick={() => setDeleteItemId(item.id)}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 )}
@@ -563,7 +562,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                         <Edit className="w-3.5 h-3.5" />
                       </Button>
                       <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive opacity-60 sm:opacity-0 sm:group-hover:opacity-100"
-                        onClick={() => handleDeleteCategory(c.id)}>
+                        onClick={() => setDeleteCategoryId(c.id)}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </>
@@ -917,6 +916,24 @@ export default function InventarioTab({ role, albergueId }: Props) {
           </Card>
         </CollapsibleContent>
       </Collapsible>
+
+      {/* Delete item confirmation */}
+      <ConfirmDialog
+        open={!!deleteItemId}
+        onClose={() => setDeleteItemId(null)}
+        onConfirm={() => { if (deleteItemId) handleDeleteItem(deleteItemId); }}
+        title="¿Eliminar este artículo?"
+        description="Se eliminará permanentemente el artículo y todo su historial de movimientos."
+      />
+
+      {/* Delete category confirmation */}
+      <ConfirmDialog
+        open={!!deleteCategoryId}
+        onClose={() => setDeleteCategoryId(null)}
+        onConfirm={() => { if (deleteCategoryId) handleDeleteCategory(deleteCategoryId); }}
+        title="¿Eliminar esta categoría?"
+        description={`Se eliminará la categoría${deleteCategoryId ? ` y ${items.filter(i => i.categoria_id === deleteCategoryId).length} artículo(s) asociados` : ''}. Esta acción no se puede deshacer.`}
+      />
     </div>
   );
 }

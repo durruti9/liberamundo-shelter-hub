@@ -9,8 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { CalendarPlus, Check, Trash2, Pencil } from 'lucide-react';
+import { CalendarPlus, Check, Trash2, Pencil, PackagePlus } from 'lucide-react';
 import ExportButton from '@/components/ExportButton';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { DIETAS, Dieta, UserRole, ProximaLlegada } from '@/types';
 import { formatDateES } from '@/lib/dateFormat';
 import { useI18n } from '@/i18n/I18nContext';
@@ -49,6 +50,7 @@ export default function LlegadasTab({ store, role }: Props) {
   const [form, setForm] = useState<LlegadaFormData>(emptyForm());
   const [confirmingLlegada, setConfirmingLlegada] = useState<ProximaLlegada | null>(null);
   const [confirmForm, setConfirmForm] = useState<LlegadaFormData>(emptyForm());
+  const [deleteLlegadaId, setDeleteLlegadaId] = useState<string | null>(null);
 
   const canManage = role === 'admin' || role === 'gestor';
 
@@ -210,9 +212,7 @@ export default function LlegadasTab({ store, role }: Props) {
                           <Button size="sm" onClick={() => openConfirm(l)}>
                             <Check className="w-4 h-4 mr-1" /> {t.confirm}
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={async () => {
-                            try { await deleteLlegada(l.id); } catch (err: any) { toast.error(err.message || 'Error al eliminar'); }
-                          }}>
+                          <Button size="sm" variant="ghost" onClick={() => setDeleteLlegadaId(l.id)}>
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
                         </TableCell>
@@ -386,6 +386,19 @@ export default function LlegadasTab({ store, role }: Props) {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteLlegadaId}
+        onClose={() => setDeleteLlegadaId(null)}
+        onConfirm={async () => {
+          if (deleteLlegadaId) {
+            try { await deleteLlegada(deleteLlegadaId); } catch (err: any) { toast.error(err.message || 'Error al eliminar'); }
+          }
+          setDeleteLlegadaId(null);
+        }}
+        title="¿Eliminar esta llegada programada?"
+        description="Se eliminará permanentemente el registro de llegada. Esta acción no se puede deshacer."
+      />
     </div>
   );
 }

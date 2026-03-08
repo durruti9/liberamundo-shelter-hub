@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,6 +35,7 @@ export default function BoardPanel({ title, icon, tipo, messages, role, onAdd, o
   const [replyAutor, setReplyAutor] = useState('');
   const [resolveId, setResolveId] = useState<string | null>(null);
   const [resolveData, setResolveData] = useState({ autor: '', descripcion: '' });
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Role-based visibility: only show messages the user's role can see
   const canSee = (msg: BoardMessage) => {
@@ -162,7 +164,7 @@ export default function BoardPanel({ title, icon, tipo, messages, role, onAdd, o
                     </Button>
                   )}
                   {(role === 'admin' || role === 'gestor') && (
-                    <Button size="icon" variant="ghost" className="h-7 w-7 hover:bg-destructive/10" onClick={() => onDelete(msg.id)}>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 hover:bg-destructive/10" onClick={() => setDeleteConfirmId(msg.id)}>
                       <Trash2 className="w-3.5 h-3.5 text-destructive" />
                     </Button>
                   )}
@@ -291,6 +293,14 @@ export default function BoardPanel({ title, icon, tipo, messages, role, onAdd, o
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteConfirmId}
+        onClose={() => setDeleteConfirmId(null)}
+        onConfirm={() => { if (deleteConfirmId) onDelete(deleteConfirmId); setDeleteConfirmId(null); }}
+        title="¿Eliminar este mensaje?"
+        description="Se eliminará permanentemente el mensaje y todas sus respuestas."
+      />
     </Card>
   );
 }

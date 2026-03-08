@@ -1,40 +1,37 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Plus, Trash2, FileWarning, Globe, Settings, ChevronDown, LayoutDashboard, KeyRound, ListChecks, Mailbox, StickyNote, Clock, Package } from 'lucide-react';
-import PasswordInput from '@/components/PasswordInput';
+import { Building2, BedDouble, History, CalendarPlus, UtensilsCrossed, LogOut, Users, Globe, Settings, ChevronDown, LayoutDashboard, ListChecks, Mailbox, StickyNote, Clock, Package, FileWarning } from 'lucide-react';
 import { api } from '@/lib/api';
 import logo from '@/assets/Logo2Liberamundo.png';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-
-import HabitacionesTab from './tabs/HabitacionesTab';
-import HistorialTab from './tabs/HistorialTab';
-import LlegadasTab from './tabs/LlegadasTab';
-import ComedorTab from './tabs/ComedorTab';
-import IncidenciasTab from './tabs/IncidenciasTab';
-import SettingsDialog from './SettingsDialog';
-import DashboardTab from './tabs/DashboardTab';
-import TareasEmpleadosTab from './tabs/TareasEmpleadosTab';
-import SugerenciasTab from './tabs/SugerenciasTab';
-import NotasTab from './tabs/NotasTab';
-import RegistroHorarioTab from './tabs/RegistroHorarioTab';
-import InventarioTab from './tabs/InventarioTab';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import ThemeToggle from './ThemeToggle';
 import GlobalSearch from './GlobalSearch';
 import NotificationBell from './NotificationBell';
 import ConnectionIndicator from './ConnectionIndicator';
+import SettingsDialog from './SettingsDialog';
+import UserManagementDialog from './UserManagementDialog';
 import { useAlbergueStore } from '@/hooks/useAlbergueStore';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
 import { Language } from '@/i18n/translations';
+
+// Lazy-loaded tabs
+const DashboardTab = lazy(() => import('./tabs/DashboardTab'));
+const HabitacionesTab = lazy(() => import('./tabs/HabitacionesTab'));
+const HistorialTab = lazy(() => import('./tabs/HistorialTab'));
+const LlegadasTab = lazy(() => import('./tabs/LlegadasTab'));
+const ComedorTab = lazy(() => import('./tabs/ComedorTab'));
+const IncidenciasTab = lazy(() => import('./tabs/IncidenciasTab'));
+const TareasEmpleadosTab = lazy(() => import('./tabs/TareasEmpleadosTab'));
+const SugerenciasTab = lazy(() => import('./tabs/SugerenciasTab'));
+const NotasTab = lazy(() => import('./tabs/NotasTab'));
+const RegistroHorarioTab = lazy(() => import('./tabs/RegistroHorarioTab'));
+const InventarioTab = lazy(() => import('./tabs/InventarioTab'));
 
 interface Props {
   onLogout: () => void;
@@ -48,6 +45,21 @@ const LANG_FLAGS: Record<Language, string> = { es: '🇪🇸', fr: '🇫🇷', a
 
 const TAB_STORAGE_KEY = 'lm_active_tab';
 
+function TabFallback() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-8 w-48" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Skeleton className="h-24" />
+        <Skeleton className="h-24" />
+        <Skeleton className="h-24" />
+        <Skeleton className="h-24" />
+      </div>
+      <Skeleton className="h-64" />
+    </div>
+  );
+}
+
 export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue }: Props) {
   const store = useAlbergueStore(albergueId);
   const { t, lang, setLang } = useI18n();
@@ -57,11 +69,6 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
   });
   const [showUsers, setShowUsers] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [newUser, setNewUser] = useState({ email: '', password: '', role: 'personal_albergue' as UserRole, albergueIds: [] as string[] });
-  const [changingPasswordFor, setChangingPasswordFor] = useState<string | null>(null);
-  const [newPasswordValue, setNewPasswordValue] = useState('');
-  const [editingAlberguesFor, setEditingAlberguesFor] = useState<string | null>(null);
-  const [editAlbergueIds, setEditAlbergueIds] = useState<string[]>([]);
 
   // Backup reminder for admin (every 7 days)
   useEffect(() => {
@@ -89,23 +96,11 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
     sessionStorage.setItem(TAB_STORAGE_KEY, value);
   }, []);
 
-  const handleAddUser = async () => {
-    if (!newUser.email || !newUser.password) return;
-    try {
-      await store.addUser(newUser);
-      setNewUser({ email: '', password: '', role: 'personal_albergue', albergueIds: [] });
-    } catch (err: any) {
-      toast.error(err.message || 'Error al crear usuario');
-    }
-  };
-
   const roleLabel: Record<UserRole, string> = {
     admin: 'Administración',
     gestor: 'Personal gestor',
     personal_albergue: 'Personal laboral',
   };
-
-  const adminCount = store.users.filter(u => u.role === 'admin').length;
 
   const tabCount = role === 'admin' ? 11 : role === 'personal_albergue' ? 8 : 6;
 
@@ -161,7 +156,6 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             </div>
           </div>
           <div className="flex items-center gap-1">
-            {/* Global search */}
             <GlobalSearch
               huespedes={store.huespedes}
               incidencias={store.incidencias}
@@ -169,18 +163,12 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               boardMessages={store.boardMessages}
               onNavigate={handleSearchNavigate}
             />
-
-            {/* Notifications */}
             <NotificationBell
               albergueId={albergueId}
               role={role}
               onNavigate={handleNotificationNavigate}
             />
-
-            {/* Connection indicator */}
             <ConnectionIndicator />
-
-            {/* Theme toggle */}
             <ThemeToggle />
 
             {/* Language switcher */}
@@ -286,53 +274,55 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             </TabsList>
           </div>
 
-          {(role === 'admin' || role === 'gestor' || role === 'personal_albergue') && (
-            <TabsContent value="dashboard">
-              <DashboardTab store={store} role={role} onNavigate={handleTabChange} />
+          <Suspense fallback={<TabFallback />}>
+            {(role === 'admin' || role === 'gestor' || role === 'personal_albergue') && (
+              <TabsContent value="dashboard">
+                <DashboardTab store={store} role={role} onNavigate={handleTabChange} />
+              </TabsContent>
+            )}
+            <TabsContent value="habitaciones">
+              <HabitacionesTab store={store} role={role} />
             </TabsContent>
-          )}
-          <TabsContent value="habitaciones">
-            <HabitacionesTab store={store} role={role} />
-          </TabsContent>
-          {(role === 'admin' || role === 'gestor') && (
-            <TabsContent value="historial">
-              <HistorialTab store={store} role={role} />
+            {(role === 'admin' || role === 'gestor') && (
+              <TabsContent value="historial">
+                <HistorialTab store={store} role={role} />
+              </TabsContent>
+            )}
+            <TabsContent value="llegadas">
+              <LlegadasTab store={store} role={role} />
             </TabsContent>
-          )}
-          <TabsContent value="llegadas">
-            <LlegadasTab store={store} role={role} />
-          </TabsContent>
-          <TabsContent value="comedor">
-            <ComedorTab store={store} role={role} />
-          </TabsContent>
-          <TabsContent value="incidencias">
-            <IncidenciasTab store={store} role={role} />
-          </TabsContent>
-          {(role === 'admin' || role === 'personal_albergue') && (
-            <TabsContent value="tareas">
-              <TareasEmpleadosTab role={role} albergueId={albergueId} />
+            <TabsContent value="comedor">
+              <ComedorTab store={store} role={role} />
             </TabsContent>
-          )}
-          {role === 'admin' && (
-            <TabsContent value="sugerencias">
-              <SugerenciasTab role={role} albergueId={albergueId} />
+            <TabsContent value="incidencias">
+              <IncidenciasTab store={store} role={role} />
             </TabsContent>
-          )}
-          {role === 'admin' && (
-            <TabsContent value="notas">
-              <NotasTab userEmail={localStorage.getItem('authEmail') || ''} />
-            </TabsContent>
-          )}
-          {(role === 'admin' || role === 'personal_albergue') && (
-            <TabsContent value="registro_horario">
-              <RegistroHorarioTab role={role} albergueId={albergueId} />
-            </TabsContent>
-          )}
-          {(role === 'admin' || role === 'personal_albergue') && (
-            <TabsContent value="inventario">
-              <InventarioTab role={role} albergueId={albergueId} />
-            </TabsContent>
-          )}
+            {(role === 'admin' || role === 'personal_albergue') && (
+              <TabsContent value="tareas">
+                <TareasEmpleadosTab role={role} albergueId={albergueId} />
+              </TabsContent>
+            )}
+            {role === 'admin' && (
+              <TabsContent value="sugerencias">
+                <SugerenciasTab role={role} albergueId={albergueId} />
+              </TabsContent>
+            )}
+            {role === 'admin' && (
+              <TabsContent value="notas">
+                <NotasTab userEmail={localStorage.getItem('authEmail') || ''} />
+              </TabsContent>
+            )}
+            {(role === 'admin' || role === 'personal_albergue') && (
+              <TabsContent value="registro_horario">
+                <RegistroHorarioTab role={role} albergueId={albergueId} />
+              </TabsContent>
+            )}
+            {(role === 'admin' || role === 'personal_albergue') && (
+              <TabsContent value="inventario">
+                <InventarioTab role={role} albergueId={albergueId} />
+              </TabsContent>
+            )}
+          </Suspense>
         </Tabs>
       </main>
 
@@ -345,180 +335,12 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
         onAlbergueDeleted={handleAlbergueDeleted}
       />
 
-      {/* User management dialog - admin only */}
-      <Dialog open={showUsers} onOpenChange={setShowUsers}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
-          <DialogHeader><DialogTitle>{t.userManagement}</DialogTitle></DialogHeader>
-          <div className="space-y-6">
-            <div className="space-y-3 p-4 border rounded-lg">
-              <h3 className="text-sm font-semibold">Crear nuevo usuario</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Usuario</Label>
-                  <Input value={newUser.email} onChange={e => setNewUser(p => ({ ...p, email: e.target.value }))} placeholder="Nombre" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Contraseña</Label>
-                  <PasswordInput value={newUser.password} onChange={e => setNewUser(p => ({ ...p, password: e.target.value }))} placeholder="••••••" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Rol</Label>
-                  <Select value={newUser.role} onValueChange={v => setNewUser(p => ({ ...p, role: v as UserRole }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Administración</SelectItem>
-                      <SelectItem value="gestor">Personal gestor</SelectItem>
-                      <SelectItem value="personal_albergue">Personal laboral</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Albergues asignados {store.albergues.length === 1 && <span className="text-muted-foreground">(auto-asignado)</span>}</Label>
-                <div className="flex flex-wrap gap-2">
-                  {store.albergues.map(a => (
-                    <label key={a.id} className="flex items-center gap-1.5 text-xs cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={store.albergues.length === 1 || newUser.albergueIds.includes(a.id)}
-                        disabled={store.albergues.length === 1}
-                        onChange={e => {
-                          setNewUser(p => ({
-                            ...p,
-                            albergueIds: e.target.checked
-                              ? [...p.albergueIds, a.id]
-                              : p.albergueIds.filter(id => id !== a.id)
-                          }));
-                        }}
-                        className="rounded"
-                      />
-                      {a.nombre}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <Button size="sm" onClick={handleAddUser} className="w-full">
-                <Plus className="w-4 h-4 mr-1" /> Crear usuario
-              </Button>
-            </div>
-
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuario</TableHead>
-                  <TableHead>Rol</TableHead>
-                  <TableHead className="w-32"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {store.users.map(u => (
-                  <TableRow key={u.email}>
-                    <TableCell>
-                      <div className="text-sm font-medium">{u.email}</div>
-                      {(u as any).albergueIds && (u as any).albergueIds.length > 0 && (
-                        <div className="text-[10px] text-muted-foreground mt-0.5">
-                          {(u as any).albergueIds.map((id: string) => store.albergues.find(a => a.id === id)?.nombre || id).join(', ')}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell><Badge variant="outline" className="text-xs">{roleLabel[u.role]}</Badge></TableCell>
-                    <TableCell className="space-x-1">
-                      {store.albergues.length > 1 && (
-                        <Button size="icon" variant="ghost" title="Asignar albergues" onClick={() => {
-                          setEditingAlberguesFor(u.email);
-                          setEditAlbergueIds((u as any).albergueIds || []);
-                        }}>
-                          <Building2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                      <Button size="icon" variant="ghost" title="Cambiar contraseña" onClick={() => { setChangingPasswordFor(u.email); setNewPasswordValue(''); }}>
-                        <KeyRound className="w-4 h-4" />
-                      </Button>
-                      {!(u.role === 'admin' && adminCount <= 1) && (
-                        <Button size="icon" variant="ghost" onClick={() => store.removeUser(u.email)}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Change password dialog */}
-      <Dialog open={!!changingPasswordFor} onOpenChange={() => setChangingPasswordFor(null)}>
-        <DialogContent className="max-w-sm" aria-describedby={undefined}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><KeyRound className="w-5 h-5" /> {t.changePassword}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">{changingPasswordFor}</p>
-            <div className="space-y-2">
-              <Label>{t.newPassword}</Label>
-              <PasswordInput value={newPasswordValue} onChange={e => setNewPasswordValue(e.target.value)} placeholder="••••••" autoFocus />
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setChangingPasswordFor(null)}>{t.cancel}</Button>
-              <Button disabled={newPasswordValue.length < 4} onClick={async () => {
-                try {
-                  await store.changePassword(changingPasswordFor!, newPasswordValue);
-                  const { toast } = await import('sonner');
-                  toast.success(t.passwordChanged);
-                  setChangingPasswordFor(null);
-                } catch { /* error handled by api */ }
-              }}>{t.save}</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Assign albergues dialog */}
-      <Dialog open={!!editingAlberguesFor} onOpenChange={() => setEditingAlberguesFor(null)}>
-        <DialogContent className="max-w-sm" aria-describedby={undefined}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Building2 className="w-5 h-5" /> Asignar albergues</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">{editingAlberguesFor}</p>
-            <div className="space-y-2">
-              {store.albergues.map(a => (
-                <label key={a.id} className="flex items-center gap-2 text-sm cursor-pointer p-2 rounded hover:bg-muted">
-                  <input
-                    type="checkbox"
-                    checked={editAlbergueIds.includes(a.id)}
-                    onChange={e => {
-                      setEditAlbergueIds(prev =>
-                        e.target.checked ? [...prev, a.id] : prev.filter(id => id !== a.id)
-                      );
-                    }}
-                    className="rounded"
-                  />
-                  {a.nombre}
-                </label>
-              ))}
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setEditingAlberguesFor(null)}>{t.cancel}</Button>
-              <Button onClick={async () => {
-                try {
-                  if (store.useApi) {
-                    await api.updateUserAlbergues(editingAlberguesFor!, editAlbergueIds);
-                  }
-                  const { toast } = await import('sonner');
-                  toast.success('Albergues actualizados');
-                  setEditingAlberguesFor(null);
-                  if (store.useApi) {
-                    await api.getUsers();
-                  }
-                } catch { /* error handled by api */ }
-              }}>{t.save}</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* User management dialog */}
+      <UserManagementDialog
+        open={showUsers}
+        onClose={() => setShowUsers(false)}
+        store={store}
+      />
     </div>
   );
 }

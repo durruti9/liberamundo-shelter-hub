@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { BedDouble, Users, Clock, AlertTriangle, TrendingUp, CalendarPlus, MessageSquarePlus, ListChecks, BarChart3, ChevronDown } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { useI18n } from '@/i18n/I18nContext';
@@ -147,6 +148,27 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
     return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   };
 
+  if (store.isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-7 w-48" />
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="pt-6 text-center space-y-2">
+              <Skeleton className="h-8 w-16 mx-auto" />
+              <Skeleton className="h-3 w-24 mx-auto" />
+              <Skeleton className="h-2 w-full" />
+            </CardContent></Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-bold flex items-center gap-2">
@@ -234,7 +256,9 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
           </CardHeader>
           <CardContent>
             {dietData.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8 text-sm">{t.noActiveGuests}</p>
+              <p className="text-center text-muted-foreground py-8 text-sm">
+                No hay huéspedes activos. Registra el primer ingreso desde la pestaña <strong>Habitaciones</strong>.
+              </p>
             ) : (
               <div className="flex items-center gap-4">
                 <ResponsiveContainer width="50%" height={180}>
@@ -315,7 +339,7 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
           </CardHeader>
           <CardContent>
             {upcomingCheckouts.length === 0 ? (
-              <p className="text-center text-muted-foreground py-4 text-sm">{t.noUpcomingCheckouts}</p>
+              <p className="text-center text-muted-foreground py-4 text-sm">No hay salidas programadas en los próximos 14 días.</p>
             ) : (
               <div className="space-y-2">
                 {upcomingCheckouts.map(h => {
@@ -348,7 +372,7 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
           </CardHeader>
           <CardContent>
             {upcomingArrivals.length === 0 ? (
-              <p className="text-center text-muted-foreground py-4 text-sm">{t.noArrivals}</p>
+              <p className="text-center text-muted-foreground py-4 text-sm">No hay llegadas programadas. Usa la pestaña <strong>Llegadas</strong> para registrar nuevas.</p>
             ) : (
               <div className="space-y-2">
                 {upcomingArrivals.map(l => {
