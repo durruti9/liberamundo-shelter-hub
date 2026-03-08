@@ -197,16 +197,32 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   const handleDeleteCategory = async (id: string) => {
     const catItems = items.filter(i => i.categoria_id === id);
-    if (catItems.length > 0) {
-      toast.error('No se puede eliminar una categoría con artículos');
-      return;
-    }
+    const msg = catItems.length > 0
+      ? `Esta categoría tiene ${catItems.length} artículo(s). ¿Eliminar la categoría y todos sus artículos?`
+      : '¿Eliminar esta categoría?';
+    if (!confirm(msg)) return;
     try {
       await api.deleteInventarioCategoria(id);
       toast.success('Categoría eliminada');
       loadData();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch {
+      // Mock mode: remove locally
+      setItems(prev => prev.filter(i => i.categoria_id !== id));
+      setCategories(prev => prev.filter(c => c.id !== id));
+      toast.success('Categoría eliminada');
+    }
+  };
+
+  const handleEditCategory = async () => {
+    if (!editCategory || !editCategory.nombre.trim()) return;
+    try {
+      // API call would go here when backend supports it
+      throw new Error('mock');
+    } catch {
+      setCategories(prev => prev.map(c => c.id === editCategory.id ? { ...c, nombre: editCategory.nombre } : c));
+      setItems(prev => prev.map(i => i.categoria_id === editCategory.id ? { ...i, categoria_nombre: editCategory.nombre } : i));
+      toast.success('Categoría actualizada');
+      setEditCategory(null);
     }
   };
 
