@@ -134,16 +134,30 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     setOriginalTareas({});
   };
 
+  // Debounce ref for auto-saving non-critical fields
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleUpdateTarea = (idx: number, field: keyof TareaDia, value: string) => {
     const updated = tareas.map((t, i) => i === idx ? { ...t, [field]: value } : t);
     setTareas(updated);
-    // Auto-save when estado changes to 'hecha' or 'no procede' (task locks)
-    if (field === 'estado' && (value === 'hecha' || value === 'no procede') && selectedDate) {
+    if (!selectedDate) return;
+
+    // Immediate save for estado changes (locks the card)
+    if (field === 'estado') {
       api.saveTareasDia(albergueId, selectedDate, updated)
         .then(() => loadMonth())
-        .then(() => toast.success('Tarea registrada'))
-        .catch(() => toast.error('Error al registrar'));
+        .then(() => toast.success('Guardado'))
+        .catch(() => toast.error('Error al guardar'));
+      return;
     }
+
+    // Debounced save for text/select fields (turno, hechoPor, observacion)
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      api.saveTareasDia(albergueId, selectedDate, updated)
+        .then(() => loadMonth())
+        .catch(() => toast.error('Error al guardar'));
+    }, 800);
   };
 
   // Check if a task at index is a duplicate (not the first occurrence of its tareaId)
