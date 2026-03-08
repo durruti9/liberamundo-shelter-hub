@@ -485,7 +485,7 @@ const es: Translations = {
   writeReply: 'Escribe una respuesta...',
   resolveMessage: 'Resolver mensaje',
   upcomingArrivalsBoard: 'Próximas llegadas',
-  employeeTasks: 'Tareas Empleados',
+  employeeTasks: 'Tareas Diarias',
 };
 
 const fr: Translations = {
