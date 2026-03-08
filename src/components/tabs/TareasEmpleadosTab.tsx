@@ -97,8 +97,11 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
       const data = await api.getTareasDia(albergueId, start, end);
       const grouped: Record<string, TareaDia[]> = {};
       for (const t of data) {
-        if (!grouped[t.fecha]) grouped[t.fecha] = [];
-        grouped[t.fecha].push(t);
+        // Normalize fecha to YYYY-MM-DD regardless of server format
+        const fechaNorm = typeof t.fecha === 'string' ? t.fecha.split('T')[0] : String(t.fecha).split('T')[0];
+        const normalized = { ...t, fecha: fechaNorm };
+        if (!grouped[fechaNorm]) grouped[fechaNorm] = [];
+        grouped[fechaNorm].push(normalized);
       }
       setAllTareasDates(grouped);
     } catch {
