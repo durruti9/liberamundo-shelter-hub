@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import pool from '../db.js';
+import { requireAlbergueAccess } from '../middleware/albergueAccess.js';
 
 const router = Router();
 
-// Get tareas for date range
-router.get('/:albergueId', async (req, res) => {
+// Get tareas for date range (validates albergue access)
+router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
     const { start, end } = req.query;
     const { rows } = await pool.query(
@@ -29,8 +30,8 @@ router.get('/:albergueId', async (req, res) => {
   }
 });
 
-// Save tareas for a day (replace all for that date)
-router.post('/:albergueId/:fecha', async (req, res) => {
+// Save tareas for a day (validates albergue access)
+router.post('/:albergueId/:fecha', requireAlbergueAccess(), async (req, res) => {
   const client = await pool.connect();
   try {
     const { albergueId, fecha } = req.params;

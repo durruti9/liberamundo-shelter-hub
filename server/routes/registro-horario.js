@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import pool from '../db.js';
+import { requireAlbergueAccess } from '../middleware/albergueAccess.js';
 
 const router = Router();
 
 // ====== EMPLEADOS ======
 
-// Get all employees for an albergue
-router.get('/empleados/:albergueId', async (req, res) => {
+router.get('/empleados/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
     const { rows } = await pool.query(
       'SELECT * FROM empleados_horario WHERE albergue_id = $1 ORDER BY nombre_completo',
@@ -18,8 +18,7 @@ router.get('/empleados/:albergueId', async (req, res) => {
   }
 });
 
-// Create employee
-router.post('/empleados/:albergueId', async (req, res) => {
+router.post('/empleados/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
     const { nombre_completo, jornada_diaria_horas, vacaciones_anuales } = req.body;
     const { rows } = await pool.query(
@@ -27,7 +26,6 @@ router.post('/empleados/:albergueId', async (req, res) => {
        VALUES ($1, $2, $3, $4) RETURNING *`,
       [req.params.albergueId, nombre_completo, jornada_diaria_horas || 40, vacaciones_anuales || 22]
     );
-    // Create vacation balance for current year
     const year = new Date().getFullYear();
     await pool.query(
       `INSERT INTO vacaciones_saldo (empleado_id, anio, asignadas) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
@@ -39,7 +37,6 @@ router.post('/empleados/:albergueId', async (req, res) => {
   }
 });
 
-// Update employee
 router.put('/empleados/:id', async (req, res) => {
   try {
     const { nombre_completo, jornada_diaria_horas, vacaciones_anuales, activo } = req.body;
@@ -59,7 +56,6 @@ router.put('/empleados/:id', async (req, res) => {
   }
 });
 
-// Delete employee
 router.delete('/empleados/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM empleados_horario WHERE id = $1', [req.params.id]);
@@ -71,7 +67,6 @@ router.delete('/empleados/:id', async (req, res) => {
 
 // ====== REGISTROS DIARIOS ======
 
-// Get records for employee + month
 router.get('/registros/:empleadoId', async (req, res) => {
   try {
     const { start, end } = req.query;
@@ -85,7 +80,6 @@ router.get('/registros/:empleadoId', async (req, res) => {
   }
 });
 
-// Upsert a single day record
 router.post('/registros/:empleadoId', async (req, res) => {
   try {
     const { fecha, estado, entrada_manana, salida_manana, entrada_tarde, salida_tarde,
@@ -138,7 +132,6 @@ router.post('/registros/:empleadoId', async (req, res) => {
 
 // ====== VACACIONES SALDO ======
 
-// Get vacation balance
 router.get('/vacaciones/:empleadoId/:anio', async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -146,7 +139,6 @@ router.get('/vacaciones/:empleadoId/:anio', async (req, res) => {
       [req.params.empleadoId, req.params.anio]
     );
     if (rows.length === 0) {
-      // Get employee defaults
       const { rows: emp } = await pool.query('SELECT vacaciones_anuales FROM empleados_horario WHERE id = $1', [req.params.empleadoId]);
       const asignadas = emp[0]?.vacaciones_anuales || 22;
       const { rows: created } = await pool.query(
@@ -154,7 +146,6 @@ router.get('/vacaciones/:empleadoId/:anio', async (req, res) => {
         [req.params.empleadoId, req.params.anio, asignadas]
       );
       if (created.length > 0) return res.json(created[0]);
-      // If ON CONFLICT, fetch it
       const { rows: existing } = await pool.query(
         'SELECT * FROM vacaciones_saldo WHERE empleado_id = $1 AND anio = $2',
         [req.params.empleadoId, req.params.anio]
@@ -167,7 +158,6 @@ router.get('/vacaciones/:empleadoId/:anio', async (req, res) => {
   }
 });
 
-// Update vacation balance
 router.put('/vacaciones/:empleadoId/:anio', async (req, res) => {
   try {
     const { asignadas, consumidas } = req.body;
@@ -185,7 +175,7 @@ router.put('/vacaciones/:empleadoId/:anio', async (req, res) => {
 
 // ====== CONFIG EMPRESA ======
 
-router.get('/config-empresa/:albergueId', async (req, res) => {
+router.get('/config-empresa/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
     const { rows } = await pool.query(
       'SELECT * FROM config_empresa WHERE albergue_id = $1',
@@ -197,7 +187,7 @@ router.get('/config-empresa/:albergueId', async (req, res) => {
   }
 });
 
-router.put('/config-empresa/:albergueId', async (req, res) => {
+router.put('/config-empresa/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
     const { razon_social, cif } = req.body;
     await pool.query(
@@ -214,8 +204,7 @@ router.put('/config-empresa/:albergueId', async (req, res) => {
 
 // ====== AUDITORÍA ======
 
-// Get audit entries for an albergue
-router.get('/auditoria/:albergueId', async (req, res) => {
+router.get('/auditoria/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT a.* FROM auditoria_registros a
@@ -231,7 +220,6 @@ router.get('/auditoria/:albergueId', async (req, res) => {
   }
 });
 
-// Log audit entry (called internally when saving records)
 router.post('/auditoria', async (req, res) => {
   try {
     const { empleado_id, empleado_nombre, fecha_registro, campo_modificado, valor_anterior, valor_nuevo, modificado_por } = req.body;
