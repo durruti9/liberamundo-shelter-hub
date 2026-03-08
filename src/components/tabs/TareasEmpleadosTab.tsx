@@ -76,6 +76,17 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
   const [obsText, setObsText] = useState('');
   const [replyText, setReplyText] = useState('');
   const isAdmin = role === 'admin';
+  const [empleadosList, setEmpleadosList] = useState<string[]>(['Personal externo']);
+
+  // Load employee names from Registro Horario
+  useEffect(() => {
+    api.getEmpleadosHorario(albergueId)
+      .then(data => {
+        const names = (data || []).filter((e: any) => e.activo).map((e: any) => e.nombre_completo);
+        setEmpleadosList([...names, 'Personal externo']);
+      })
+      .catch(() => {});
+  }, [albergueId]);
 
   const loadMonth = useCallback(async () => {
     try {
