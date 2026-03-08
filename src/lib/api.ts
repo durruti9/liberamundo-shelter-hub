@@ -1,8 +1,6 @@
-import type { Albergue, Room, Huesped, Incidencia, ProximaLlegada, ComedorEntry, BoardMessage, UserRole } from '@/types';
+import type { Room, Huesped, Incidencia, ProximaLlegada, ComedorEntry, BoardMessage, UserRole } from '@/types';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
-
-function getToken(): string | null {
   return localStorage.getItem('authToken');
 }
 
