@@ -259,11 +259,13 @@ export default function ComedorTab({ store, role }: Props) {
                 <span className="text-xs text-muted-foreground">
                   {t.menuUploadedAt} {menuInfo.uploadedAt ? formatDistanceToNow(new Date(menuInfo.uploadedAt), { addSuffix: true, locale: es }) : ''}
                 </span>
-                <a href={api.getMenuDownloadUrl(albergueId!)} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
-                    <Download className="w-3 h-3" /> {t.downloadMenu}
-                  </Button>
-                </a>
+                <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => {
+                  const token = localStorage.getItem('authToken');
+                  const url = api.getMenuDownloadUrl(albergueId!) + (token ? `?token=${encodeURIComponent(token)}` : '');
+                  window.open(url, '_blank');
+                }}>
+                  <Download className="w-3 h-3" /> {t.downloadMenu}
+                </Button>
                 <Button variant="outline" size="sm" className="h-7 text-xs gap-1 text-destructive hover:text-destructive" onClick={handleDeleteMenu}>
                   <Trash2 className="w-3 h-3" /> {t.deleteMenu}
                 </Button>
