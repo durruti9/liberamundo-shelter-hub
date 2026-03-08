@@ -73,10 +73,12 @@ export default function LoginPage({ onLogin }: Props) {
           onLogin(result.role as UserRole, result.albergueIds, result.isDefaultAdmin);
           return;
         } catch (err: any) {
-          // If server error (500 = DB issue), fall through to localStorage
-          // If auth error (401 = wrong credentials), show error immediately
           if (err.status === 401) {
             setError(t.wrongCredentials);
+            return;
+          }
+          if (err.status === 429) {
+            setError('Demasiados intentos. Espera 15 minutos.');
             return;
           }
           console.warn('API login failed with server error, trying localStorage fallback:', err.message);
