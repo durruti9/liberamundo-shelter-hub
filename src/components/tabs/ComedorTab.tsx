@@ -437,10 +437,10 @@ export default function ComedorTab({ store, role }: Props) {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Input
+                          <DebouncedInput
                             className="min-w-[140px] h-8 text-xs"
                             value={c.observaciones}
-                            onChange={e => handleUpdate(huesped.id, 'observaciones', e.target.value)}
+                            onCommit={val => handleUpdate(huesped.id, 'observaciones', val)}
                             placeholder={t.observationsPlaceholder}
                           />
                         </TableCell>
