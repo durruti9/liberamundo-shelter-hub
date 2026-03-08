@@ -27,13 +27,9 @@ const LANG_LABELS: Record<Language, string> = { es: 'Español', fr: 'Français',
 function loadUsers(): UserAccount[] {
   try {
     const data = localStorage.getItem('users');
-    const users = data ? (JSON.parse(data) as UserAccount[]) : [];
-    if (users.length === 0) {
-      users.push({ email: 'admin', password: 'admin', role: 'admin' });
-    }
-    return users;
+    return data ? (JSON.parse(data) as UserAccount[]) : [];
   } catch {
-    return [{ email: 'admin', password: 'admin', role: 'admin' }];
+    return [];
   }
 }
 
