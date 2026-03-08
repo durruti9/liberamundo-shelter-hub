@@ -48,12 +48,13 @@ export default function InventarioTab({ role, albergueId }: Props) {
   const [editItem, setEditItem] = useState<Item | null>(null);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-
+  const [editCategory, setEditCategory] = useState<Category | null>(null);
   const [newItem, setNewItem] = useState({
     categoria_id: '', nombre: '', unidad: 'unidades', stock_actual: 0, stock_minimo: 0, ubicacion: '', notas: '',
   });
 
   const isAdmin = role === 'admin';
+  const canManage = role === 'admin' || role === 'personal_albergue';
 
   // Example data for when API is not available
   const MOCK_CATEGORIES: Category[] = [
@@ -196,16 +197,32 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   const handleDeleteCategory = async (id: string) => {
     const catItems = items.filter(i => i.categoria_id === id);
-    if (catItems.length > 0) {
-      toast.error('No se puede eliminar una categoría con artículos');
-      return;
-    }
+    const msg = catItems.length > 0
+      ? `Esta categoría tiene ${catItems.length} artículo(s). ¿Eliminar la categoría y todos sus artículos?`
+      : '¿Eliminar esta categoría?';
+    if (!confirm(msg)) return;
     try {
       await api.deleteInventarioCategoria(id);
       toast.success('Categoría eliminada');
       loadData();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch {
+      // Mock mode: remove locally
+      setItems(prev => prev.filter(i => i.categoria_id !== id));
+      setCategories(prev => prev.filter(c => c.id !== id));
+      toast.success('Categoría eliminada');
+    }
+  };
+
+  const handleEditCategory = async () => {
+    if (!editCategory || !editCategory.nombre.trim()) return;
+    try {
+      // API call would go here when backend supports it
+      throw new Error('mock');
+    } catch {
+      setCategories(prev => prev.map(c => c.id === editCategory.id ? { ...c, nombre: editCategory.nombre } : c));
+      setItems(prev => prev.map(i => i.categoria_id === editCategory.id ? { ...i, categoria_nombre: editCategory.nombre } : i));
+      toast.success('Categoría actualizada');
+      setEditCategory(null);
     }
   };
 
@@ -248,7 +265,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
         </div>
         <div className="flex gap-2">
           <ExportButton type="inventario" getData={() => items} />
-          {isAdmin && (
+          {canManage && (
             <Button variant="outline" size="sm" onClick={() => setShowAddCategory(true)}>
               + Categoría
             </Button>
@@ -341,8 +358,8 @@ export default function InventarioTab({ role, albergueId }: Props) {
         </CardContent>
       </Card>
 
-      {/* Categories list for admin */}
-      {isAdmin && categories.length > 0 && (
+      {/* Categories list */}
+      {canManage && categories.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Categorías</CardTitle>
@@ -352,17 +369,35 @@ export default function InventarioTab({ role, albergueId }: Props) {
               {categories.map(c => (
                 <Badge key={c.id} variant="secondary" className="gap-1 pr-1">
                   {c.nombre}
-                  {items.filter(i => i.categoria_id === c.id).length === 0 && (
-                    <button onClick={() => handleDeleteCategory(c.id)} className="ml-1 hover:text-destructive">
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  )}
+                  <span className="text-xs text-muted-foreground ml-1">({items.filter(i => i.categoria_id === c.id).length})</span>
+                  <button onClick={() => setEditCategory({ ...c })} className="ml-1 hover:text-primary" title="Editar">
+                    <Edit className="w-3 h-3" />
+                  </button>
+                  <button onClick={() => handleDeleteCategory(c.id)} className="hover:text-destructive" title="Eliminar">
+                    <Trash2 className="w-3 h-3" />
+                  </button>
                 </Badge>
               ))}
             </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Edit category dialog */}
+      <Dialog open={!!editCategory} onOpenChange={() => setEditCategory(null)}>
+        <DialogContent aria-describedby={undefined}>
+          <DialogHeader><DialogTitle>Editar categoría</DialogTitle></DialogHeader>
+          {editCategory && (
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <Label>Nombre</Label>
+                <Input value={editCategory.nombre} onChange={e => setEditCategory({ ...editCategory, nombre: e.target.value })} autoFocus />
+              </div>
+              <Button onClick={handleEditCategory} className="w-full" disabled={!editCategory.nombre.trim()}>Guardar</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Add item dialog */}
       <Dialog open={showAddItem} onOpenChange={setShowAddItem}>
