@@ -351,7 +351,7 @@ export default function InformesTab({ store, role }: Props) {
                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                   <XAxis type="number" tick={{ fontSize: 11 }} />
                   <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 10 }} />
-                  <Tooltip />
+                   <Tooltip content={<ChartTooltip />} />
                   <Bar dataKey="value" name="Huéspedes" fill="hsl(38, 92%, 55%)" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
