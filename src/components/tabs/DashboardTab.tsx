@@ -27,22 +27,36 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
 
   // Pending suggestions count (admin only)
   const [pendingSugerencias, setPendingSugerencias] = useState(0);
+  const [pendingTareas, setPendingTareas] = useState(0);
+
   useEffect(() => {
-    if (!isAdmin) return;
     const alId = store.currentAlbergue?.id || 'default';
-    api.getSugerencias(alId)
-      .then(data => {
-        if (Array.isArray(data)) {
-          setPendingSugerencias(data.filter((s: any) => !s.respuesta).length);
-        } else {
+
+    if (isAdmin) {
+      api.getSugerencias(alId)
+        .then(data => {
+          if (Array.isArray(data)) {
+            setPendingSugerencias(data.filter((s: any) => !s.respuesta).length);
+          } else {
+            const local = JSON.parse(localStorage.getItem(`sugerencias_${alId}`) || '[]');
+            setPendingSugerencias(local.filter((s: any) => !s.respuesta).length);
+          }
+        })
+        .catch(() => {
           const local = JSON.parse(localStorage.getItem(`sugerencias_${alId}`) || '[]');
           setPendingSugerencias(local.filter((s: any) => !s.respuesta).length);
+        });
+    }
+
+    // Today's pending tasks
+    const today = new Date().toISOString().split('T')[0];
+    api.getTareasDia(alId, today, today)
+      .then(data => {
+        if (Array.isArray(data)) {
+          setPendingTareas(data.filter((t: any) => t.estado === 'pendiente').length);
         }
       })
-      .catch(() => {
-        const local = JSON.parse(localStorage.getItem(`sugerencias_${alId}`) || '[]');
-        setPendingSugerencias(local.filter((s: any) => !s.respuesta).length);
-      });
+      .catch(() => {});
   }, [isAdmin, store.currentAlbergue?.id]);
 
   const ocupadas = huespedActivos.length;
