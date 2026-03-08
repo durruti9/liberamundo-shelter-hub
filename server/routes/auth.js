@@ -124,9 +124,14 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Emergency code stored server-side only (env var with fallback)
+// Emergency code stored server-side only (env var required)
 function getEmergencySecret() {
-  return process.env.EMERGENCY_SECRET || 'irai2019';
+  const secret = process.env.EMERGENCY_SECRET;
+  if (!secret) {
+    console.warn('⚠️ EMERGENCY_SECRET not set. Emergency access disabled.');
+    return null;
+  }
+  return secret;
 }
 
 // Verify emergency code (no user creation, just validation)
