@@ -916,6 +916,24 @@ export default function InventarioTab({ role, albergueId }: Props) {
           </Card>
         </CollapsibleContent>
       </Collapsible>
+
+      {/* Delete item confirmation */}
+      <ConfirmDialog
+        open={!!deleteItemId}
+        onClose={() => setDeleteItemId(null)}
+        onConfirm={() => { if (deleteItemId) handleDeleteItem(deleteItemId); }}
+        title="¿Eliminar este artículo?"
+        description="Se eliminará permanentemente el artículo y todo su historial de movimientos."
+      />
+
+      {/* Delete category confirmation */}
+      <ConfirmDialog
+        open={!!deleteCategoryId}
+        onClose={() => setDeleteCategoryId(null)}
+        onConfirm={() => { if (deleteCategoryId) handleDeleteCategory(deleteCategoryId); }}
+        title="¿Eliminar esta categoría?"
+        description={`Se eliminará la categoría${deleteCategoryId ? ` y ${items.filter(i => i.categoria_id === deleteCategoryId).length} artículo(s) asociados` : ''}. Esta acción no se puede deshacer.`}
+      />
     </div>
   );
 }
