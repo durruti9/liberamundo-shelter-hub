@@ -176,9 +176,11 @@ export default function ComedorTab({ store, role }: Props) {
   }, [huespedActivos, comedor]);
 
   const handleUpdate = (huespedId: string, field: string, value: unknown) => {
-    console.log('[ComedorTab handleUpdate]', huespedId, field, value);
     updateComedor(huespedId, { [field]: value } as Partial<import('@/types').ComedorEntry>)
-      .catch(err => console.error('[ComedorTab handleUpdate] error:', err));
+      .catch(err => {
+        console.error('[ComedorTab] error:', err);
+        toast.error(t.errorSavingComedor || 'Error al guardar cambios en comedor');
+      });
   };
 
   const downloadWeeklyPdf = useCallback(() => {
