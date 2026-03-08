@@ -383,6 +383,53 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Assign albergues dialog */}
+      <Dialog open={!!editingAlberguesFor} onOpenChange={() => setEditingAlberguesFor(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Building2 className="w-5 h-5" /> Asignar albergues</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{editingAlberguesFor}</p>
+            <div className="space-y-2">
+              {store.albergues.map(a => (
+                <label key={a.id} className="flex items-center gap-2 text-sm cursor-pointer p-2 rounded hover:bg-muted">
+                  <input
+                    type="checkbox"
+                    checked={editAlbergueIds.includes(a.id)}
+                    onChange={e => {
+                      setEditAlbergueIds(prev =>
+                        e.target.checked ? [...prev, a.id] : prev.filter(id => id !== a.id)
+                      );
+                    }}
+                    className="rounded"
+                  />
+                  {a.nombre}
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditingAlberguesFor(null)}>{t.cancel}</Button>
+              <Button onClick={async () => {
+                try {
+                  if (store.useApi) {
+                    await api.updateUserAlbergues(editingAlberguesFor!, editAlbergueIds);
+                  }
+                  const { toast } = await import('sonner');
+                  toast.success('Albergues actualizados');
+                  setEditingAlberguesFor(null);
+                  // Reload users
+                  if (store.useApi) {
+                    const users = await api.getUsers();
+                    // The store will update on next load
+                  }
+                } catch { /* error handled by api */ }
+              }}>{t.save}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
