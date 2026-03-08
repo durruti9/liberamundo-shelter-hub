@@ -97,8 +97,11 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
       const data = await api.getTareasDia(albergueId, start, end);
       const grouped: Record<string, TareaDia[]> = {};
       for (const t of data) {
-        if (!grouped[t.fecha]) grouped[t.fecha] = [];
-        grouped[t.fecha].push(t);
+        // Normalize fecha to YYYY-MM-DD regardless of server format
+        const fechaNorm = typeof t.fecha === 'string' ? t.fecha.split('T')[0] : String(t.fecha).split('T')[0];
+        const normalized = { ...t, fecha: fechaNorm };
+        if (!grouped[fechaNorm]) grouped[fechaNorm] = [];
+        grouped[fechaNorm].push(normalized);
       }
       setAllTareasDates(grouped);
     } catch {
@@ -200,7 +203,11 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
       await loadMonth();
       setEditingIdx(new Set());
       setOriginalTareas({});
-      setSelectedDate(null);
+      // Re-load the current day's data to confirm persistence
+      const refreshed = allTareasDates[selectedDate];
+      if (refreshed) {
+        setTareas(refreshed.map(t => ({ ...t, adminObs: t.adminObs || '', respuestaEmpleado: t.respuestaEmpleado || '' })));
+      }
       toast.success('Tareas guardadas correctamente');
     } catch (err) {
       console.error('Error saving tareas:', err);
@@ -227,16 +234,20 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
       // Save all current tareas state to persist
       await api.saveTareasDia(albergueId, selectedDate, tareas);
       // Refresh month data
+      await loadMonth();
+      // Refresh local tareas for this day from updated allTareasDates
+      // (loadMonth updates allTareasDates via setState, but we need to re-fetch)
       const start = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
       const end = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
       const data = await api.getTareasDia(albergueId, start, end);
       const grouped: Record<string, TareaDia[]> = {};
       for (const t of data) {
-        if (!grouped[t.fecha]) grouped[t.fecha] = [];
-        grouped[t.fecha].push(t);
+        const fechaNorm = typeof t.fecha === 'string' ? t.fecha.split('T')[0] : String(t.fecha).split('T')[0];
+        const normalized = { ...t, fecha: fechaNorm };
+        if (!grouped[fechaNorm]) grouped[fechaNorm] = [];
+        grouped[fechaNorm].push(normalized);
       }
       setAllTareasDates(grouped);
-      // Refresh local tareas for this day
       if (grouped[selectedDate]) {
         setTareas(grouped[selectedDate].map(t => ({ ...t, adminObs: t.adminObs || '', respuestaEmpleado: t.respuestaEmpleado || '' })));
       }
