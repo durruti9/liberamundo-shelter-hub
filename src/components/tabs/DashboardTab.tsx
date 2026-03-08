@@ -21,7 +21,8 @@ const COLORS = [
   'hsl(25, 80%, 55%)', 'hsl(0, 72%, 55%)',
 ];
 
-export default function DashboardTab({ store, role = 'personal_albergue' }: Props) {
+export default function DashboardTab({ store, role = 'personal_albergue', onNavigate }: Props) {
+  const nav = (tab: string) => onNavigate?.(tab);
   const { huespedActivos, huespedes, totalCamas, incidencias, llegadas, boardMessages, addBoardMessage, addBoardReply, resolveBoardMessage, deleteBoardMessage } = store;
   const { t } = useI18n();
   const isAdmin = role === 'admin';
