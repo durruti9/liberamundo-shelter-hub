@@ -287,7 +287,7 @@ router.get('/:albergueId/movimientos', requireAlbergueAccess(), async (req, res)
       paramIdx++;
     }
 
-    query += ' ORDER BY m.fecha DESC LIMIT 500';
+    query += ' ORDER BY m.fecha DESC';
 
     const { rows } = await pool.query(query, params);
     res.json(rows);
