@@ -21,25 +21,58 @@ export function exportToPDF(
   data: Record<string, any>[],
   filename: string,
   columns: { key: string; label: string }[],
-  title: string
+  title: string,
+  options?: { empresa?: string; cif?: string; legalText?: string; employeeName?: string }
 ) {
   const doc = new jsPDF({ orientation: 'landscape' });
-  
-  doc.setFontSize(16);
-  doc.text(title, 14, 15);
+  let yPos = 12;
+
+  // Empresa header if provided
+  if (options?.empresa || options?.cif) {
+    doc.setFontSize(10);
+    doc.setTextColor(60);
+    const empresaLine = [
+      options.empresa ? `EMPRESA: ${options.empresa}` : '',
+      options.cif ? `CIF: ${options.cif}` : '',
+    ].filter(Boolean).join('  |  ');
+    doc.text(empresaLine, 14, yPos);
+    yPos += 7;
+  }
+
+  doc.setFontSize(14);
+  doc.setTextColor(0);
+  doc.text(title, 14, yPos);
+  yPos += 6;
+
+  if (options?.employeeName) {
+    doc.setFontSize(10);
+    doc.setTextColor(80);
+    doc.text(`Trabajador/a: ${options.employeeName}`, 14, yPos);
+    yPos += 5;
+  }
+
   doc.setFontSize(9);
   doc.setTextColor(128);
-  doc.text(`Exportado: ${new Date().toLocaleString('es-ES')}`, 14, 22);
+  doc.text(`Exportado: ${new Date().toLocaleString('es-ES')}`, 14, yPos);
+  yPos += 6;
 
   autoTable(doc, {
-    startY: 28,
+    startY: yPos,
     head: [columns.map(c => c.label)],
     body: data.map(row => columns.map(c => String(row[c.key] ?? ''))),
-    styles: { fontSize: 8, cellPadding: 2 },
+    styles: { fontSize: 7, cellPadding: 1.5 },
     headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
     alternateRowStyles: { fillColor: [245, 245, 245] },
-    margin: { top: 28 },
+    margin: { top: yPos },
   });
+
+  // Legal footer text
+  if (options?.legalText) {
+    const finalY = (doc as any).lastAutoTable?.finalY || 200;
+    doc.setFontSize(7);
+    doc.setTextColor(120);
+    doc.text(options.legalText, 14, finalY + 10);
+  }
 
   doc.save(`${filename}.pdf`);
 }
