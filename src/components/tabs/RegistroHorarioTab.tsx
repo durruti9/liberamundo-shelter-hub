@@ -373,7 +373,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
       const emp = await api.addEmpleadoHorario(albergueId, newEmp);
       setEmpleados(prev => [...prev, emp]);
       setSelectedEmpleado(emp.id);
-      setNewEmp({ nombre_completo: '', jornada_diaria_horas: 8, vacaciones_anuales: 22 });
+      setNewEmp({ nombre_completo: '', jornada_diaria_horas: 40, vacaciones_anuales: 22 });
       setShowAddEmployee(false);
       toast.success('Empleado añadido');
     } catch (err: any) {
