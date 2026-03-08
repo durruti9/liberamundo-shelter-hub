@@ -297,8 +297,8 @@ export default function InventarioTab({ role, albergueId }: Props) {
         </div>
       </div>
 
-      {/* Items table */}
-      <Card>
+      {/* Items - Desktop table */}
+      <Card className="hidden sm:block">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
@@ -308,6 +308,236 @@ export default function InventarioTab({ role, albergueId }: Props) {
                   <TableHead>Categoría</TableHead>
                   <TableHead className="text-right">Unidades</TableHead>
                   <TableHead className="text-right">Aviso stock bajo</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                      No hay artículos{selectedCategory !== 'all' ? ' en esta categoría' : ''}
+                    </TableCell>
+                  </TableRow>
+                ) : filteredItems.map(item => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">
+                      {item.nombre}
+                      {item.notas && <span className="block text-xs text-muted-foreground">{item.notas}</span>}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">{item.categoria_nombre}</Badge>
+                    </TableCell>
+                    <TableCell className={`text-right ${stockColor(item)}`}>
+                      {item.stock_actual} {item.unidad}
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      {item.stock_minimo > 0 ? item.stock_minimo : '—'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="+1"
+                          onClick={() => handleQuickMovement(item, 'entrada')}>
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" title="-1"
+                          onClick={() => handleQuickMovement(item, 'salida')} disabled={item.stock_actual <= 0}>
+                          <Minus className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar"
+                          onClick={() => setEditItem({ ...item })}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        {canManage && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" title="Eliminar"
+                            onClick={() => handleDeleteItem(item.id)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Items - Mobile cards */}
+      <div className="sm:hidden space-y-2">
+        {filteredItems.length === 0 ? (
+          <Card><CardContent className="py-8 text-center text-muted-foreground">No hay artículos</CardContent></Card>
+        ) : filteredItems.map(item => (
+          <Card key={item.id}>
+            <CardContent className="p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-sm truncate">{item.nombre}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">{item.categoria_nombre}</Badge>
+                    {item.stock_minimo > 0 && item.stock_actual <= item.stock_minimo && (
+                      <AlertTriangle className="w-3 h-3 text-amber-500" />
+                    )}
+                  </div>
+                  {item.notas && <p className="text-xs text-muted-foreground mt-1 truncate">{item.notas}</p>}
+                </div>
+                <div className="text-right shrink-0">
+                  <p className={`text-sm font-semibold ${stockColor(item)}`}>{item.stock_actual}</p>
+                  <p className="text-[10px] text-muted-foreground">{item.unidad}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-1 mt-2 border-t border-border pt-2">
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-600"
+                  onClick={() => handleQuickMovement(item, 'entrada')}>
+                  <Plus className="w-3.5 h-3.5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-red-600"
+                  onClick={() => handleQuickMovement(item, 'salida')} disabled={item.stock_actual <= 0}>
+                  <Minus className="w-3.5 h-3.5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-7 w-7"
+                  onClick={() => setEditItem({ ...item })}>
+                  <Edit className="w-3.5 h-3.5" />
+                </Button>
+                {canManage && (
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
+                    onClick={() => handleDeleteItem(item.id)}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Category manager dialog */}
+      <Dialog open={showCategoryManager} onOpenChange={v => { setShowCategoryManager(v); if (!v) { setEditCategory(null); setNewCategoryName(''); } }}>
+        <DialogContent className="max-w-md" aria-describedby={undefined}>
+          <DialogHeader><DialogTitle>Gestionar categorías</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <Input
+                value={newCategoryName}
+                onChange={e => setNewCategoryName(e.target.value)}
+                placeholder="Nueva categoría..."
+                onKeyDown={e => e.key === 'Enter' && handleAddCategory()}
+              />
+              <Button size="sm" onClick={handleAddCategory} disabled={!newCategoryName.trim()}>
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="space-y-1 max-h-[50vh] overflow-y-auto">
+              {categories.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No hay categorías</p>
+              ) : categories.map(c => (
+                <div key={c.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-muted group">
+                  {editCategory?.id === c.id ? (
+                    <>
+                      <Input
+                        value={editCategory.nombre}
+                        onChange={e => setEditCategory({ ...editCategory, nombre: e.target.value })}
+                        className="h-8 text-sm flex-1"
+                        autoFocus
+                        onKeyDown={e => { if (e.key === 'Enter') handleEditCategory(); if (e.key === 'Escape') setEditCategory(null); }}
+                      />
+                      <Button size="sm" variant="ghost" className="h-8 shrink-0" onClick={handleEditCategory}>OK</Button>
+                      <Button size="sm" variant="ghost" className="h-8 shrink-0" onClick={() => setEditCategory(null)}>✕</Button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="flex-1 text-sm">{c.nombre}</span>
+                      <Badge variant="secondary" className="text-[10px]">{items.filter(i => i.categoria_id === c.id).length}</Badge>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-60 sm:opacity-0 sm:group-hover:opacity-100"
+                        onClick={() => setEditCategory({ ...c })}>
+                        <Edit className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive opacity-60 sm:opacity-0 sm:group-hover:opacity-100"
+                        onClick={() => handleDeleteCategory(c.id)}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add item dialog */}
+      <Dialog open={showAddItem} onOpenChange={setShowAddItem}>
+        <DialogContent aria-describedby={undefined}>
+          <DialogHeader><DialogTitle>Nuevo artículo</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Categoría *</Label>
+              <Select value={newItem.categoria_id} onValueChange={v => setNewItem(p => ({ ...p, categoria_id: v }))}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                <SelectContent>
+                  {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>Nombre *</Label>
+              <Input value={newItem.nombre} onChange={e => setNewItem(p => ({ ...p, nombre: e.target.value }))} placeholder="Ej: Toallas" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Unidad</Label>
+                <Input value={newItem.unidad} onChange={e => setNewItem(p => ({ ...p, unidad: e.target.value }))} placeholder="unidades" />
+              </div>
+              <div className="space-y-1">
+                <Label>Stock inicial</Label>
+                <Input type="number" min={0} value={newItem.stock_actual} onChange={e => setNewItem(p => ({ ...p, stock_actual: parseFloat(e.target.value) || 0 }))} />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Aviso stock bajo</Label>
+              <Input type="number" min={0} value={newItem.stock_minimo} onChange={e => setNewItem(p => ({ ...p, stock_minimo: parseFloat(e.target.value) || 0 }))} placeholder="0 = sin aviso" />
+            </div>
+            <div className="space-y-1">
+              <Label>Notas</Label>
+              <Input value={newItem.notas} onChange={e => setNewItem(p => ({ ...p, notas: e.target.value }))} placeholder="Opcional" />
+            </div>
+            <Button onClick={handleAddItem} className="w-full">Añadir artículo</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit item dialog */}
+      <Dialog open={!!editItem} onOpenChange={() => setEditItem(null)}>
+        <DialogContent aria-describedby={undefined}>
+          <DialogHeader><DialogTitle>Editar artículo</DialogTitle></DialogHeader>
+          {editItem && (
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <Label>Nombre</Label>
+                <Input value={editItem.nombre} onChange={e => setEditItem({ ...editItem, nombre: e.target.value })} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label>Unidades (stock actual)</Label>
+                  <Input type="number" min={0} value={editItem.stock_actual} onChange={e => setEditItem({ ...editItem, stock_actual: parseFloat(e.target.value) || 0 })} />
+                </div>
+                <div className="space-y-1">
+                  <Label>Aviso stock bajo</Label>
+                  <Input type="number" min={0} value={editItem.stock_minimo} onChange={e => setEditItem({ ...editItem, stock_minimo: parseFloat(e.target.value) || 0 })} placeholder="0 = sin aviso" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label>Notas</Label>
+                <Input value={editItem.notas} onChange={e => setEditItem({ ...editItem, notas: e.target.value })} />
+              </div>
+              <Button onClick={handleUpdateItem} className="w-full">Guardar cambios</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
