@@ -286,7 +286,7 @@ export default function SugerenciasTab({ role, albergueId, userName }: Props) {
           )}
         </h2>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Bulk delete selected */}
           {selectedIds.size > 0 && (
             <AlertDialog>
