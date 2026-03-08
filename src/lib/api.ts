@@ -305,6 +305,15 @@ export const api = {
   addInventarioMovimiento: (itemId: string, data: { tipo: 'entrada' | 'salida'; cantidad: number; motivo?: string }) =>
     request<InventarioItem>(`/inventario/items/${itemId}/movimiento`, { method: 'POST', body: JSON.stringify(data) }),
   getInventarioMovimientos: (itemId: string) => request<InventarioMovimiento[]>(`/inventario/items/${itemId}/movimientos`),
+  getInventarioMovimientosGlobal: (albergueId: string, filters?: { start?: string; end?: string; categoria?: string; usuario?: string }) => {
+    const params = new URLSearchParams();
+    if (filters?.start) params.set('start', filters.start);
+    if (filters?.end) params.set('end', filters.end);
+    if (filters?.categoria) params.set('categoria', filters.categoria);
+    if (filters?.usuario) params.set('usuario', filters.usuario);
+    const qs = params.toString();
+    return request<InventarioMovimiento[]>(`/inventario/${albergueId}/movimientos${qs ? '?' + qs : ''}`);
+  },
   getInventarioAlertas: (albergueId: string) => request<InventarioItem[]>(`/inventario/${albergueId}/alertas`),
   getInventarioConsumoMensual: (albergueId: string) => request<ConsumoMensual[]>(`/inventario/${albergueId}/consumo-mensual`),
 };
