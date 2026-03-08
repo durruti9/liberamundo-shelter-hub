@@ -495,18 +495,12 @@ export default function InventarioTab({ role, albergueId }: Props) {
               <Label>Nombre *</Label>
               <Input value={newItem.nombre} onChange={e => setNewItem(p => ({ ...p, nombre: e.target.value }))} placeholder="Ej: Toallas" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label>Unidad</Label>
-                <Input value={newItem.unidad} onChange={e => setNewItem(p => ({ ...p, unidad: e.target.value }))} placeholder="unidades" />
-              </div>
-              <div className="space-y-1">
-                <Label>Stock inicial</Label>
-                <Input type="number" min={0} value={newItem.stock_actual} onChange={e => setNewItem(p => ({ ...p, stock_actual: parseFloat(e.target.value) || 0 }))} />
-              </div>
+            <div className="space-y-1">
+              <Label>Stock</Label>
+              <Input type="number" min={0} value={newItem.stock_actual} onChange={e => setNewItem(p => ({ ...p, stock_actual: parseFloat(e.target.value) || 0 }))} />
             </div>
             <div className="space-y-1">
-              <Label>Aviso stock bajo</Label>
+              <Label>Aviso stock bajo en</Label>
               <Input type="number" min={0} value={newItem.stock_minimo} onChange={e => setNewItem(p => ({ ...p, stock_minimo: parseFloat(e.target.value) || 0 }))} placeholder="0 = sin aviso" />
             </div>
             <div className="space-y-1">
@@ -530,11 +524,11 @@ export default function InventarioTab({ role, albergueId }: Props) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label>Unidades (stock actual)</Label>
+                  <Label>Stock</Label>
                   <Input type="number" min={0} value={editItem.stock_actual} onChange={e => setEditItem({ ...editItem, stock_actual: parseFloat(e.target.value) || 0 })} />
                 </div>
                 <div className="space-y-1">
-                  <Label>Aviso stock bajo</Label>
+                  <Label>Aviso stock bajo en</Label>
                   <Input type="number" min={0} value={editItem.stock_minimo} onChange={e => setEditItem({ ...editItem, stock_minimo: parseFloat(e.target.value) || 0 })} placeholder="0 = sin aviso" />
                 </div>
               </div>
@@ -547,6 +541,58 @@ export default function InventarioTab({ role, albergueId }: Props) {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Monthly stats collapsible */}
+      <Collapsible open={statsOpen} onOpenChange={setStatsOpen}>
+        <CollapsibleTrigger asChild>
+          <Button variant="outline" className="w-full flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Estadísticas de inventario
+            </span>
+            <ChevronDown className={`w-4 h-4 transition-transform ${statsOpen ? 'rotate-180' : ''}`} />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-3">
+          <Card>
+            <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-primary" />
+                Resumen por categoría
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              {monthlyStats.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No hay datos</p>
+              ) : (
+                <div className="space-y-3">
+                  {monthlyStats.map(stat => (
+                    <div key={stat.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <div>
+                        <p className="font-medium text-sm">{stat.nombre}</p>
+                        <p className="text-xs text-muted-foreground">{stat.totalItems} artículo{stat.totalItems !== 1 ? 's' : ''}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold">{stat.totalStock} uds. en stock</p>
+                        {stat.lowStock > 0 && (
+                          <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1 justify-end">
+                            <AlertTriangle className="w-3 h-3" />
+                            {stat.lowStock} bajo mínimo
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <div className="border-t border-border pt-3 flex justify-between text-sm font-medium">
+                    <span>Total general</span>
+                    <span>{items.reduce((sum, i) => sum + i.stock_actual, 0)} unidades · {alertItems.length} alertas</span>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
