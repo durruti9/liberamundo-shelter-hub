@@ -240,7 +240,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             )}
           </TabsList>
 
-          {(role === 'admin' || role === 'gestor') && (
+          {(role === 'admin' || role === 'gestor' || role === 'personal_albergue') && (
             <TabsContent value="dashboard">
               <DashboardTab store={store} role={role} />
             </TabsContent>
