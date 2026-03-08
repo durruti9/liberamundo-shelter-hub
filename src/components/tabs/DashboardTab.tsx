@@ -73,7 +73,6 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
   }, [isAdmin, store.currentAlbergue?.id]);
 
   const ocupadas = huespedActivos.length;
-  const libres = totalCamas - ocupadas;
   const porcentaje = totalCamas > 0 ? Math.round((ocupadas / totalCamas) * 100) : 0;
 
   const avgStay = useMemo(() => {
