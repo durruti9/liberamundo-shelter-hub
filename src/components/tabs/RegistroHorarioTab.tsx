@@ -488,12 +488,12 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
               </Select>
             </div>
             {isAdmin && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button size="sm" variant="outline" onClick={() => setShowAddEmployee(true)}>
-                  <UserPlus className="w-4 h-4 mr-1" /> Añadir
+                  <UserPlus className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Añadir</span>
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setShowManageEmployees(true)}>
-                  <Users className="w-4 h-4 mr-1" /> Gestionar
+                  <Users className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Gestionar</span>
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => {
                   setEditEmpresa({ ...empresaConfig });
@@ -502,7 +502,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                   <Settings2 className="w-4 h-4" />
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setShowAuditLog(!showAuditLog)}>
-                  <HistoryIcon className="w-4 h-4 mr-1" /> Auditoría
+                  <HistoryIcon className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Auditoría</span>
                 </Button>
               </div>
             )}
