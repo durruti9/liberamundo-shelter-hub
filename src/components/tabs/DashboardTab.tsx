@@ -27,7 +27,8 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
 
   // Pending suggestions count (admin only)
   const [pendingSugerencias, setPendingSugerencias] = useState(0);
-  const [pendingTareas, setPendingTareas] = useState(0);
+  const [completedTareas, setCompletedTareas] = useState(0);
+  const [tareasBreakdown, setTareasBreakdown] = useState<{ nombre: string; count: number }[]>([]);
 
   useEffect(() => {
     const alId = store.currentAlbergue?.id || 'default';
@@ -48,12 +49,24 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
         });
     }
 
-    // Today's pending tasks
+    // Today's completed tasks + breakdown by employee
     const today = new Date().toISOString().split('T')[0];
     api.getTareasDia(alId, today, today)
       .then(data => {
         if (Array.isArray(data)) {
-          setPendingTareas(data.filter((t: any) => t.estado === 'pendiente').length);
+          const done = data.filter((t: any) => t.estado === 'hecha');
+          setCompletedTareas(done.length);
+          // Group by hechoPor
+          const byPerson: Record<string, number> = {};
+          done.forEach((t: any) => {
+            const name = t.hechoPor?.trim() || 'Sin asignar';
+            byPerson[name] = (byPerson[name] || 0) + 1;
+          });
+          setTareasBreakdown(
+            Object.entries(byPerson)
+              .map(([nombre, count]) => ({ nombre, count }))
+              .sort((a, b) => b.count - a.count)
+          );
         }
       })
       .catch(() => {});
@@ -174,10 +187,20 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
         <Card>
           <CardContent className="pt-6 text-center">
             <div className="flex items-center justify-center gap-2">
-              <ListChecks className={`w-5 h-5 ${pendingTareas > 0 ? 'text-warning' : 'text-muted-foreground'}`} />
-              <span className={`text-3xl font-bold ${pendingTareas > 0 ? 'text-warning' : ''}`}>{pendingTareas}</span>
+              <ListChecks className={`w-5 h-5 ${completedTareas > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
+              <span className={`text-3xl font-bold ${completedTareas > 0 ? 'text-primary' : ''}`}>{completedTareas}</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Tareas pendientes hoy</p>
+            <p className="text-xs text-muted-foreground mt-1">Tareas completadas hoy</p>
+            {tareasBreakdown.length > 0 && (
+              <div className="mt-2 space-y-0.5 text-left">
+                {tareasBreakdown.map(b => (
+                  <div key={b.nombre} className="flex justify-between text-[10px] text-muted-foreground">
+                    <span className="truncate mr-1">{b.nombre}</span>
+                    <span className="font-medium">{b.count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
         {isAdmin && (

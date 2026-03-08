@@ -76,6 +76,17 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
   const [obsText, setObsText] = useState('');
   const [replyText, setReplyText] = useState('');
   const isAdmin = role === 'admin';
+  const [empleadosList, setEmpleadosList] = useState<string[]>(['Personal externo']);
+
+  // Load employee names from Registro Horario
+  useEffect(() => {
+    api.getEmpleadosHorario(albergueId)
+      .then(data => {
+        const names = (data || []).filter((e: any) => e.activo).map((e: any) => e.nombre_completo);
+        setEmpleadosList([...names, 'Personal externo']);
+      })
+      .catch(() => {});
+  }, [albergueId]);
 
   const loadMonth = useCallback(async () => {
     try {
@@ -398,7 +409,14 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                       </div>
                       <div>
                         <label className="text-xs text-muted-foreground">Hecho por</label>
-                        <Input className="h-8 text-xs" value={tarea.hechoPor} onChange={e => handleUpdateTarea(idx, 'hechoPor', e.target.value)} readOnly={!taskEditable} placeholder="Nombre..." />
+                        <Select value={tarea.hechoPor || ''} onValueChange={v => handleUpdateTarea(idx, 'hechoPor', v)} disabled={!taskEditable}>
+                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                          <SelectContent>
+                            {empleadosList.map(name => (
+                              <SelectItem key={name} value={name}>{name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div>
                         <label className="text-xs text-muted-foreground">Observación</label>
