@@ -709,6 +709,18 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
           </DialogHeader>
           {editingDay && (
             <div className="space-y-4">
+              {/* Admin review banner */}
+              {editingDay.marcado_revision && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-destructive">Marcado para revisión</p>
+                    {editingDay.motivo_revision && (
+                      <p className="text-xs text-muted-foreground mt-1">{editingDay.motivo_revision}</p>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>Estado</Label>
                 <Select value={editingDay.estado} onValueChange={v => setEditingDay({ ...editingDay, estado: v })}>
