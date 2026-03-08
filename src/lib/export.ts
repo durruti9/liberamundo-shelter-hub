@@ -292,4 +292,18 @@ export const EXPORT_CONFIGS = {
       { key: 'salidas', label: 'Salidas' },
     ],
   },
+  resumenHorasEmpleados: {
+    title: 'Resumen de horas por empleado',
+    columns: [
+      { key: 'empleado', label: 'Empleado' },
+      { key: 'dias_trabajados', label: 'Días trabajados' },
+      { key: 'horas_ordinarias', label: 'H. Ordinarias' },
+      { key: 'horas_extra', label: 'H. Extra' },
+      { key: 'horas_totales', label: 'H. Totales' },
+      { key: 'dias_vacaciones', label: 'Días vacaciones' },
+      { key: 'dias_baja', label: 'Días baja' },
+      { key: 'dias_permiso', label: 'Días permiso' },
+      { key: 'dias_sin_firmar', label: 'Sin firmar' },
+    ],
+  },
 };
