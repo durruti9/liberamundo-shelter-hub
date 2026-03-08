@@ -370,7 +370,7 @@ export default function InformesTab({ store, role }: Props) {
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={roomOccupancy}>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" className="opacity-50" />
                 <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip content={<ChartTooltip />} />
