@@ -560,7 +560,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                       return (
                         <TableRow
                           key={dayNum}
-                          className={`cursor-pointer transition-colors ${future ? 'opacity-40 cursor-not-allowed' : 'hover:bg-muted/50'} ${isToday ? 'bg-primary/5 border-l-2 border-l-primary' : ''} ${isWeekend && !rec?.estado ? 'bg-muted/30' : ''}`}
+                          className={`transition-colors ${future ? 'opacity-40 cursor-not-allowed' : isAdmin ? 'cursor-default' : 'cursor-pointer hover:bg-muted/50'} ${isToday ? 'bg-primary/5 border-l-2 border-l-primary' : ''} ${isWeekend && !rec?.estado ? 'bg-muted/30' : ''} ${hasRevision ? 'bg-destructive/5 border-l-2 border-l-destructive' : ''}`}
                           onClick={() => openDay(dayNum)}
                         >
                           <TableCell className="text-xs font-medium sticky left-0 bg-inherit z-10">
@@ -588,9 +588,24 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                           <TableCell className="text-xs text-center font-bold">{hasWork ? Number(rec.horas_totales).toFixed(1) : ''}</TableCell>
                           <TableCell className="text-xs text-center">
                             {rec?.firma_data ? (
-                              <span title="Firmado" className="text-green-600">✅</span>
+                              <span title="Firmado" className="text-[hsl(var(--success))]">✅</span>
                             ) : rec?.estado ? (
                               <span title="Pendiente" className="text-amber-500">⚠️</span>
+                            ) : null}
+                          </TableCell>
+                          <TableCell className="text-xs text-center p-1">
+                            {isAdmin && rec?.estado && !future ? (
+                              <button
+                                onClick={(e) => toggleRevision(dayNum, e)}
+                                className={`p-1 rounded transition-colors ${hasRevision ? 'text-destructive hover:text-destructive/70' : 'text-muted-foreground/30 hover:text-destructive/50'}`}
+                                title={hasRevision ? `Revisión: ${rec.motivo_revision || 'Sin motivo'}` : 'Marcar para revisión'}
+                              >
+                                <AlertTriangle className="w-4 h-4" />
+                              </button>
+                            ) : hasRevision ? (
+                              <span title={`Revisión: ${rec?.motivo_revision || 'Revisar este registro'}`} className="text-destructive">
+                                <AlertTriangle className="w-4 h-4 inline" />
+                              </span>
                             ) : null}
                           </TableCell>
                         </TableRow>
