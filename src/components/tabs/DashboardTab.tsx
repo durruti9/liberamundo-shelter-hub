@@ -269,7 +269,7 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip content={<ChartTooltip />} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="flex-1 space-y-1.5">
