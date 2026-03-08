@@ -222,7 +222,12 @@ export default function HistorialTab({ store, role }: Props) {
           <p className="text-sm text-muted-foreground">{t.deleteConfirmMsg}</p>
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>{t.cancel}</Button>
-            <Button variant="destructive" onClick={() => { if (deleteConfirmId) deleteHuesped(deleteConfirmId); setDeleteConfirmId(null); }}>{t.delete}</Button>
+            <Button variant="destructive" onClick={async () => {
+              if (deleteConfirmId) {
+                try { await deleteHuesped(deleteConfirmId); } catch (err: any) { toast.error(err.message || 'Error al eliminar'); }
+              }
+              setDeleteConfirmId(null);
+            }}>{t.delete}</Button>
           </div>
         </DialogContent>
       </Dialog>
