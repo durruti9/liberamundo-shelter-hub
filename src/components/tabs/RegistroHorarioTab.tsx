@@ -17,6 +17,8 @@ import { UserRole } from '@/types';
 import { api } from '@/lib/api';
 import SignaturePad from '@/components/SignaturePad';
 import ExportButton from '@/components/ExportButton';
+import AuditLogPanel from '@/components/AuditLogPanel';
+import { useBeforeUnload } from '@/hooks/useBeforeUnload';
 
 interface Props {
   role: UserRole;
