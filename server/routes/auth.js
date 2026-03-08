@@ -124,16 +124,22 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Emergency code stored server-side only (env var with fallback)
+// Emergency code stored server-side only (env var required)
 function getEmergencySecret() {
-  return process.env.EMERGENCY_SECRET || 'irai2019';
+  const secret = process.env.EMERGENCY_SECRET;
+  if (!secret) {
+    console.warn('⚠️ EMERGENCY_SECRET not set. Emergency access disabled.');
+    return null;
+  }
+  return secret;
 }
 
 // Verify emergency code (no user creation, just validation)
 router.post('/verify-emergency', async (req, res) => {
   try {
     const { secretCode } = req.body;
-    if (!secretCode || secretCode !== getEmergencySecret()) {
+    const emergencySecret = getEmergencySecret();
+    if (!emergencySecret || !secretCode || secretCode !== emergencySecret) {
       return res.status(403).json({ error: 'Código inválido' });
     }
     res.json({ ok: true });
@@ -147,15 +153,16 @@ router.post('/emergency-create', async (req, res) => {
   try {
     const { secretCode, email, password, role } = req.body;
     
-    if (!secretCode || secretCode !== getEmergencySecret()) {
+    const emergencySecret = getEmergencySecret();
+    if (!emergencySecret || !secretCode || secretCode !== emergencySecret) {
       return res.status(403).json({ error: 'Código inválido' });
     }
     
     if (!email || typeof email !== 'string' || email.trim().length === 0) {
       return res.status(400).json({ error: 'Usuario requerido' });
     }
-    if (!password || typeof password !== 'string' || password.length < 4) {
-      return res.status(400).json({ error: 'Contraseña mínimo 4 caracteres' });
+    if (!password || typeof password !== 'string' || password.length < 8) {
+      return res.status(400).json({ error: 'Contraseña mínimo 8 caracteres' });
     }
     const validRoles = ['admin', 'gestor', 'personal_albergue'];
     if (!validRoles.includes(role)) {

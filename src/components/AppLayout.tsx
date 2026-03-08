@@ -107,7 +107,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
   const adminCount = store.users.filter(u => u.role === 'admin').length;
 
-  const tabCount = role === 'admin' ? 11 : role === 'gestor' ? 6 : 8;
+  const tabCount = role === 'admin' ? 11 : role === 'personal_albergue' ? 8 : 6;
 
   const handleAlbergueDeleted = (deletedId: string) => {
     if (deletedId === albergueId && store.albergues.length > 0) {
@@ -462,7 +462,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setChangingPasswordFor(null)}>{t.cancel}</Button>
-              <Button disabled={newPasswordValue.length < 4} onClick={async () => {
+              <Button disabled={newPasswordValue.length < 8} onClick={async () => {
                 try {
                   await store.changePassword(changingPasswordFor!, newPasswordValue);
                   const { toast } = await import('sonner');
