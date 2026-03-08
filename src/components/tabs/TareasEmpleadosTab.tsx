@@ -138,7 +138,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     setTareas(prev => prev.map((t, i) => i === idx ? { ...t, [field]: value } : t));
   };
 
-  // handleDuplicate is now handleDuplicateAndSave (defined below)
+  
 
   // Check if a task at index is a duplicate (not the first occurrence of its tareaId)
   const isDuplicate = (idx: number): boolean => {
