@@ -17,7 +17,7 @@ import { Link } from 'react-router-dom';
 import PasswordInput from '@/components/PasswordInput';
 
 interface Props {
-  onLogin: (role: UserRole, albergueIds: string[]) => void;
+  onLogin: (role: UserRole, albergueIds: string[], isDefaultAdmin?: boolean) => void;
 }
 
 const LANG_FLAGS: Record<Language, string> = { es: '🇪🇸', fr: '🇫🇷', ar: '🇸🇦', en: '🇬🇧', ru: '🇷🇺' };
