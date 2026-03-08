@@ -217,7 +217,7 @@ export default function LlegadasTab({ store, role }: Props) {
 
       {/* Register/Edit Form */}
       <Dialog open={showForm} onOpenChange={() => setShowForm(false)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>{editingId ? t.editArrival : t.newScheduledArrival}</DialogTitle>
           </DialogHeader>
