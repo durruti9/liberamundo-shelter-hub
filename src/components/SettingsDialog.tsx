@@ -146,7 +146,7 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
         </DialogHeader>
 
         <Tabs defaultValue="rooms" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="rooms" className="flex items-center gap-2">
               <BedDouble className="w-4 h-4" /> <span className="hidden sm:inline">{t.roomConfiguration}</span><span className="sm:hidden">{t.rooms}</span>
             </TabsTrigger>
@@ -155,6 +155,9 @@ export default function SettingsDialog({ open, onClose, store, albergueId, onAlb
             </TabsTrigger>
             <TabsTrigger value="backup" className="flex items-center gap-2">
               <Database className="w-4 h-4" /> <span className="hidden sm:inline">{t.backupRestore}</span><span className="sm:hidden">Backup</span>
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex items-center gap-2">
+              <Shield className="w-4 h-4" /> <span className="hidden sm:inline">Seguridad</span><span className="sm:hidden">Logs</span>
             </TabsTrigger>
           </TabsList>
 
