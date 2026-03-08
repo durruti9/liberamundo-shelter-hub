@@ -47,9 +47,24 @@ router.post('/login', async (req, res) => {
     if (!valid) return res.status(401).json({ error: 'Credenciales inválidas' });
 
     // Get assigned albergues
-    const { rows: albergueRows } = await pool.query(
+    let { rows: albergueRows } = await pool.query(
       'SELECT albergue_id FROM user_albergues WHERE user_email = $1', [email]
     );
+
+    // Auto-assign all albergues if user has none (safety net for users created before auto-assign fix)
+    if (albergueRows.length === 0) {
+      const { rows: allAlbs } = await pool.query('SELECT id FROM albergues');
+      if (allAlbs.length > 0) {
+        for (const alb of allAlbs) {
+          await pool.query(
+            'INSERT INTO user_albergues (user_email, albergue_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [email, alb.id]
+          );
+        }
+        albergueRows = allAlbs.map(a => ({ albergue_id: a.id }));
+      }
+    }
+
     const albergueIds = albergueRows.map(r => r.albergue_id);
 
     // Log access
