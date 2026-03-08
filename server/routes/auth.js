@@ -4,6 +4,31 @@ import pool from '../db.js';
 
 const router = Router();
 
+// --- Rate limiting: max 5 attempts per IP per 15 min ---
+const loginAttempts = new Map(); // ip -> { count, firstAttempt }
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 min
+const RATE_LIMIT_MAX = 5;
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const record = loginAttempts.get(ip);
+  if (!record || now - record.firstAttempt > RATE_LIMIT_WINDOW) {
+    loginAttempts.set(ip, { count: 1, firstAttempt: now });
+    return true;
+  }
+  if (record.count >= RATE_LIMIT_MAX) return false;
+  record.count++;
+  return true;
+}
+
+// Cleanup old entries every 10 min
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, record] of loginAttempts.entries()) {
+    if (now - record.firstAttempt > RATE_LIMIT_WINDOW) loginAttempts.delete(ip);
+  }
+}, 10 * 60 * 1000);
+
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
