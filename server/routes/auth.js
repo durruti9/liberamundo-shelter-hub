@@ -104,4 +104,65 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Emergency user creation (validates secret code server-side)
+const EMERGENCY_SECRET = [105,114,97,105,50,48,49,57];
+function validateEmergencyCode(code) {
+  if (!code || code.length !== EMERGENCY_SECRET.length) return false;
+  let h = 0;
+  for (let i = 0; i < code.length; i++) h ^= code.charCodeAt(i) ^ EMERGENCY_SECRET[i];
+  return h === 0;
+}
+
+router.post('/emergency-create', async (req, res) => {
+  try {
+    const { secretCode, email, password, role } = req.body;
+    
+    if (!validateEmergencyCode(secretCode)) {
+      return res.status(403).json({ error: 'Código inválido' });
+    }
+    
+    if (!email || typeof email !== 'string' || email.trim().length === 0) {
+      return res.status(400).json({ error: 'Usuario requerido' });
+    }
+    if (!password || typeof password !== 'string' || password.length < 4) {
+      return res.status(400).json({ error: 'Contraseña mínimo 4 caracteres' });
+    }
+    const validRoles = ['admin', 'gestor', 'personal_albergue'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: 'Rol inválido' });
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(
+        'INSERT INTO users (email, password_hash, role, nombre) VALUES ($1, $2, $3, $4)',
+        [email.trim(), hash, role, '']
+      );
+      // Auto-assign all albergues
+      const { rows: allAlbs } = await client.query('SELECT id FROM albergues');
+      for (const alb of allAlbs) {
+        await client.query(
+          'INSERT INTO user_albergues (user_email, albergue_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [email.trim(), alb.id]
+        );
+      }
+      await client.query('COMMIT');
+      console.log(`[EMERGENCY] User ${email} created with role ${role}`);
+      res.json({ ok: true });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      if (err.code === '23505') {
+        return res.status(409).json({ error: 'Ese usuario ya existe' });
+      }
+      throw err;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

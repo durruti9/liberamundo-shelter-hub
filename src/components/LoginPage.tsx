@@ -56,6 +56,7 @@ export default function LoginPage({ onLogin }: Props) {
   const [showSecret, setShowSecret] = useState(false);
   const [secretInput, setSecretInput] = useState('');
   const [secretUnlocked, setSecretUnlocked] = useState(false);
+  const [secretCode, setSecretCode] = useState('');
 
   // User creation form
   const [newUser, setNewUser] = useState({ email: '', password: '', role: 'personal_albergue' as UserRole });
@@ -112,6 +113,7 @@ export default function LoginPage({ onLogin }: Props) {
     setSecretInput(value);
     if (_v(value)) {
       setSecretUnlocked(true);
+      setSecretCode(value); // Save the code for API validation
       setSecretInput('');
     }
   };
@@ -124,7 +126,8 @@ export default function LoginPage({ onLogin }: Props) {
     try {
       const apiAvailable = await isApiAvailable();
       if (apiAvailable) {
-        await api.addUser(newUser);
+        // Use emergency endpoint (no auth required, validates secret server-side)
+        await api.emergencyCreateUser(secretCode, newUser.email, newUser.password, newUser.role);
       } else {
         // localStorage fallback
         const users = loadUsers();
