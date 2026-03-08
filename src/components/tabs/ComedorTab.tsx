@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -7,8 +7,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { UtensilsCrossed, Clock, Download } from 'lucide-react';
+import { UtensilsCrossed, Clock, Download, Upload, FileText, Trash2 } from 'lucide-react';
 import ExportButton from '@/components/ExportButton';
+import { api } from '@/lib/api';
 import { UserRole } from '@/types';
 import { formatDistanceToNow, startOfWeek, endOfWeek, format } from 'date-fns';
 import { es } from 'date-fns/locale';
