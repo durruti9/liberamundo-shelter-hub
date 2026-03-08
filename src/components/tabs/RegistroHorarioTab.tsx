@@ -499,7 +499,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
             <div className="flex gap-2 ml-auto">
               {saving && <Badge variant="outline" className="text-xs animate-pulse">Guardando...</Badge>}
               {lastSaved && !saving && (
-                <Badge variant="outline" className="text-xs text-green-600">
+                <Badge variant="outline" className="text-xs text-[hsl(var(--success))]">
                   <Check className="w-3 h-3 mr-1" /> Guardado
                 </Badge>
               )}
