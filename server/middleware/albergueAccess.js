@@ -25,7 +25,11 @@ export function requireAlbergueAccess(paramName = 'albergueId') {
       );
 
       if (rows.length === 0) {
-        return res.status(403).json({ error: 'Sin acceso a este albergue' });
+        console.warn(`[ACCESS DENIED] User ${user.email} (role: ${user.role}) tried to access albergue ${albergueId}`);
+        return res.status(403).json({ 
+          error: 'Sin acceso a este albergue',
+          debug: { userEmail: user.email, role: user.role, requestedAlbergueId: albergueId }
+        });
       }
 
       next();
