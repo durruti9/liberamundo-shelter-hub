@@ -532,7 +532,7 @@ function AccessLogsSection() {
     }
   }, []);
 
-  useState(() => { loadLogs(); });
+  useEffect(() => { loadLogs(); }, [loadLogs]);
 
   const clearLogs = async () => {
     try {
