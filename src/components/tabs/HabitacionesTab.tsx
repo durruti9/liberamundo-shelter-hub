@@ -24,7 +24,7 @@ interface Props {
 }
 
 export default function HabitacionesTab({ store, role }: Props) {
-  const { huespedActivos, rooms, totalCamas, checkIn, checkOut, cambiarCama, editHuesped, deleteHuesped, getOccupant, updateRooms } = store;
+  const { huespedActivos, rooms, totalCamas, checkIn, checkOut, cambiarCama, editHuesped, deleteHuesped, getOccupant, updateRooms, updateRoomCleaning } = store;
   const { t, lang } = useI18n();
   const dateFnsLocale = { es, fr, ar, en: enUS, ru }[lang] || es;
   const canClean = role === 'admin' || role === 'personal_albergue';
@@ -185,11 +185,11 @@ export default function HabitacionesTab({ store, role }: Props) {
                       selected={room.ultimaLimpieza ? new Date(room.ultimaLimpieza + 'T00:00:00') : undefined}
                       onSelect={(date) => {
                         if (date) {
-                          const dateStr = format(date, 'yyyy-MM-dd');
-                          const updatedRooms = rooms.map(r =>
-                            r.id === room.id ? { ...r, ultimaLimpieza: dateStr } : r
-                          );
-                          updateRooms(updatedRooms);
+                          const year = date.getFullYear();
+                          const month = String(date.getMonth() + 1).padStart(2, '0');
+                          const day = String(date.getDate()).padStart(2, '0');
+                          const dateStr = `${year}-${month}-${day}`;
+                          updateRoomCleaning(room.id, dateStr);
                         }
                       }}
                       disabled={(date) => date > new Date()}

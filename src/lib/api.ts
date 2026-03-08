@@ -65,6 +65,8 @@ export const api = {
     request<any>(`/albergues/${id}`, { method: 'DELETE' }),
   updateRooms: (albergueId: string, rooms: any[]) =>
     request<any>(`/albergues/${albergueId}/rooms`, { method: 'PUT', body: JSON.stringify({ rooms }) }),
+  updateRoomCleaning: (albergueId: string, roomId: string, ultimaLimpieza: string) =>
+    request<any>(`/albergues/${albergueId}/rooms/${roomId}/limpieza`, { method: 'PUT', body: JSON.stringify({ ultimaLimpieza }) }),
 
   // Huespedes
   getHuespedes: (albergueId: string) => request<any[]>(`/huespedes/${albergueId}`),
