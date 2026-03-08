@@ -140,6 +140,7 @@ function emptyRecord(empleadoId: string, fecha: string): RegistroDia {
     horas_ordinarias: 0, horas_extra: 0, horas_complementarias: 0,
     horas_vacaciones: 0, horas_totales: 0,
     observaciones: '', firma_data: '', firmado_en: null,
+    marcado_revision: false, motivo_revision: '',
   };
 }
 
