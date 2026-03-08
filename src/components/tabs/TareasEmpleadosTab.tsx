@@ -647,7 +647,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                     relative h-14 sm:h-16 rounded-md text-sm font-medium transition-all
                     ${!inMonth ? 'opacity-20 cursor-default' : ''}
                     ${future && inMonth ? 'bg-muted/50 text-muted-foreground cursor-not-allowed' : ''}
-                    ${today ? 'ring-2 ring-[hsl(142,60%,40%)] bg-[hsl(142,60%,95%)]' : ''}
+                    ${today ? 'ring-2 ring-[hsl(142,60%,40%)] bg-[hsl(142,60%,95%)] dark:bg-[hsl(142,30%,15%)]' : ''}
                     ${!future && !today && inMonth && isPast(day) ? 'bg-muted hover:bg-accent cursor-pointer' : ''}
                     ${!future && inMonth && !today ? 'hover:bg-accent cursor-pointer' : ''}
                   `}
