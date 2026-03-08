@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -188,8 +189,10 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
       setEditingIdx(new Set());
       setOriginalTareas({});
       setSelectedDate(null);
+      toast.success('Tareas guardadas correctamente');
     } catch (err) {
       console.error('Error saving tareas:', err);
+      toast.error('Error al guardar las tareas');
     }
   };
 
@@ -228,8 +231,10 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
       // Stop editing this task
       setEditingIdx(prev => { const s = new Set(prev); s.delete(idx); return s; });
       setOriginalTareas(prev => { const c = { ...prev }; delete c[idx]; return c; });
+      toast.success('Tarea registrada');
     } catch (err) {
       console.error('Error saving tareas:', err);
+      toast.error('Error al registrar la tarea');
     }
   };
 
@@ -410,7 +415,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                       </div>
                       <div>
                         <label className="text-xs text-muted-foreground">Hecho por</label>
-                        <Select value={tarea.hechoPor || ''} onValueChange={v => handleUpdateTarea(idx, 'hechoPor', v)} disabled={!taskEditable}>
+                        <Select value={tarea.hechoPor || undefined} onValueChange={v => handleUpdateTarea(idx, 'hechoPor', v)} disabled={!taskEditable}>
                           <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
                           <SelectContent>
                             {empleadosList.map(name => (
