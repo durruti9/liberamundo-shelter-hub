@@ -884,7 +884,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
 
       {/* EMPRESA CONFIG MODAL (admin only) */}
       <Dialog open={showEmpresaConfig} onOpenChange={setShowEmpresaConfig}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building2 className="w-5 h-5" /> Configuración Empresa

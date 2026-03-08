@@ -387,7 +387,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
       {/* Assign albergues dialog */}
       <Dialog open={!!editingAlberguesFor} onOpenChange={() => setEditingAlberguesFor(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><Building2 className="w-5 h-5" /> Asignar albergues</DialogTitle>
           </DialogHeader>
