@@ -627,7 +627,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Extra</p>
-                  <p className="text-lg font-bold text-amber-600">{hoursToHM(monthTotals.extra)}</p>
+                  <p className="text-lg font-bold text-[hsl(38,92%,45%)]">{hoursToHM(monthTotals.extra)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Complementarias</p>
