@@ -38,7 +38,8 @@ CREATE TABLE IF NOT EXISTS comedor (
   motivo_ausencia TEXT NOT NULL DEFAULT '',
   observaciones TEXT NOT NULL DEFAULT '',
   particularidades TEXT NOT NULL DEFAULT '',
-  ultima_modificacion TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  ultima_modificacion TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ultimo_usuario TEXT
 );
 
 CREATE TABLE IF NOT EXISTS llegadas (
