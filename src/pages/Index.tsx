@@ -82,15 +82,33 @@ const Index = () => {
     setIsDefaultAdmin(!!defaultAdmin);
     localStorage.setItem('userAlbergueIds', JSON.stringify(albergueIds));
     resetSessionTimer();
+
+    // For non-admin users, immediately set albergueId from login response
+    // so they don't get stuck with 'default' which doesn't exist in the DB
+    if (userRole !== 'admin' && albergueIds.length > 0 && !localStorage.getItem('currentAlbergueId')) {
+      setAlbergueId(albergueIds[0]);
+      localStorage.setItem('currentAlbergueId', albergueIds[0]);
+    }
+    // For admin users with no albergueId set, we'll resolve it after albergues load
   };
 
   const albergues = loadAlbergues();
+  // For non-admin users, also include albergues by their assigned IDs
+  // (localStorage may not have them yet, but the store will fetch from API)
   const availableAlbergues = role === 'admin'
     ? albergues
-    : albergues.filter(a => userAlbergueIds.includes(a.id));
+    : (() => {
+        const matched = albergues.filter(a => userAlbergueIds.includes(a.id));
+        // If no match in localStorage, create placeholder entries from userAlbergueIds
+        // so the user can still enter the app (real data loads from API in the store)
+        if (matched.length === 0 && userAlbergueIds.length > 0) {
+          return userAlbergueIds.map(id => ({ id, nombre: 'Cargando...', rooms: [] as any[] }));
+        }
+        return matched;
+      })();
 
   useEffect(() => {
-    if (authed && !albergueId) {
+    if (authed && !albergueId && availableAlbergues.length > 0) {
       if (availableAlbergues.length === 1) {
         setAlbergueId(availableAlbergues[0].id);
         localStorage.setItem('currentAlbergueId', availableAlbergues[0].id);
