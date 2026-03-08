@@ -1194,6 +1194,11 @@ const en: Translations = {
   resolveMessage: 'Resolve message',
   upcomingArrivalsBoard: 'Upcoming arrivals',
   employeeTasks: 'Daily Tasks',
+  lastCleaning: 'Cleaning',
+  noCleaningRecorded: 'No cleaning recorded',
+  today: 'Today',
+  yesterday: 'Yesterday',
+  ago: 'ago',
 };
 
 const ru: Translations = {
