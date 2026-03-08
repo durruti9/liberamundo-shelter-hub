@@ -142,12 +142,16 @@ export default function IncidenciasTab({ store, role }: Props) {
                       </TableCell>
                       {canResolve && (
                         <TableCell className="text-right space-x-1">
-                          <Button size="sm" variant="outline" onClick={() => toggleIncidenciaResuelta(inc.id)} title={t.toggleResolved}>
-                            <Check className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => deleteIncidencia(inc.id)}>
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
+                          <Button size="sm" variant="outline" onClick={async () => {
+                            try { await toggleIncidenciaResuelta(inc.id); } catch (err: any) { toast.error(err.message || 'Error'); }
+                          }} title={t.toggleResolved}>
+                             <Check className="w-4 h-4" />
+                           </Button>
+                           <Button size="sm" variant="ghost" onClick={async () => {
+                            try { await deleteIncidencia(inc.id); } catch (err: any) { toast.error(err.message || 'Error al eliminar'); }
+                          }}>
+                             <Trash2 className="w-4 h-4 text-destructive" />
+                           </Button>
                         </TableCell>
                       )}
                     </TableRow>

@@ -344,13 +344,17 @@ export default function HabitacionesTab({ store, role }: Props) {
             dieta: editingHuesped.dieta, fechaEntrada: editingHuesped.fechaEntrada, notas: editingHuesped.notas,
             fechaCheckout: editingHuesped.fechaCheckout || '',
           }}
-          onSubmit={data => {
-            const { fechaCheckout, ...rest } = data;
-            editHuesped(editTarget!, rest);
-            if (fechaCheckout) {
-              checkOut(editTarget!, fechaCheckout);
+          onSubmit={async data => {
+            try {
+              const { fechaCheckout, ...rest } = data;
+              await editHuesped(editTarget!, rest);
+              if (fechaCheckout) {
+                await checkOut(editTarget!, fechaCheckout);
+              }
+              setEditTarget(null);
+            } catch (err: any) {
+              toast.error(err.message || 'Error al guardar cambios');
             }
-            setEditTarget(null);
           }}
         />
       )}

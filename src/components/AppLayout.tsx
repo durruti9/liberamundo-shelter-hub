@@ -66,8 +66,12 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
   const handleAddUser = async () => {
     if (!newUser.email || !newUser.password) return;
-    await store.addUser(newUser);
-    setNewUser({ email: '', password: '', role: 'personal_albergue', albergueIds: [] });
+    try {
+      await store.addUser(newUser);
+      setNewUser({ email: '', password: '', role: 'personal_albergue', albergueIds: [] });
+    } catch (err: any) {
+      toast.error(err.message || 'Error al crear usuario');
+    }
   };
 
   const roleLabel: Record<UserRole, string> = {
