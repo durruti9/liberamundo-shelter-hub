@@ -47,18 +47,26 @@ export default function HistorialTab({ store, role }: Props) {
     setEditId(h.id);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editId) return;
-    editHuesped(editId, editForm);
-    setEditId(null);
+    try {
+      await editHuesped(editId, editForm);
+      setEditId(null);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al guardar');
+    }
   };
 
-  const handleReincorporar = () => {
+  const handleReincorporar = async () => {
     if (!reincorporarId || !selectedRoom || !selectedBed) return;
-    reincorporar(reincorporarId, selectedRoom, parseInt(selectedBed));
-    setReincorporarId(null);
-    setSelectedRoom('');
-    setSelectedBed('');
+    try {
+      await reincorporar(reincorporarId, selectedRoom, parseInt(selectedBed));
+      setReincorporarId(null);
+      setSelectedRoom('');
+      setSelectedBed('');
+    } catch (err: any) {
+      toast.error(err.message || 'Error al reincorporar');
+    }
   };
 
   const bedsForRoom = freeBeds.filter(fb => fb.habitacion === selectedRoom);
