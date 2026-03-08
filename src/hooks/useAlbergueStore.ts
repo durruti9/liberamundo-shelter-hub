@@ -376,5 +376,6 @@ export function useAlbergueStore(albergueId: string = 'default') {
     addUser, removeUser, changePassword, authenticate,
     addAlbergue, editAlbergueName, deleteAlbergue, updateRooms, updateRoomCleaning,
     addBoardMessage, addBoardReply, resolveBoardMessage, deleteBoardMessage,
+    refreshData: loadFromApi,
   };
 }
