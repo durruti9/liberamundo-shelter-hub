@@ -316,18 +316,26 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
     if (!rec || !rec.estado) return;
 
     const newFlag = !rec.marcado_revision;
-    let motivo = rec.motivo_revision || '';
     if (newFlag) {
-      const reason = prompt('Motivo de la revisión (opcional):');
-      if (reason === null) return; // cancelled
-      motivo = reason;
-    } else {
-      motivo = '';
+      // Open revision dialog instead of prompt()
+      setRevisionDialog({ dayNum, motivo: '' });
+      return;
     }
-
-    const updated = { ...rec, marcado_revision: newFlag, motivo_revision: motivo };
+    // Unreview: clear directly
+    const updated = { ...rec, marcado_revision: false, motivo_revision: '' };
     await saveRecord(updated);
-    toast.success(newFlag ? 'Marcado para revisión' : 'Revisión resuelta');
+    toast.success('Revisión resuelta');
+  };
+
+  const confirmRevision = async () => {
+    if (!revisionDialog || !selectedEmpleado) return;
+    const fecha = formatDate(year, month, revisionDialog.dayNum);
+    const rec = records.get(fecha);
+    if (!rec) return;
+    const updated = { ...rec, marcado_revision: true, motivo_revision: revisionDialog.motivo };
+    await saveRecord(updated);
+    toast.success('Marcado para revisión');
+    setRevisionDialog(null);
   };
 
   // Save day from modal
