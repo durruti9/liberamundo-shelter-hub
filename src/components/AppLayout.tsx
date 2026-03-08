@@ -360,7 +360,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
       {/* Change password dialog */}
       <Dialog open={!!changingPasswordFor} onOpenChange={() => setChangingPasswordFor(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><KeyRound className="w-5 h-5" /> {t.changePassword}</DialogTitle>
           </DialogHeader>
