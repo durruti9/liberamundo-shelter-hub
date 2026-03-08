@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import pool from '../db.js';
+import { requireAlbergueAccess, requireHuespedAccess } from '../middleware/albergueAccess.js';
 
 const router = Router();
 
-// Get comedor entries by albergue
-router.get('/:albergueId', async (req, res) => {
+// Get comedor entries by albergue (validates albergue access)
+router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT c.* FROM comedor c
@@ -24,8 +25,8 @@ router.get('/:albergueId', async (req, res) => {
   }
 });
 
-// Update comedor entry
-router.put('/:huespedId', async (req, res) => {
+// Update comedor entry (all roles can edit, but validates huésped belongs to user's albergue)
+router.put('/:huespedId', requireHuespedAccess('huespedId'), async (req, res) => {
   try {
     const { estado, separarComidas, diasSeparar, motivoAusencia, observaciones, particularidades } = req.body;
     await pool.query(

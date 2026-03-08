@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import pool from '../db.js';
+import { requireRole } from '../middleware/auth.js';
+import { requireAlbergueAccess, requireHuespedAccess } from '../middleware/albergueAccess.js';
 
 const router = Router();
 
-// Get huespedes by albergue
-router.get('/:albergueId', async (req, res) => {
+// Get huespedes by albergue (validates access)
+router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
     const { rows } = await pool.query(
       'SELECT * FROM huespedes WHERE albergue_id = $1 ORDER BY fecha_entrada DESC',
@@ -21,8 +23,8 @@ router.get('/:albergueId', async (req, res) => {
   }
 });
 
-// Check in
-router.post('/:albergueId', async (req, res) => {
+// Check in (validates albergue access)
+router.post('/:albergueId', requireAlbergueAccess(), async (req, res) => {
   const client = await pool.connect();
   try {
     const { nombre, nie, nacionalidad, idioma, dieta, fechaEntrada, notas, habitacion, cama } = req.body;
@@ -54,8 +56,8 @@ router.post('/:albergueId', async (req, res) => {
   }
 });
 
-// Edit huesped
-router.put('/:id', async (req, res) => {
+// Edit huesped (validates huésped access)
+router.put('/:id', requireHuespedAccess('id'), async (req, res) => {
   try {
     const fields = req.body;
     const mapping = {
@@ -79,8 +81,8 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Delete huesped
-router.delete('/:id', async (req, res) => {
+// Delete huesped (only admin and gestor)
+router.delete('/:id', requireRole('admin', 'gestor'), requireHuespedAccess('id'), async (req, res) => {
   try {
     await pool.query('DELETE FROM huespedes WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
@@ -89,8 +91,8 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Check out
-router.post('/:id/checkout', async (req, res) => {
+// Check out (validates huésped access)
+router.post('/:id/checkout', requireHuespedAccess('id'), async (req, res) => {
   const client = await pool.connect();
   try {
     const { fecha } = req.body;
@@ -114,8 +116,8 @@ router.post('/:id/checkout', async (req, res) => {
   }
 });
 
-// Reincorporar
-router.post('/:id/reincorporar', async (req, res) => {
+// Reincorporar (validates huésped access)
+router.post('/:id/reincorporar', requireHuespedAccess('id'), async (req, res) => {
   const client = await pool.connect();
   try {
     const { habitacion, cama } = req.body;

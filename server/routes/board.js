@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import pool from '../db.js';
+import { requireRole } from '../middleware/auth.js';
+import { requireAlbergueAccess } from '../middleware/albergueAccess.js';
 
 const router = Router();
 
 // Get board messages by albergue
-router.get('/:albergueId', async (req, res) => {
+router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
     const { rows: messages } = await pool.query(
       'SELECT * FROM board_messages WHERE albergue_id = $1 ORDER BY fecha DESC', [req.params.albergueId]
@@ -31,7 +33,7 @@ router.get('/:albergueId', async (req, res) => {
   }
 });
 
-router.post('/:albergueId', async (req, res) => {
+router.post('/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
     const { tipo, autor, fecha, texto, visibilidad } = req.body;
     const id = crypto.randomUUID();
@@ -60,7 +62,8 @@ router.post('/:messageId/reply', async (req, res) => {
   }
 });
 
-router.put('/:messageId/resolve', async (req, res) => {
+// Only admin and gestor can resolve board messages
+router.put('/:messageId/resolve', requireRole('admin', 'gestor'), async (req, res) => {
   try {
     const { autor, fecha, descripcion } = req.body;
     await pool.query(
@@ -73,7 +76,8 @@ router.put('/:messageId/resolve', async (req, res) => {
   }
 });
 
-router.delete('/:messageId', async (req, res) => {
+// Only admin and gestor can delete board messages
+router.delete('/:messageId', requireRole('admin', 'gestor'), async (req, res) => {
   try {
     await pool.query('DELETE FROM board_messages WHERE id = $1', [req.params.messageId]);
     res.json({ ok: true });

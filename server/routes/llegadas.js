@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import pool from '../db.js';
+import { requireRole } from '../middleware/auth.js';
+import { requireAlbergueAccess } from '../middleware/albergueAccess.js';
 
 const router = Router();
 
-router.get('/:albergueId', async (req, res) => {
+router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
     const { rows } = await pool.query(
       'SELECT * FROM llegadas WHERE albergue_id = $1 ORDER BY fecha_llegada', [req.params.albergueId]
@@ -18,7 +20,8 @@ router.get('/:albergueId', async (req, res) => {
   }
 });
 
-router.post('/:albergueId', async (req, res) => {
+// Only admin and gestor can create llegadas
+router.post('/:albergueId', requireAlbergueAccess(), requireRole('admin', 'gestor'), async (req, res) => {
   try {
     const { nombre, nie, nacionalidad, idioma, dieta, fechaLlegada, notas, habitacionAsignada, camaAsignada } = req.body;
     const id = crypto.randomUUID();
@@ -33,7 +36,8 @@ router.post('/:albergueId', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+// Only admin and gestor can edit llegadas
+router.put('/:id', requireRole('admin', 'gestor'), async (req, res) => {
   try {
     const { nombre, nie, nacionalidad, idioma, dieta, fechaLlegada, notas, habitacionAsignada, camaAsignada } = req.body;
     await pool.query(
@@ -48,7 +52,8 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+// Only admin and gestor can delete llegadas
+router.delete('/:id', requireRole('admin', 'gestor'), async (req, res) => {
   try {
     await pool.query('DELETE FROM llegadas WHERE id = $1', [req.params.id]);
     res.json({ ok: true });

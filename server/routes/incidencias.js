@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import pool from '../db.js';
+import { requireRole } from '../middleware/auth.js';
+import { requireAlbergueAccess } from '../middleware/albergueAccess.js';
 
 const router = Router();
 
-router.get('/:albergueId', async (req, res) => {
+router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
     const { rows } = await pool.query(
       'SELECT * FROM incidencias WHERE albergue_id = $1 ORDER BY fecha DESC', [req.params.albergueId]
@@ -18,7 +20,7 @@ router.get('/:albergueId', async (req, res) => {
   }
 });
 
-router.post('/:albergueId', async (req, res) => {
+router.post('/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
     const { huespedId, huespedNombre, tipo, descripcion, fecha, creadoPor } = req.body;
     const id = crypto.randomUUID();
@@ -33,7 +35,8 @@ router.post('/:albergueId', async (req, res) => {
   }
 });
 
-router.put('/:id/toggle', async (req, res) => {
+// Only admin and gestor can toggle/resolve incidencias
+router.put('/:id/toggle', requireRole('admin', 'gestor'), async (req, res) => {
   try {
     await pool.query('UPDATE incidencias SET resuelta = NOT resuelta WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
@@ -42,7 +45,8 @@ router.put('/:id/toggle', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+// Only admin and gestor can delete incidencias
+router.delete('/:id', requireRole('admin', 'gestor'), async (req, res) => {
   try {
     await pool.query('DELETE FROM incidencias WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
