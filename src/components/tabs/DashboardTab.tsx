@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BedDouble, Users, Clock, AlertTriangle, TrendingUp, CalendarPlus, MessageSquarePlus } from 'lucide-react';
+import { BedDouble, Users, Clock, AlertTriangle, TrendingUp, CalendarPlus, MessageSquarePlus, ListChecks } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { useI18n } from '@/i18n/I18nContext';
 import { formatDateES } from '@/lib/dateFormat';
@@ -27,22 +27,36 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
 
   // Pending suggestions count (admin only)
   const [pendingSugerencias, setPendingSugerencias] = useState(0);
+  const [pendingTareas, setPendingTareas] = useState(0);
+
   useEffect(() => {
-    if (!isAdmin) return;
     const alId = store.currentAlbergue?.id || 'default';
-    api.getSugerencias(alId)
-      .then(data => {
-        if (Array.isArray(data)) {
-          setPendingSugerencias(data.filter((s: any) => !s.respuesta).length);
-        } else {
+
+    if (isAdmin) {
+      api.getSugerencias(alId)
+        .then(data => {
+          if (Array.isArray(data)) {
+            setPendingSugerencias(data.filter((s: any) => !s.respuesta).length);
+          } else {
+            const local = JSON.parse(localStorage.getItem(`sugerencias_${alId}`) || '[]');
+            setPendingSugerencias(local.filter((s: any) => !s.respuesta).length);
+          }
+        })
+        .catch(() => {
           const local = JSON.parse(localStorage.getItem(`sugerencias_${alId}`) || '[]');
           setPendingSugerencias(local.filter((s: any) => !s.respuesta).length);
+        });
+    }
+
+    // Today's pending tasks
+    const today = new Date().toISOString().split('T')[0];
+    api.getTareasDia(alId, today, today)
+      .then(data => {
+        if (Array.isArray(data)) {
+          setPendingTareas(data.filter((t: any) => t.estado === 'pendiente').length);
         }
       })
-      .catch(() => {
-        const local = JSON.parse(localStorage.getItem(`sugerencias_${alId}`) || '[]');
-        setPendingSugerencias(local.filter((s: any) => !s.respuesta).length);
-      });
+      .catch(() => {});
   }, [isAdmin, store.currentAlbergue?.id]);
 
   const ocupadas = huespedActivos.length;
@@ -119,7 +133,7 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
       </h2>
 
       {/* KPI Cards */}
-      <div className={`grid gap-4 ${isAdmin ? 'grid-cols-2 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'}`}>
+      <div className={`grid gap-4 grid-cols-2 ${isAdmin ? 'md:grid-cols-6' : 'md:grid-cols-5'}`}>
         <Card>
           <CardContent className="pt-6 text-center">
             <div className="text-3xl font-bold text-primary">{porcentaje}%</div>
@@ -155,6 +169,15 @@ export default function DashboardTab({ store, role = 'personal_albergue' }: Prop
               <span className={`text-3xl font-bold ${activeIncidentCount > 0 ? 'text-destructive' : ''}`}>{activeIncidentCount}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">{t.activeIncidents}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <ListChecks className={`w-5 h-5 ${pendingTareas > 0 ? 'text-warning' : 'text-muted-foreground'}`} />
+              <span className={`text-3xl font-bold ${pendingTareas > 0 ? 'text-warning' : ''}`}>{pendingTareas}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Tareas pendientes hoy</p>
           </CardContent>
         </Card>
         {isAdmin && (

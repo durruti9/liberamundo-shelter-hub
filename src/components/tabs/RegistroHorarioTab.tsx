@@ -11,12 +11,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import {
   Clock, ChevronLeft, ChevronRight, Plus, Trash2, UserPlus, Users,
-  Check, X, CalendarDays, FileDown, Lock, Pencil, Save, Building2, Settings2, AlertTriangle
+  Check, X, CalendarDays, FileDown, Lock, Pencil, Save, Building2, Settings2, AlertTriangle, History as HistoryIcon
 } from 'lucide-react';
 import { UserRole } from '@/types';
 import { api } from '@/lib/api';
 import SignaturePad from '@/components/SignaturePad';
 import ExportButton from '@/components/ExportButton';
+import AuditLogPanel from '@/components/AuditLogPanel';
+import { useBeforeUnload } from '@/hooks/useBeforeUnload';
 
 interface Props {
   role: UserRole;
@@ -153,6 +155,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   const [records, setRecords] = useState<Map<string, RegistroDia>>(new Map());
   const [vacSaldo, setVacSaldo] = useState<VacacionesSaldo>({ asignadas: 22, consumidas: 0 });
   const [loading, setLoading] = useState(false);
+  const [showAuditLog, setShowAuditLog] = useState(false);
 
   // Empresa config
   const [empresaConfig, setEmpresaConfig] = useState({ razon_social: '', cif: '' });
@@ -167,6 +170,9 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   const [newEmp, setNewEmp] = useState({ nombre_completo: '', jornada_diaria_horas: 8, vacaciones_anuales: 22 });
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  // beforeunload when editing a day
+  useBeforeUnload(showDayModal && !!editingDay);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -478,6 +484,9 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 }}>
                   <Settings2 className="w-4 h-4" />
                 </Button>
+                <Button size="sm" variant="outline" onClick={() => setShowAuditLog(!showAuditLog)}>
+                  <HistoryIcon className="w-4 h-4 mr-1" /> Auditoría
+                </Button>
               </div>
             )}
           </div>
@@ -512,6 +521,9 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                     cif: empresaConfig.cif,
                     employeeName: currentEmpleado?.nombre_completo,
                     legalText: 'Registro conservado durante 4 años conforme al Art. 34.9 del Estatuto de los Trabajadores (Real Decreto Legislativo 2/2015).',
+                    signatures: Array.from(records.values())
+                      .filter(r => r.firma_data && r.firma_data.startsWith('data:'))
+                      .map(r => ({ fecha: r.fecha, firma_data: r.firma_data })),
                   }}
                 />
               )}
@@ -653,7 +665,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                   <span>🏖 Vacaciones {year}:</span>
                   <Badge variant="outline">{vacSaldo.asignadas} asignadas</Badge>
                   <Badge variant="secondary">{vacSaldo.consumidas} consumidas</Badge>
-                  <Badge className={vacSaldo.asignadas - vacSaldo.consumidas > 0 ? 'bg-green-600' : 'bg-destructive'}>
+                  <Badge className={vacSaldo.asignadas - vacSaldo.consumidas > 0 ? 'bg-success text-success-foreground' : 'bg-destructive text-destructive-foreground'}>
                     {(vacSaldo.asignadas - vacSaldo.consumidas).toFixed(1)} pendientes
                   </Badge>
                 </div>
@@ -691,6 +703,11 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* AUDIT LOG PANEL */}
+      {isAdmin && showAuditLog && (
+        <AuditLogPanel albergueId={albergueId} empleados={empleados.map(e => ({ id: e.id, nombre_completo: e.nombre_completo }))} />
       )}
 
       {/* DAY MODAL */}

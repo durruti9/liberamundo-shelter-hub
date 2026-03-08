@@ -6,7 +6,7 @@ import { exportToCSV, exportToPDF, EXPORT_CONFIGS } from '@/lib/export';
 interface Props {
   type: keyof typeof EXPORT_CONFIGS;
   getData: () => Record<string, any>[];
-  pdfOptions?: { empresa?: string; cif?: string; legalText?: string; employeeName?: string };
+  pdfOptions?: { empresa?: string; cif?: string; legalText?: string; employeeName?: string; signatures?: { fecha: string; firma_data: string }[] };
 }
 
 export default function ExportButton({ type, getData, pdfOptions }: Props) {
