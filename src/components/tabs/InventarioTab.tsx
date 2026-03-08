@@ -358,8 +358,8 @@ export default function InventarioTab({ role, albergueId }: Props) {
         </CardContent>
       </Card>
 
-      {/* Categories list for admin */}
-      {isAdmin && categories.length > 0 && (
+      {/* Categories list */}
+      {canManage && categories.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Categorías</CardTitle>
@@ -369,17 +369,35 @@ export default function InventarioTab({ role, albergueId }: Props) {
               {categories.map(c => (
                 <Badge key={c.id} variant="secondary" className="gap-1 pr-1">
                   {c.nombre}
-                  {items.filter(i => i.categoria_id === c.id).length === 0 && (
-                    <button onClick={() => handleDeleteCategory(c.id)} className="ml-1 hover:text-destructive">
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  )}
+                  <span className="text-xs text-muted-foreground ml-1">({items.filter(i => i.categoria_id === c.id).length})</span>
+                  <button onClick={() => setEditCategory({ ...c })} className="ml-1 hover:text-primary" title="Editar">
+                    <Edit className="w-3 h-3" />
+                  </button>
+                  <button onClick={() => handleDeleteCategory(c.id)} className="hover:text-destructive" title="Eliminar">
+                    <Trash2 className="w-3 h-3" />
+                  </button>
                 </Badge>
               ))}
             </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Edit category dialog */}
+      <Dialog open={!!editCategory} onOpenChange={() => setEditCategory(null)}>
+        <DialogContent aria-describedby={undefined}>
+          <DialogHeader><DialogTitle>Editar categoría</DialogTitle></DialogHeader>
+          {editCategory && (
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <Label>Nombre</Label>
+                <Input value={editCategory.nombre} onChange={e => setEditCategory({ ...editCategory, nombre: e.target.value })} autoFocus />
+              </div>
+              <Button onClick={handleEditCategory} className="w-full" disabled={!editCategory.nombre.trim()}>Guardar</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Add item dialog */}
       <Dialog open={showAddItem} onOpenChange={setShowAddItem}>
