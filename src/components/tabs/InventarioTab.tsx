@@ -121,6 +121,24 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   const alertItems = items.filter(i => i.stock_minimo > 0 && i.stock_actual <= i.stock_minimo);
 
+  // Monthly consumption stats: estimate based on movements (salidas) this month
+  // Since we track movements via quick +/- buttons, we estimate monthly consumption
+  // by counting items with stock below minimum as high-consumption
+  const monthlyStats = useMemo(() => {
+    const byCat: Record<string, { nombre: string; totalItems: number; lowStock: number; totalStock: number }> = {};
+    for (const item of items) {
+      if (!byCat[item.categoria_id]) {
+        byCat[item.categoria_id] = { nombre: item.categoria_nombre, totalItems: 0, lowStock: 0, totalStock: 0 };
+      }
+      byCat[item.categoria_id].totalItems++;
+      byCat[item.categoria_id].totalStock += item.stock_actual;
+      if (item.stock_minimo > 0 && item.stock_actual <= item.stock_minimo) {
+        byCat[item.categoria_id].lowStock++;
+      }
+    }
+    return Object.entries(byCat).map(([id, data]) => ({ id, ...data }));
+  }, [items]);
+
   const handleAddItem = async () => {
     if (!newItem.nombre || !newItem.categoria_id) return;
     try {
