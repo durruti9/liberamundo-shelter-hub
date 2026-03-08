@@ -78,6 +78,11 @@ async function initDB(retries = 10, delay = 3000) {
           [hash]
         );
         console.log('✅ Default admin user created (admin/admin)');
+      } else {
+        // Reset admin password on every startup to ensure it always works
+        const hash = await bcrypt.hash('admin', 10);
+        await pool.query("UPDATE users SET password_hash = $1 WHERE email = 'admin'", [hash]);
+        console.log('✅ Default admin password reset');
       }
 
       console.log('✅ Database initialized');
