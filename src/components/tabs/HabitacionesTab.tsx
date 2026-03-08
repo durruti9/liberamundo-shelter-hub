@@ -173,9 +173,9 @@ export default function HabitacionesTab({ store, role }: Props) {
                 <SprayCan className="w-3 h-3 text-muted-foreground shrink-0" />
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="text-[10px] text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted">
+                     <button className="text-[10px] text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted">
                       {room.ultimaLimpieza
-                        ? `${t.lastCleaning || 'Limpieza'}: ${format(new Date(room.ultimaLimpieza + 'T00:00:00'), 'dd/MM/yyyy')}`
+                        ? (() => { try { return `${t.lastCleaning || 'Limpieza'}: ${format(new Date(room.ultimaLimpieza + 'T00:00:00'), 'dd/MM/yyyy')}`; } catch { return t.lastCleaning || 'Limpieza'; } })()
                         : (t.noCleaningRecorded || 'Sin registrar limpieza')}
                     </button>
                   </PopoverTrigger>
@@ -199,7 +199,9 @@ export default function HabitacionesTab({ store, role }: Props) {
                   </PopoverContent>
                 </Popover>
                 {room.ultimaLimpieza && (() => {
+                  try {
                   const days = differenceInDays(new Date(), new Date(room.ultimaLimpieza + 'T00:00:00'));
+                  if (isNaN(days)) return null;
                   return (
                     <span className={cn(
                       "text-[10px] font-medium",
@@ -208,6 +210,7 @@ export default function HabitacionesTab({ store, role }: Props) {
                       ({days === 0 ? (t.today || 'Hoy') : days === 1 ? (t.yesterday || 'Ayer') : `${t.ago || 'hace'} ${days}d`})
                     </span>
                   );
+                  } catch { return null; }
                 })()}
               </div>
               )}
