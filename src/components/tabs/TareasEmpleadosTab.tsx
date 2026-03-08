@@ -203,7 +203,11 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
       await loadMonth();
       setEditingIdx(new Set());
       setOriginalTareas({});
-      setSelectedDate(null);
+      // Re-load the current day's data to confirm persistence
+      const refreshed = allTareasDates[selectedDate];
+      if (refreshed) {
+        setTareas(refreshed.map(t => ({ ...t, adminObs: t.adminObs || '', respuestaEmpleado: t.respuestaEmpleado || '' })));
+      }
       toast.success('Tareas guardadas correctamente');
     } catch (err) {
       console.error('Error saving tareas:', err);
