@@ -126,25 +126,36 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   const alertItems = items.filter(i => i.stock_minimo > 0 && i.stock_actual <= i.stock_minimo);
 
-  // Monthly consumption stats: estimate based on movements (salidas) this month
-  // Since we track movements via quick +/- buttons, we estimate monthly consumption
-  // by counting items with stock below minimum as high-consumption
-  const monthlyStats = useMemo(() => {
-    const byCat: Record<string, { nombre: string; totalItems: number; lowStock: number; totalStock: number }> = {};
-    for (const item of items) {
-      if (!byCat[item.categoria_id]) {
-        byCat[item.categoria_id] = { nombre: item.categoria_nombre, totalItems: 0, lowStock: 0, totalStock: 0 };
-      }
-      byCat[item.categoria_id].totalItems++;
-      byCat[item.categoria_id].totalStock += item.stock_actual;
-      if (item.stock_minimo > 0 && item.stock_actual <= item.stock_minimo) {
-        byCat[item.categoria_id].lowStock++;
-      }
+  const loadConsumo = useCallback(async () => {
+    try {
+      const data = await api.getInventarioConsumoMensual(albergueId);
+      setConsumoData(data);
+    } catch {
+      setConsumoData([]);
     }
-    return Object.entries(byCat).map(([id, data]) => ({ id, ...data }));
-  }, [items]);
+  }, [albergueId]);
 
-  const handleAddItem = async () => {
+  useEffect(() => { if (statsOpen) loadConsumo(); }, [statsOpen, loadConsumo]);
+
+  // Filter consumption by selected month
+  const consumoMes = useMemo(() => {
+    const filtered = consumoData.filter((r: any) => r.mes === selectedMonth);
+    // Group by category
+    const byCat: Record<string, { categoria: string; items: { nombre: string; salidas: number; entradas: number }[] }> = {};
+    for (const r of filtered) {
+      if (!byCat[r.categoria_nombre]) byCat[r.categoria_nombre] = { categoria: r.categoria_nombre, items: [] };
+      byCat[r.categoria_nombre].items.push({ nombre: r.item_nombre, salidas: parseFloat(r.total_salidas), entradas: parseFloat(r.total_entradas) });
+    }
+    return Object.values(byCat);
+  }, [consumoData, selectedMonth]);
+
+  const availableMonths = useMemo(() => {
+    const months = new Set(consumoData.map((r: any) => r.mes));
+    if (!months.has(selectedMonth)) months.add(selectedMonth);
+    return Array.from(months).sort().reverse();
+  }, [consumoData, selectedMonth]);
+
+  const totalSalidasMes = consumoMes.reduce((sum, cat) => sum + cat.items.reduce((s, i) => s + i.salidas, 0), 0);
     if (!newItem.nombre || !newItem.categoria_id) return;
     try {
       await api.addInventarioItem(albergueId, newItem);
