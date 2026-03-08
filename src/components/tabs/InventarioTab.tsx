@@ -395,7 +395,6 @@ export default function InventarioTab({ role, albergueId }: Props) {
                 </div>
                 <div className="text-right shrink-0">
                   <p className={`text-sm font-semibold ${stockColor(item)}`}>{item.stock_actual}</p>
-                  <p className="text-[10px] text-muted-foreground">{item.unidad}</p>
                 </div>
               </div>
               <div className="flex items-center justify-end gap-1 mt-2 border-t border-border pt-2">
