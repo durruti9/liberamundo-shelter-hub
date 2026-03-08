@@ -858,8 +858,8 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs">Jornada diaria (h)</Label>
-                <Input type="number" min={1} max={12} step={0.5} value={newEmp.jornada_diaria_horas}
+                <Label className="text-xs">Jornada semanal (h)</Label>
+                <Input type="number" min={1} max={60} step={0.5} value={newEmp.jornada_diaria_horas}
                   onChange={e => setNewEmp({ ...newEmp, jornada_diaria_horas: Number(e.target.value) })} />
               </div>
               <div className="space-y-1">
