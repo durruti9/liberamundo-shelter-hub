@@ -211,11 +211,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     try {
       // Save all current tareas state to persist
       await api.saveTareasDia(albergueId, selectedDate, tareas);
-      await loadMonth();
-      // Update local state to reflect saved data
-      setEditingIdx(prev => { const s = new Set(prev); s.delete(idx); return s; });
-      setOriginalTareas(prev => { const c = { ...prev }; delete c[idx]; return c; });
-      // Refresh tareas from saved data
+      // Refresh month data
       const start = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
       const end = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
       const data = await api.getTareasDia(albergueId, start, end);
@@ -224,9 +220,14 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
         if (!grouped[t.fecha]) grouped[t.fecha] = [];
         grouped[t.fecha].push(t);
       }
+      setAllTareasDates(grouped);
+      // Refresh local tareas for this day
       if (grouped[selectedDate]) {
         setTareas(grouped[selectedDate].map(t => ({ ...t, adminObs: t.adminObs || '', respuestaEmpleado: t.respuestaEmpleado || '' })));
       }
+      // Stop editing this task
+      setEditingIdx(prev => { const s = new Set(prev); s.delete(idx); return s; });
+      setOriginalTareas(prev => { const c = { ...prev }; delete c[idx]; return c; });
     } catch (err) {
       console.error('Error saving tareas:', err);
     }
