@@ -50,6 +50,21 @@ router.post('/:albergueId', requireAlbergueAccess(), async (req, res) => {
 
 router.post('/:messageId/reply', async (req, res) => {
   try {
+    const user = req.user;
+    if (!user) return res.status(401).json({ error: 'No autenticado' });
+
+    // Verify user has access to the message's albergue
+    const { rows: msgRows } = await pool.query('SELECT albergue_id FROM board_messages WHERE id = $1', [req.params.messageId]);
+    if (msgRows.length === 0) return res.status(404).json({ error: 'Mensaje no encontrado' });
+
+    if (user.role !== 'admin') {
+      const { rows: access } = await pool.query(
+        'SELECT 1 FROM user_albergues WHERE user_email = $1 AND albergue_id = $2',
+        [user.email, msgRows[0].albergue_id]
+      );
+      if (access.length === 0) return res.status(403).json({ error: 'Sin acceso a este albergue' });
+    }
+
     const { autor, fecha, texto } = req.body;
     const id = crypto.randomUUID();
     await pool.query(

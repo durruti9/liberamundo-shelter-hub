@@ -59,6 +59,16 @@ router.put('/:id/toggle', requireRole('admin', 'gestor'), async (req, res) => {
 // Only admin and gestor can delete incidencias
 router.delete('/:id', requireRole('admin', 'gestor'), async (req, res) => {
   try {
+    const user = req.user;
+    if (user.role !== 'admin') {
+      const { rows: inc } = await pool.query('SELECT albergue_id FROM incidencias WHERE id = $1', [req.params.id]);
+      if (inc.length === 0) return res.status(404).json({ error: 'No encontrada' });
+      const { rows: access } = await pool.query(
+        'SELECT 1 FROM user_albergues WHERE user_email = $1 AND albergue_id = $2',
+        [user.email, inc[0].albergue_id]
+      );
+      if (access.length === 0) return res.status(403).json({ error: 'Sin acceso a este albergue' });
+    }
     await pool.query('DELETE FROM incidencias WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
   } catch (err) {

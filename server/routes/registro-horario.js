@@ -97,6 +97,20 @@ router.delete('/empleados/:id', async (req, res) => {
 
 router.get('/registros/:empleadoId', async (req, res) => {
   try {
+    const user = req.user;
+    if (!user) return res.status(401).json({ error: 'No autenticado' });
+
+    // Verify access to employee's albergue
+    if (user.role !== 'admin') {
+      const { rows: empRows } = await pool.query('SELECT albergue_id FROM empleados_horario WHERE id = $1', [req.params.empleadoId]);
+      if (empRows.length === 0) return res.status(404).json({ error: 'Empleado no encontrado' });
+      const { rows: access } = await pool.query(
+        'SELECT 1 FROM user_albergues WHERE user_email = $1 AND albergue_id = $2',
+        [user.email, empRows[0].albergue_id]
+      );
+      if (access.length === 0) return res.status(403).json({ error: 'Sin acceso' });
+    }
+
     const { start, end } = req.query;
     const { rows } = await pool.query(
       'SELECT * FROM registros_horario WHERE empleado_id = $1 AND fecha >= $2 AND fecha <= $3 ORDER BY fecha',
