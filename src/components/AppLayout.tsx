@@ -78,7 +78,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
 
   const adminCount = store.users.filter(u => u.role === 'admin').length;
 
-  const tabCount = role === 'admin' ? 11 : role === 'gestor' ? 7 : 7;
+  const tabCount = role === 'admin' ? 11 : role === 'gestor' ? 7 : 8;
 
   const handleAlbergueDeleted = (deletedId: string) => {
     if (deletedId === albergueId && store.albergues.length > 0) {
