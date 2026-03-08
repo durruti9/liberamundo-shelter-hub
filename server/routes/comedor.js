@@ -19,6 +19,7 @@ router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
       motivoAusencia: r.motivo_ausencia, observaciones: r.observaciones,
       particularidades: r.particularidades,
       ultimaModificacion: r.ultima_modificacion,
+      ultimoUsuario: r.ultimo_usuario,
     })));
   } catch (err) {
     res.status(500).json({ error: err.message });
