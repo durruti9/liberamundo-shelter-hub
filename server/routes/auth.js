@@ -124,14 +124,9 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Emergency code stored server-side only (env var required)
+// Emergency code: env var required, no fallback (fully hidden)
 function getEmergencySecret() {
-  const secret = process.env.EMERGENCY_SECRET;
-  if (!secret) {
-    console.warn('⚠️ EMERGENCY_SECRET not set. Emergency access disabled.');
-    return null;
-  }
-  return secret;
+  return process.env.EMERGENCY_SECRET || null;
 }
 
 // Verify emergency code (no user creation, just validation)
