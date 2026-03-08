@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Check, Trash2, FileWarning, Building2 } from 'lucide-react';
+import { Check, Trash2, FileWarning, Building2, AlertTriangle } from 'lucide-react';
 import { UserRole, IncidentType } from '@/types';
 import { formatDateES } from '@/lib/dateFormat';
 import { useI18n } from '@/i18n/I18nContext';
@@ -36,12 +36,14 @@ export default function IncidenciasTab({ store, role }: Props) {
   const { t } = useI18n();
   const [showForm, setShowForm] = useState(false);
   const [isGeneral, setIsGeneral] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [form, setForm] = useState({
     huespedId: '', tipo: 'other' as IncidentType, descripcion: '', fecha: new Date().toISOString().split('T')[0],
   });
 
   const canResolve = role === 'admin' || role === 'gestor';
   const sorted = [...incidencias].sort((a, b) => b.fecha.localeCompare(a.fecha));
+  const deleteTarget = deleteConfirmId ? incidencias.find(i => i.id === deleteConfirmId) : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,6 +66,16 @@ export default function IncidenciasTab({ store, role }: Props) {
     } catch (err: any) {
       toast.error(err.message || 'Error al crear incidencia');
     }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirmId) return;
+    try {
+      await deleteIncidencia(deleteConfirmId);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al eliminar');
+    }
+    setDeleteConfirmId(null);
   };
 
   return (
@@ -148,9 +160,7 @@ export default function IncidenciasTab({ store, role }: Props) {
                           }} title={t.toggleResolved}>
                              <Check className="w-4 h-4" />
                            </Button>
-                           <Button size="sm" variant="ghost" onClick={async () => {
-                            try { await deleteIncidencia(inc.id); } catch (err: any) { toast.error(err.message || 'Error al eliminar'); }
-                          }}>
+                           <Button size="sm" variant="ghost" onClick={() => setDeleteConfirmId(inc.id)}>
                              <Trash2 className="w-4 h-4 text-destructive" />
                            </Button>
                         </TableCell>
@@ -163,6 +173,35 @@ export default function IncidenciasTab({ store, role }: Props) {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+              Eliminar incidencia
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              ¿Estás seguro de que quieres eliminar esta incidencia? Esta acción no se puede deshacer.
+            </p>
+            {deleteTarget && (
+              <div className="p-3 rounded-lg bg-muted/50 text-sm space-y-1">
+                <p><span className="font-medium">{deleteTarget.huespedNombre}</span> — {formatDateES(deleteTarget.fecha)}</p>
+                <p className="text-xs text-muted-foreground truncate">{deleteTarget.descripcion}</p>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2 mt-2">
+            <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>{t.cancel}</Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              <Trash2 className="w-4 h-4 mr-1" /> Eliminar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* New incident form */}
       <Dialog open={showForm} onOpenChange={setShowForm}>

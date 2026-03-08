@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -28,6 +28,7 @@ import RegistroHorarioTab from './tabs/RegistroHorarioTab';
 import ThemeToggle from './ThemeToggle';
 import GlobalSearch from './GlobalSearch';
 import NotificationBell from './NotificationBell';
+import ConnectionIndicator from './ConnectionIndicator';
 import { useAlbergueStore } from '@/hooks/useAlbergueStore';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
@@ -59,6 +60,27 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
   const [newPasswordValue, setNewPasswordValue] = useState('');
   const [editingAlberguesFor, setEditingAlberguesFor] = useState<string | null>(null);
   const [editAlbergueIds, setEditAlbergueIds] = useState<string[]>([]);
+
+  // Backup reminder for admin (every 7 days)
+  useEffect(() => {
+    if (role !== 'admin') return;
+    const BACKUP_REMINDER_KEY = 'lm_last_backup_reminder';
+    const BACKUP_INTERVAL = 7 * 24 * 60 * 60 * 1000;
+    const lastReminder = parseInt(localStorage.getItem(BACKUP_REMINDER_KEY) || '0');
+    if (Date.now() - lastReminder > BACKUP_INTERVAL) {
+      const timer = setTimeout(() => {
+        toast.info('💾 Recordatorio: hace más de una semana que no se realiza un backup. Accede a Configuración > Backup.', {
+          duration: 10000,
+          action: {
+            label: 'Ir a backup',
+            onClick: () => setShowSettings(true),
+          },
+        });
+        localStorage.setItem(BACKUP_REMINDER_KEY, Date.now().toString());
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [role]);
 
   const handleTabChange = useCallback((value: string) => {
     setTab(value);
@@ -152,6 +174,9 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               role={role}
               onNavigate={handleNotificationNavigate}
             />
+
+            {/* Connection indicator */}
+            <ConnectionIndicator />
 
             {/* Theme toggle */}
             <ThemeToggle />
