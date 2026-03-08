@@ -401,10 +401,10 @@ export default function ComedorTab({ store, role }: Props) {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Input
+                          <DebouncedInput
                             className="min-w-[160px] h-8 text-xs"
                             value={c.particularidades}
-                            onChange={e => handleUpdate(huesped.id, 'particularidades', e.target.value)}
+                            onCommit={val => handleUpdate(huesped.id, 'particularidades', val)}
                             placeholder={t.foodPlaceholder}
                             readOnly={!canEdit}
                           />
