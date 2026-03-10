@@ -64,6 +64,7 @@ export default function IncidenciasTab({ store, role }: Props) {
   const [form, setForm] = useState({
     selectedGuests: [] as string[],
     tipo: 'other' as IncidentType,
+    severidad: 'S3' as IncidenciaSeveridad,
     descripcion: '',
     fecha: new Date().toISOString().split('T')[0],
     visibilidad: 'todos' as IncidenciaVisibilidad,
