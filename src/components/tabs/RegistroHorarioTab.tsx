@@ -823,6 +823,8 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                   </Button>
                 )}
               </div>
+            ) : isPersonal ? (
+              <p>No tienes una ficha de empleado vinculada a tu usuario. Contacta con el administrador.</p>
             ) : (
               <p>Selecciona un empleado para ver su registro</p>
             )}
