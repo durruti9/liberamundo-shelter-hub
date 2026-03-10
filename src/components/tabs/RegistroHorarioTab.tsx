@@ -762,7 +762,7 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                             <span className={isWeekend ? 'text-muted-foreground' : ''}>
                               {DAYS_ES[dayOfWeek]} {String(dayNum).padStart(2, '0')}
                             </span>
-                            {future && <Lock className="w-3 h-3 ml-1 inline text-muted-foreground" />}
+                            {future && !isAdmin && <Lock className="w-3 h-3 ml-1 inline text-muted-foreground" />}
                           </TableCell>
                           <TableCell className="text-xs p-1">
                             {estado && (
