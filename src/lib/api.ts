@@ -292,6 +292,10 @@ export const api = {
     request<OkResponse>(`/registro-horario/auditoria`, { method: 'POST', body: JSON.stringify(data) }),
   getAuditoria: (albergueId: string) =>
     request<Any[]>(`/registro-horario/auditoria/${albergueId}`),
+  aprobarRegistro: (empleadoId: string, fecha: string) =>
+    request<OkResponse>(`/registro-horario/registros/${empleadoId}/aprobar/${fecha}`, { method: 'PUT' }),
+  rechazarRegistro: (empleadoId: string, fecha: string) =>
+    request<OkResponse>(`/registro-horario/registros/${empleadoId}/rechazar/${fecha}`, { method: 'PUT' }),
 
   // Inventario (fully typed)
   getInventarioCategorias: (albergueId: string) => request<InventarioCategoria[]>(`/inventario/${albergueId}/categorias`),
