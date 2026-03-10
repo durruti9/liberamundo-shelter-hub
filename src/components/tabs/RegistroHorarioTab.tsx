@@ -853,11 +853,6 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 </div>
               )}
 
-              <div className="space-y-1">
-                <Label className="text-xs">Horas complementarias (manual)</Label>
-                <Input type="number" min={0} step={0.5} value={editingDay.horas_complementarias}
-                  onChange={e => setEditingDay({ ...editingDay, horas_complementarias: Number(e.target.value) })} />
-              </div>
 
               <div className="space-y-1">
                 <Label className="text-xs">Observaciones</Label>
