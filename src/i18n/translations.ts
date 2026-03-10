@@ -1120,6 +1120,8 @@ const en: Translations = {
   incidentDescription: 'Description',
   incidentDate: 'Date',
   incidentGuest: 'Guest',
+  incidentSeverity: 'Severity',
+  severityLabels: { S1: 'Critical (S1)', S2: 'High (S2)', S3: 'Medium (S3)', S4: 'Low (S4)' },
   incidentTypes: {
     behavioral: 'Behavioral',
     medical: 'Medical',
