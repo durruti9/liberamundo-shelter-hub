@@ -337,10 +337,9 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
   const openDay = (dayNum: number) => {
     if (!selectedEmpleado) return;
     const fecha = formatDate(year, month, dayNum);
-    if (isFuture(fecha)) return;
+    // Admin can open any day (including future for vacations/special); non-admin cannot open future
+    if (!isAdmin && isFuture(fecha)) return;
     const existing = records.get(fecha) || emptyRecord(selectedEmpleado, fecha);
-    // Admin can view but not edit; non-admin with no record on that day can create
-    if (isAdmin && !existing.estado) return; // Admin: nothing to view on empty days
     setEditingDay({ ...existing });
     setShowDayModal(true);
   };
