@@ -398,10 +398,20 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
     const needsWork = ['trabajado', 'teletrabajo'].includes(editingDay.estado);
     const hours = needsWork ? calcHours(editingDay, currentEmpleado.jornada_diaria_horas) : { horas_ordinarias: 0, horas_extra: 0, horas_totales: 0 };
     const isVac = editingDay.estado === 'vacaciones';
+    
+    // Determine if this is a past-day edit by non-admin
+    const isEditingPastDay = isPastDay(editingDay.fecha);
+    const existingRecord = records.get(editingDay.fecha);
+    const isPastDayModification = isEditingPastDay && !isAdmin && existingRecord?.estado;
+    
     const updated: RegistroDia = {
       ...editingDay,
       ...hours,
       horas_vacaciones: isVac ? editingDay.horas_vacaciones || 1 : 0,
+      // If non-admin edits a past day that already had a record, mark as pending approval
+      pendiente_aprobacion: isPastDayModification ? true : editingDay.pendiente_aprobacion,
+      aprobado: isPastDayModification ? false : (isEditingPastDay ? editingDay.aprobado : false),
+      fecha_original_fichada: editingDay.fecha_original_fichada || (existingRecord ? null : new Date().toISOString().split('T')[0]),
     };
     await saveRecord(updated);
     
@@ -411,7 +421,11 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
     }
     
     setShowDayModal(false);
-    toast.success('Registro guardado');
+    if (isPastDayModification) {
+      toast.info('Modificación enviada. Requiere aprobación del administrador.');
+    } else {
+      toast.success('Registro guardado');
+    }
   };
 
   // Recalculate vacaciones consumed
