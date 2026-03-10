@@ -578,18 +578,23 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
               <Clock className="w-5 h-5 text-primary" />
               <h2 className="text-lg font-bold">Registro Horario</h2>
             </div>
-            <div className="flex-1 w-full sm:w-auto">
-              <Select value={selectedEmpleado} onValueChange={setSelectedEmpleado}>
-                <SelectTrigger className="w-full sm:w-64">
-                  <SelectValue placeholder="Seleccionar empleado" />
-                </SelectTrigger>
-                <SelectContent>
-                  {empleados.filter(e => e.activo).map(e => (
-                    <SelectItem key={e.id} value={e.id}>{e.nombre_completo}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {!isPersonal && (
+              <div className="flex-1 w-full sm:w-auto">
+                <Select value={selectedEmpleado} onValueChange={setSelectedEmpleado}>
+                  <SelectTrigger className="w-full sm:w-64">
+                    <SelectValue placeholder="Seleccionar empleado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {empleados.filter(e => e.activo).map(e => (
+                      <SelectItem key={e.id} value={e.id}>{e.nombre_completo}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {isPersonal && currentEmpleado && (
+              <Badge variant="outline" className="text-sm px-3 py-1.5">{currentEmpleado.nombre_completo}</Badge>
+            )}
             {isAdmin && (
               <div className="flex gap-2 flex-wrap">
                 <Button size="sm" variant="outline" onClick={() => setShowAddEmployee(true)}>
