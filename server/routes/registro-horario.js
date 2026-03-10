@@ -78,10 +78,6 @@ router.put('/empleados/:id', async (req, res) => {
       if (access.length === 0) return res.status(403).json({ error: 'Sin acceso a este albergue' });
     }
 
-    const { nombre_completo, jornada_diaria_horas, vacaciones_anuales, activo } = req.body;
-    const updates = [];
-    const values = [];
-    let idx = 1;
     const { nombre_completo, jornada_diaria_horas, vacaciones_anuales, activo, user_email } = req.body;
     const updates = [];
     const values = [];
