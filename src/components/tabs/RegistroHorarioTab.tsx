@@ -659,10 +659,6 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                           <TableCell className="text-xs text-center font-mono">{hasWork && rec.salida_tarde ? rec.salida_tarde.substring(0, 5) : ''}</TableCell>
                           <TableCell className="text-xs text-center font-mono hidden md:table-cell">{hasWork && rec.entrada_noche ? rec.entrada_noche.substring(0, 5) : ''}</TableCell>
                           <TableCell className="text-xs text-center font-mono hidden md:table-cell">{hasWork && rec.salida_noche ? rec.salida_noche.substring(0, 5) : ''}</TableCell>
-                          <TableCell className="text-xs text-center hidden sm:table-cell">{hasWork && rec.pausa_min ? `${rec.pausa_min}'` : ''}</TableCell>
-                          <TableCell className="text-xs text-center font-medium">{hasWork ? Number(rec.horas_ordinarias).toFixed(1) : ''}</TableCell>
-                          <TableCell className="text-xs text-center hidden sm:table-cell">{hasWork && Number(rec.horas_extra) > 0 ? Number(rec.horas_extra).toFixed(1) : ''}</TableCell>
-                          <TableCell className="text-xs text-center font-bold">{hasWork ? Number(rec.horas_totales).toFixed(1) : ''}</TableCell>
                           <TableCell className="text-xs text-center">
                             {rec?.firma_data ? (
                               <span title="Firmado" className="text-[hsl(var(--success))]">✅</span>
