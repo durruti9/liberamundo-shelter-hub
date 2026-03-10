@@ -615,6 +615,13 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
               <Clock className="w-5 h-5 text-primary" />
               <h2 className="text-lg font-bold">Registro Horario</h2>
             </div>
+            {/* Fichar button - visible for non-admin employees */}
+            {!isAdmin && selectedEmpleado && (
+              <Button onClick={handleFichar} className="bg-primary hover:bg-primary/90 gap-2">
+                <Fingerprint className="w-5 h-5" />
+                Fichar
+              </Button>
+            )}
             {!isPersonal && (
               <div className="flex-1 w-full sm:w-auto">
                 <Select value={selectedEmpleado} onValueChange={setSelectedEmpleado}>
