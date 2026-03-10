@@ -190,6 +190,8 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
               </DropdownMenuContent>
             </DropdownMenu>
 
+            <HelpDialog />
+
             <Badge variant="outline" className="text-xs hidden sm:flex">{roleLabel[role]}</Badge>
 
             {role === 'admin' && (
