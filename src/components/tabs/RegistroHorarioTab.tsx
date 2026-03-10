@@ -1164,8 +1164,6 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                     <Save className="w-4 h-4 mr-1" /> {saving ? 'Guardando...' : 'Guardar'}
                   </Button>
                 )}
-                  </Button>
-                )}
               </div>
             </div>
             );
