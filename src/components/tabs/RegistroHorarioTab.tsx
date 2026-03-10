@@ -748,7 +748,7 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                         ? 'bg-destructive/5 border-l-2 border-l-destructive'
                         : isPending
                         ? 'bg-[hsl(38,92%,95%)] border-l-2 border-l-[hsl(38,92%,50%)] dark:bg-[hsl(38,92%,10%)]'
-                        : (rec?.estado && !future && (isApproved || fecha === today || (!isPastDay(fecha))))
+                        : (rec?.estado && (isApproved || (!future && fecha === today) || (!future && !isPastDay(fecha)) || (rec?.aprobado)))
                         ? 'bg-[hsl(142,60%,96%)] border-l-2 border-l-[hsl(142,60%,45%)] dark:bg-[hsl(142,60%,8%)]'
                         : isToday ? 'bg-primary/5 border-l-2 border-l-primary' : '';
 
