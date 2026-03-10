@@ -736,11 +736,21 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                       const estado = ESTADOS.find(e => e.value === rec?.estado);
                       const hasWork = rec && ['trabajado', 'teletrabajo'].includes(rec.estado);
                       const hasRevision = rec?.marcado_revision;
+                      const isPending = rec?.pendiente_aprobacion;
+                      const isApproved = rec?.aprobado || (rec?.estado && !future && fecha === today);
+                      // Row color: orange for pending approval, green for approved/same-day
+                      const rowColor = hasRevision
+                        ? 'bg-destructive/5 border-l-2 border-l-destructive'
+                        : isPending
+                        ? 'bg-[hsl(38,92%,95%)] border-l-2 border-l-[hsl(38,92%,50%)] dark:bg-[hsl(38,92%,10%)]'
+                        : (rec?.estado && !future && (isApproved || fecha === today || (!isPastDay(fecha))))
+                        ? 'bg-[hsl(142,60%,96%)] border-l-2 border-l-[hsl(142,60%,45%)] dark:bg-[hsl(142,60%,8%)]'
+                        : isToday ? 'bg-primary/5 border-l-2 border-l-primary' : '';
 
                       return (
                         <TableRow
                           key={dayNum}
-                          className={`transition-colors ${future ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50'} ${isToday ? 'bg-primary/5 border-l-2 border-l-primary' : ''} ${isWeekend && !rec?.estado ? 'bg-muted/30' : ''} ${hasRevision ? 'bg-destructive/5 border-l-2 border-l-destructive' : ''}`}
+                          className={`transition-colors ${future ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50'} ${isWeekend && !rec?.estado ? 'bg-muted/30' : ''} ${rowColor}`}
                           onClick={() => openDay(dayNum)}
                         >
                           <TableCell className="text-xs font-medium sticky left-0 bg-inherit z-10">
