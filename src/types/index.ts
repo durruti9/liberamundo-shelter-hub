@@ -56,16 +56,29 @@ export interface ProximaLlegada {
 }
 
 export type IncidentType = 'behavioral' | 'medical' | 'administrative' | 'social' | 'general' | 'other';
+export type IncidenciaVisibilidad = 'todos' | 'gestor' | 'personal_albergue';
+
+export interface IncidenciaComentario {
+  id: string;
+  autor: string;
+  fecha: string;
+  texto: string;
+}
 
 export interface Incidencia {
   id: string;
-  huespedId: string; // empty string for general incidents
-  huespedNombre: string; // 'General' for general incidents
+  huespedIds: string[];
+  huespedNombres: string[];
   tipo: IncidentType;
   descripcion: string;
   fecha: string;
   resuelta: boolean;
   creadoPor: string;
+  visibilidad: IncidenciaVisibilidad;
+  adjunto?: string;
+  adjuntoNombre?: string;
+  adjuntoTipo?: string;
+  comentarios: IncidenciaComentario[];
 }
 
 export interface Room {

@@ -487,7 +487,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
     checkIn, checkOut, cambiarCama, deleteHuesped, editHuesped, reincorporar,
     addLlegada, editLlegada, confirmarLlegada, deleteLlegada,
     updateComedor,
-    addIncidencia, toggleIncidenciaResuelta, deleteIncidencia,
+    addIncidencia, toggleIncidenciaResuelta, deleteIncidencia, addIncidenciaComment,
     getOccupant, getFreeBeds,
     addUser, removeUser, changePassword, authenticate,
     addAlbergue, editAlbergueName, deleteAlbergue, updateRooms, updateRoomCleaning,

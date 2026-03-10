@@ -208,6 +208,8 @@ export const api = {
     request<Any>(`/incidencias/${id}/toggle`, { method: 'PUT' }),
   deleteIncidencia: (id: string) =>
     request<OkResponse>(`/incidencias/${id}`, { method: 'DELETE' }),
+  addIncidenciaComment: (id: string, data: { autor: string; texto: string }) =>
+    request<Any>(`/incidencias/${id}/comment`, { method: 'POST', body: JSON.stringify(data) }),
 
   // Board
   getBoardMessages: (albergueId: string) => request<Any[]>(`/board/${albergueId}`),

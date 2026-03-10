@@ -56,7 +56,7 @@ export default function GlobalSearch({ huespedes, incidencias, llegadas, boardMe
     ...incidencias.map(i => ({
       id: i.id,
       type: 'incidencia' as const,
-      title: i.huespedNombre,
+      title: (i.huespedNombres && i.huespedNombres.length > 0) ? i.huespedNombres.join(', ') : (i.huespedNombre || 'General'),
       subtitle: i.descripcion.substring(0, 60) + (i.descripcion.length > 60 ? '...' : ''),
     })),
     ...llegadas.map(l => ({
