@@ -648,6 +648,8 @@ const fr: Translations = {
   incidentDescription: 'Description',
   incidentDate: 'Date',
   incidentGuest: 'Résident',
+  incidentSeverity: 'Sévérité',
+  severityLabels: { S1: 'Critique (S1)', S2: 'Haute (S2)', S3: 'Moyenne (S3)', S4: 'Basse (S4)' },
   incidentTypes: {
     behavioral: 'Comportemental',
     medical: 'Médical',
