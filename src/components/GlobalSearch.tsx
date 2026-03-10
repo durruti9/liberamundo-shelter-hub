@@ -12,7 +12,7 @@ interface SearchableItem {
 
 interface Props {
   huespedes: { id: string; nombre: string; habitacion: string; cama: number; activo: boolean }[];
-  incidencias: { id: string; huespedNombre: string; descripcion: string; resuelta: boolean }[];
+  incidencias: { id: string; huespedNombres?: string[]; huespedNombre?: string; descripcion: string; resuelta: boolean }[];
   llegadas: { id: string; nombre: string; fechaLlegada: string }[];
   boardMessages: { id: string; texto: string; autor: string; tipo: string }[];
   onNavigate: (type: string, id?: string) => void;
