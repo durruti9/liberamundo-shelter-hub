@@ -916,7 +916,7 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
             </DialogTitle>
           </DialogHeader>
           {editingDay && (() => {
-            const readOnly = isAdmin;
+            const readOnly = false; // Admin can now edit records
             const isEditingPast = isPastDay(editingDay.fecha);
             const existingHasRecord = !!records.get(editingDay.fecha)?.estado;
             const lockedForEmployee = !isAdmin && isEditingPast && existingHasRecord && !editingDay.pendiente_aprobacion;
@@ -924,14 +924,16 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
             const liveCalc = needsWork && currentEmpleado ? calcHours(editingDay, currentEmpleado.jornada_diaria_horas) : null;
             const estado = ESTADOS.find(e => e.value === editingDay.estado);
             const showPendingBanner = editingDay.pendiente_aprobacion;
+            const isAdminCreated = editingDay.creado_por_admin;
+            const employeeCanConfirm = !isAdmin && isAdminCreated && editingDay.pendiente_aprobacion;
 
             return (
             <div className="space-y-4">
-              {/* Read-only banner for admin */}
-              {readOnly && (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border">
-                  <Lock className="w-4 h-4 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Vista de solo lectura (administrador)</p>
+              {/* Admin creating/editing info */}
+              {isAdmin && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                  <Pencil className="w-4 h-4 text-primary" />
+                  <p className="text-sm text-muted-foreground">Modo administrador: puedes crear vacaciones y situaciones especiales. El empleado deberá confirmar firmando.</p>
                 </div>
               )}
 
