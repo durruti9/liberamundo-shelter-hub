@@ -1111,10 +1111,10 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
               {/* Actions */}
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={() => setShowDayModal(false)}>
-                  {readOnly ? 'Cerrar' : 'Cancelar'}
+                  Cancelar
                 </Button>
-                {/* Admin approval buttons */}
-                {isAdmin && editingDay.pendiente_aprobacion && (
+                {/* Admin approval buttons for employee-modified past records */}
+                {isAdmin && editingDay.pendiente_aprobacion && !isAdminCreated && (
                   <>
                     <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/10" onClick={async () => {
                       try {
@@ -1140,9 +1140,30 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                     </Button>
                   </>
                 )}
-                {!readOnly && (
+                {/* Employee confirm button for admin-created records */}
+                {employeeCanConfirm && (
+                  <Button
+                    className="bg-[hsl(142,60%,40%)] hover:bg-[hsl(142,60%,35%)] text-white"
+                    disabled={!editingDay.firma_data}
+                    onClick={async () => {
+                      try {
+                        await api.confirmarRegistro(editingDay.empleado_id, editingDay.fecha, editingDay.firma_data);
+                        const updated = { ...editingDay, pendiente_aprobacion: false, aprobado: true };
+                        setRecords(prev => { const next = new Map(prev); next.set(editingDay.fecha, updated); return next; });
+                        setShowDayModal(false);
+                        toast.success('Registro confirmado');
+                      } catch (err: any) { toast.error(err.message); }
+                    }}
+                  >
+                    <CheckCircle2 className="w-4 h-4 mr-1" /> Confirmar y firmar
+                  </Button>
+                )}
+                {/* Save button - for admin always, for employee when not confirming */}
+                {(isAdmin || !employeeCanConfirm) && (
                   <Button onClick={handleSaveDay} disabled={saving}>
                     <Save className="w-4 h-4 mr-1" /> {saving ? 'Guardando...' : 'Guardar'}
+                  </Button>
+                )}
                   </Button>
                 )}
               </div>
