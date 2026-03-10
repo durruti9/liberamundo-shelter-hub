@@ -282,7 +282,7 @@ const es: Translations = {
   confirm: 'Confirmar',
   close: 'Cerrar',
   notes: 'Notas',
-  name: 'Nombre y Apellido',
+  name: 'Nombre y Apellidos',
   nationality: 'Nacionalidad',
   language: 'Idioma',
   email: 'Correo electrónico',
