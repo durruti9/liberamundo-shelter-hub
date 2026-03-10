@@ -42,6 +42,7 @@ router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
       huespedIds: parseMulti(r.huesped_id),
       huespedNombres: parseMulti(r.huesped_nombre),
       tipo: r.tipo,
+      severidad: r.severidad || 'S3',
       descripcion: r.descripcion,
       fecha: r.fecha,
       resuelta: r.resuelta,
