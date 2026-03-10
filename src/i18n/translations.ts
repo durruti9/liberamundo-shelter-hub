@@ -884,6 +884,8 @@ const ar: Translations = {
   incidentDescription: 'الوصف',
   incidentDate: 'التاريخ',
   incidentGuest: 'النزيل',
+  incidentSeverity: 'الخطورة',
+  severityLabels: { S1: 'حرجة (S1)', S2: 'عالية (S2)', S3: 'متوسطة (S3)', S4: 'منخفضة (S4)' },
   incidentTypes: {
     behavioral: 'سلوكي',
     medical: 'طبي',
