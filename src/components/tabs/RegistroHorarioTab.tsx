@@ -149,7 +149,7 @@ function emptyRecord(empleadoId: string, fecha: string): RegistroDia {
   return {
     empleado_id: empleadoId,
     fecha,
-    estado: '',
+    estado: 'trabajado',
     entrada_manana: null, salida_manana: null,
     entrada_tarde: null, salida_tarde: null,
     entrada_noche: null, salida_noche: null,
@@ -158,6 +158,7 @@ function emptyRecord(empleadoId: string, fecha: string): RegistroDia {
     horas_vacaciones: 0, horas_totales: 0,
     observaciones: '', firma_data: '', firmado_en: null,
     marcado_revision: false, motivo_revision: '',
+    pendiente_aprobacion: false, aprobado: false, fecha_original_fichada: null,
   };
 }
 
