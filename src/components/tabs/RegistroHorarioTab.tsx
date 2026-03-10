@@ -755,7 +755,7 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                       return (
                         <TableRow
                           key={dayNum}
-                          className={`transition-colors ${future ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50'} ${isWeekend && !rec?.estado ? 'bg-muted/30' : ''} ${rowColor}`}
+                          className={`transition-colors ${future && !isAdmin ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50'} ${isWeekend && !rec?.estado ? 'bg-muted/30' : ''} ${rowColor}`}
                           onClick={() => openDay(dayNum)}
                         >
                           <TableCell className="text-xs font-medium sticky left-0 bg-inherit z-10">
