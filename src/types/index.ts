@@ -71,6 +71,7 @@ export interface Incidencia {
   huespedIds: string[];
   huespedNombres: string[];
   tipo: IncidentType;
+  severidad: IncidenciaSeveridad;
   descripcion: string;
   fecha: string;
   resuelta: boolean;
