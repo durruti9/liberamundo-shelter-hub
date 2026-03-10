@@ -297,13 +297,14 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
     setSaving(false);
   }, [records, currentEmpleado]);
 
-  // Open day modal (only for non-admin)
+  // Open day modal
   const openDay = (dayNum: number) => {
     if (!selectedEmpleado) return;
     const fecha = formatDate(year, month, dayNum);
     if (isFuture(fecha)) return;
-    if (isAdmin) return; // Admin cannot edit records
     const existing = records.get(fecha) || emptyRecord(selectedEmpleado, fecha);
+    // Admin can view but not edit; non-admin with no record on that day can create
+    if (isAdmin && !existing.estado) return; // Admin: nothing to view on empty days
     setEditingDay({ ...existing });
     setShowDayModal(true);
   };
