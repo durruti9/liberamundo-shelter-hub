@@ -743,7 +743,7 @@ const ar: Translations = {
   confirm: 'تأكيد',
   close: 'إغلاق',
   notes: 'ملاحظات',
-  name: 'الاسم',
+  name: 'الاسم واللقب',
   nationality: 'الجنسية',
   language: 'اللغة',
   email: 'البريد الإلكتروني',
