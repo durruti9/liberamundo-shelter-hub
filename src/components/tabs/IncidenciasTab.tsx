@@ -462,6 +462,17 @@ export default function IncidenciasTab({ store, role }: Props) {
                 </div>
               )}
               <div className="space-y-2">
+                <Label>{t.incidentSeverity}</Label>
+                <Select value={form.severidad} onValueChange={v => setForm(p => ({ ...p, severidad: v as IncidenciaSeveridad }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {SEVERITIES.map(s => (
+                      <SelectItem key={s} value={s}>{t.severityLabels[s]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label>{t.incidentDate}</Label>
                 <Input type="date" value={form.fecha} onChange={e => setForm(p => ({ ...p, fecha: e.target.value }))} />
               </div>
