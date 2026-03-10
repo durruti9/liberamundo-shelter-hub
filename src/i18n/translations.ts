@@ -1211,7 +1211,7 @@ const ru: Translations = {
   confirm: 'Подтвердить',
   close: 'Закрыть',
   notes: 'Заметки',
-  name: 'Имя',
+  name: 'Имя и Фамилия',
   nationality: 'Национальность',
   language: 'Язык',
   email: 'Электронная почта',
