@@ -198,16 +198,34 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
     return formatDate(d.getFullYear(), d.getMonth(), d.getDate());
   }, []);
 
-  // Load employees
+  // Load employees (for personal_albergue, auto-select their linked employee)
   const loadEmpleados = useCallback(async () => {
     try {
-      const data = await api.getEmpleadosHorario(albergueId);
-      setEmpleados(data);
-      if (data.length > 0 && !selectedEmpleado) {
-        setSelectedEmpleado(data[0].id);
+      if (isPersonal) {
+        // Personal laboral: find their linked employee
+        const miEmp = await api.getMiEmpleado(albergueId);
+        if (miEmp) {
+          setEmpleados([miEmp]);
+          setSelectedEmpleado(miEmp.id);
+        } else {
+          setEmpleados([]);
+        }
+      } else {
+        const data = await api.getEmpleadosHorario(albergueId);
+        setEmpleados(data);
+        if (data.length > 0 && !selectedEmpleado) {
+          setSelectedEmpleado(data[0].id);
+        }
       }
     } catch { /* API not available */ }
-  }, [albergueId, selectedEmpleado]);
+  }, [albergueId, selectedEmpleado, isPersonal]);
+
+  // Load available users (admin only, for linking)
+  useEffect(() => {
+    if (isAdmin) {
+      api.getUsuariosDisponibles().then(setUsuariosDisponibles).catch(() => {});
+    }
+  }, [isAdmin]);
 
   // Load records for selected employee + month
   const loadRecords = useCallback(async () => {
