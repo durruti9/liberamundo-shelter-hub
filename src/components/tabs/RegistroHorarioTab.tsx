@@ -1012,6 +1012,23 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
               <Label>Nombre completo</Label>
               <Input value={newEmp.nombre_completo} onChange={e => setNewEmp({ ...newEmp, nombre_completo: e.target.value })} placeholder="Nombre y apellidos" />
             </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Vincular a usuario (sesión)</Label>
+              <Select value={newEmp.user_email || '__none__'} onValueChange={v => setNewEmp({ ...newEmp, user_email: v === '__none__' ? '' : v })}>
+                <SelectTrigger><SelectValue placeholder="Sin vincular" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">— Sin vincular —</SelectItem>
+                  {usuariosDisponibles.map(u => (
+                    <SelectItem key={u.email} value={u.email}>
+                      {u.email} ({u.role})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground">
+                Al vincular un usuario, este verá su ficha al entrar en Registro Horario y podrá fichar su jornada.
+              </p>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs">Jornada semanal (h)</Label>
