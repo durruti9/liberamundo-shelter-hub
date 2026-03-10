@@ -42,6 +42,7 @@ router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
       huespedIds: parseMulti(r.huesped_id),
       huespedNombres: parseMulti(r.huesped_nombre),
       tipo: r.tipo,
+      severidad: r.severidad || 'S3',
       descripcion: r.descripcion,
       fecha: r.fecha,
       resuelta: r.resuelta,
@@ -59,22 +60,21 @@ router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
 
 router.post('/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
-    const { huespedIds, huespedNombres, tipo, descripcion, fecha, creadoPor, visibilidad, adjunto, adjuntoNombre, adjuntoTipo } = req.body;
+    const { huespedIds, huespedNombres, tipo, severidad, descripcion, fecha, creadoPor, visibilidad, adjunto, adjuntoNombre, adjuntoTipo } = req.body;
     const id = crypto.randomUUID();
 
-    // Store arrays as JSON strings
     const hIdStr = JSON.stringify(huespedIds || []);
     const hNameStr = JSON.stringify(huespedNombres || []);
 
     await pool.query(
-      `INSERT INTO incidencias (id, albergue_id, huesped_id, huesped_nombre, tipo, descripcion, fecha, creado_por, visibilidad, adjunto, adjunto_nombre, adjunto_tipo)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
-      [id, req.params.albergueId, hIdStr, hNameStr, tipo, descripcion, fecha, creadoPor,
+      `INSERT INTO incidencias (id, albergue_id, huesped_id, huesped_nombre, tipo, severidad, descripcion, fecha, creado_por, visibilidad, adjunto, adjunto_nombre, adjunto_tipo)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+      [id, req.params.albergueId, hIdStr, hNameStr, tipo, severidad || 'S3', descripcion, fecha, creadoPor,
        visibilidad || 'todos', adjunto || '', adjuntoNombre || '', adjuntoTipo || '']
     );
     res.json({
       id, huespedIds: huespedIds || [], huespedNombres: huespedNombres || [],
-      tipo, descripcion, fecha, resuelta: false, creadoPor,
+      tipo, severidad: severidad || 'S3', descripcion, fecha, resuelta: false, creadoPor,
       visibilidad: visibilidad || 'todos',
       adjunto: adjunto || '', adjuntoNombre: adjuntoNombre || '', adjuntoTipo: adjuntoTipo || '',
       comentarios: [],

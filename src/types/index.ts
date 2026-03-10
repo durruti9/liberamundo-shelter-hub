@@ -56,6 +56,7 @@ export interface ProximaLlegada {
 }
 
 export type IncidentType = 'behavioral' | 'medical' | 'administrative' | 'social' | 'general' | 'other';
+export type IncidenciaSeveridad = 'S1' | 'S2' | 'S3' | 'S4';
 export type IncidenciaVisibilidad = 'todos' | 'gestor' | 'personal_albergue';
 
 export interface IncidenciaComentario {
@@ -70,6 +71,7 @@ export interface Incidencia {
   huespedIds: string[];
   huespedNombres: string[];
   tipo: IncidentType;
+  severidad: IncidenciaSeveridad;
   descripcion: string;
   fecha: string;
   resuelta: boolean;

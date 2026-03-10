@@ -159,6 +159,13 @@ export interface Translations {
   incidentDescription: string;
   incidentDate: string;
   incidentGuest: string;
+  incidentSeverity: string;
+  severityLabels: {
+    S1: string;
+    S2: string;
+    S3: string;
+    S4: string;
+  };
   incidentTypes: {
     behavioral: string;
     medical: string;
@@ -275,7 +282,7 @@ const es: Translations = {
   confirm: 'Confirmar',
   close: 'Cerrar',
   notes: 'Notas',
-  name: 'Nombre',
+  name: 'Nombre y Apellido',
   nationality: 'Nacionalidad',
   language: 'Idioma',
   email: 'Correo electrónico',
@@ -405,6 +412,8 @@ const es: Translations = {
   incidentDescription: 'Descripción',
   incidentDate: 'Fecha',
   incidentGuest: 'Huésped',
+  incidentSeverity: 'Severidad',
+  severityLabels: { S1: 'Crítica (S1)', S2: 'Alta (S2)', S3: 'Media (S3)', S4: 'Baja (S4)' },
   incidentTypes: {
     behavioral: 'Conductual',
     medical: 'Médica',
@@ -509,7 +518,7 @@ const fr: Translations = {
   confirm: 'Confirmer',
   close: 'Fermer',
   notes: 'Notes',
-  name: 'Nom',
+  name: 'Nom et Prénom',
   nationality: 'Nationalité',
   language: 'Langue',
   email: 'E-mail',
@@ -639,6 +648,8 @@ const fr: Translations = {
   incidentDescription: 'Description',
   incidentDate: 'Date',
   incidentGuest: 'Résident',
+  incidentSeverity: 'Sévérité',
+  severityLabels: { S1: 'Critique (S1)', S2: 'Haute (S2)', S3: 'Moyenne (S3)', S4: 'Basse (S4)' },
   incidentTypes: {
     behavioral: 'Comportemental',
     medical: 'Médical',
@@ -743,7 +754,7 @@ const ar: Translations = {
   confirm: 'تأكيد',
   close: 'إغلاق',
   notes: 'ملاحظات',
-  name: 'الاسم',
+  name: 'الاسم واللقب',
   nationality: 'الجنسية',
   language: 'اللغة',
   email: 'البريد الإلكتروني',
@@ -873,6 +884,8 @@ const ar: Translations = {
   incidentDescription: 'الوصف',
   incidentDate: 'التاريخ',
   incidentGuest: 'النزيل',
+  incidentSeverity: 'الخطورة',
+  severityLabels: { S1: 'حرجة (S1)', S2: 'عالية (S2)', S3: 'متوسطة (S3)', S4: 'منخفضة (S4)' },
   incidentTypes: {
     behavioral: 'سلوكي',
     medical: 'طبي',
@@ -977,7 +990,7 @@ const en: Translations = {
   confirm: 'Confirm',
   close: 'Close',
   notes: 'Notes',
-  name: 'Name',
+  name: 'Full Name',
   nationality: 'Nationality',
   language: 'Language',
   email: 'Email',
@@ -1107,6 +1120,8 @@ const en: Translations = {
   incidentDescription: 'Description',
   incidentDate: 'Date',
   incidentGuest: 'Guest',
+  incidentSeverity: 'Severity',
+  severityLabels: { S1: 'Critical (S1)', S2: 'High (S2)', S3: 'Medium (S3)', S4: 'Low (S4)' },
   incidentTypes: {
     behavioral: 'Behavioral',
     medical: 'Medical',
@@ -1211,7 +1226,7 @@ const ru: Translations = {
   confirm: 'Подтвердить',
   close: 'Закрыть',
   notes: 'Заметки',
-  name: 'Имя',
+  name: 'Имя и Фамилия',
   nationality: 'Национальность',
   language: 'Язык',
   email: 'Электронная почта',
@@ -1341,6 +1356,8 @@ const ru: Translations = {
   incidentDescription: 'Описание',
   incidentDate: 'Дата',
   incidentGuest: 'Гость',
+  incidentSeverity: 'Серьёзность',
+  severityLabels: { S1: 'Критическая (S1)', S2: 'Высокая (S2)', S3: 'Средняя (S3)', S4: 'Низкая (S4)' },
   incidentTypes: {
     behavioral: 'Поведенческий',
     medical: 'Медицинский',

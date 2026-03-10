@@ -14,7 +14,7 @@ import {
   Check, Trash2, FileWarning, Building2, AlertTriangle, Send, MessageCircle,
   ChevronDown, ChevronUp, Eye, Paperclip, Image as ImageIcon, X
 } from 'lucide-react';
-import { UserRole, IncidentType, IncidenciaVisibilidad } from '@/types';
+import { UserRole, IncidentType, IncidenciaVisibilidad, IncidenciaSeveridad } from '@/types';
 import { formatDateES } from '@/lib/dateFormat';
 import { useI18n } from '@/i18n/I18nContext';
 
@@ -24,6 +24,7 @@ interface Props {
 }
 
 const INCIDENT_TYPES: IncidentType[] = ['behavioral', 'medical', 'administrative', 'social', 'general', 'other'];
+const SEVERITIES: IncidenciaSeveridad[] = ['S1', 'S2', 'S3', 'S4'];
 
 const TYPE_COLORS: Record<IncidentType, string> = {
   behavioral: 'bg-[hsl(38,92%,90%)] text-[hsl(38,92%,30%)]',
@@ -32,6 +33,13 @@ const TYPE_COLORS: Record<IncidentType, string> = {
   social: 'bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)]',
   general: 'bg-[hsl(270,60%,90%)] text-[hsl(270,60%,30%)]',
   other: 'bg-secondary text-secondary-foreground',
+};
+
+const SEVERITY_COLORS: Record<IncidenciaSeveridad, string> = {
+  S1: 'bg-destructive text-destructive-foreground',
+  S2: 'bg-[hsl(25,95%,53%)] text-white',
+  S3: 'bg-[hsl(38,92%,50%)] text-white',
+  S4: 'bg-[hsl(212,72%,90%)] text-[hsl(212,72%,35%)]',
 };
 
 const VIS_LABELS: Record<IncidenciaVisibilidad, string> = {
@@ -56,6 +64,7 @@ export default function IncidenciasTab({ store, role }: Props) {
   const [form, setForm] = useState({
     selectedGuests: [] as string[],
     tipo: 'other' as IncidentType,
+    severidad: 'S3' as IncidenciaSeveridad,
     descripcion: '',
     fecha: new Date().toISOString().split('T')[0],
     visibilidad: 'todos' as IncidenciaVisibilidad,
@@ -75,11 +84,15 @@ export default function IncidenciasTab({ store, role }: Props) {
     return false;
   };
 
+  const sevOrder: Record<string, number> = { S1: 0, S2: 1, S3: 2, S4: 3 };
   const sorted = [...incidencias]
     .filter(i => canSee(i.visibilidad || 'todos'))
     .filter(i => filter === 'all' ? true : i.visibilidad === filter)
     .sort((a, b) => {
       if (a.resuelta !== b.resuelta) return a.resuelta ? 1 : -1;
+      const sa = sevOrder[a.severidad || 'S3'] ?? 2;
+      const sb = sevOrder[b.severidad || 'S3'] ?? 2;
+      if (sa !== sb) return sa - sb;
       return b.fecha.localeCompare(a.fecha);
     });
 
@@ -118,6 +131,7 @@ export default function IncidenciasTab({ store, role }: Props) {
         huespedIds: isGeneral ? [] : form.selectedGuests,
         huespedNombres: guestNames,
         tipo: isGeneral ? 'general' : form.tipo,
+        severidad: form.severidad,
         descripcion: form.descripcion,
         fecha: form.fecha,
         resuelta: false,
@@ -128,7 +142,7 @@ export default function IncidenciasTab({ store, role }: Props) {
         adjuntoTipo: form.adjuntoTipo,
       });
       setForm({
-        selectedGuests: [], tipo: 'other', descripcion: '',
+        selectedGuests: [], tipo: 'other', severidad: 'S3', descripcion: '',
         fecha: new Date().toISOString().split('T')[0],
         visibilidad: 'todos', adjunto: '', adjuntoNombre: '', adjuntoTipo: '',
       });
@@ -232,6 +246,9 @@ export default function IncidenciasTab({ store, role }: Props) {
                     onClick={() => setExpandedId(isExpanded ? null : inc.id)}
                   >
                     <div className="flex items-center gap-2 flex-wrap">
+                      <Badge className={`text-[10px] ${SEVERITY_COLORS[inc.severidad || 'S3']}`}>
+                        {t.severityLabels[inc.severidad || 'S3']}
+                      </Badge>
                       <Badge className={`text-[10px] ${TYPE_COLORS[inc.tipo]}`} variant="secondary">
                         {t.incidentTypes[inc.tipo]}
                       </Badge>
@@ -448,6 +465,17 @@ export default function IncidenciasTab({ store, role }: Props) {
                   </Select>
                 </div>
               )}
+              <div className="space-y-2">
+                <Label>{t.incidentSeverity}</Label>
+                <Select value={form.severidad} onValueChange={v => setForm(p => ({ ...p, severidad: v as IncidenciaSeveridad }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {SEVERITIES.map(s => (
+                      <SelectItem key={s} value={s}>{t.severityLabels[s]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <Label>{t.incidentDate}</Label>
                 <Input type="date" value={form.fecha} onChange={e => setForm(p => ({ ...p, fecha: e.target.value }))} />
