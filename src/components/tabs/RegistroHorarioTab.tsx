@@ -25,6 +25,7 @@ import { useBeforeUnload } from '@/hooks/useBeforeUnload';
 interface Props {
   role: UserRole;
   albergueId: string;
+  userEmail?: string;
 }
 
 interface Empleado {
@@ -33,6 +34,13 @@ interface Empleado {
   jornada_diaria_horas: number;
   vacaciones_anuales: number;
   activo: boolean;
+  user_email?: string;
+}
+
+interface UsuarioDisponible {
+  email: string;
+  role: string;
+  nombre: string;
 }
 
 interface RegistroDia {
