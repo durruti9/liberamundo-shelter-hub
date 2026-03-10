@@ -416,6 +416,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   // Month totals
   const monthTotals = useMemo(() => {
     let ordinarias = 0, extra = 0, complementarias = 0, vacDays = 0, worked = 0, unsigned = 0;
+    let bajaDays = 0, permisoDays = 0, festivoDays = 0, descansoDays = 0;
     for (let d = 1; d <= numDays; d++) {
       const fecha = formatDate(year, month, d);
       const rec = records.get(fecha);
@@ -424,11 +425,34 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
       extra += Number(rec.horas_extra) || 0;
       complementarias += Number(rec.horas_complementarias) || 0;
       if (rec.estado === 'vacaciones') vacDays += Number(rec.horas_vacaciones) || 1;
+      if (rec.estado === 'baja') bajaDays++;
+      if (rec.estado === 'permiso') permisoDays++;
+      if (rec.estado === 'festivo') festivoDays++;
+      if (rec.estado === 'descanso') descansoDays++;
       if (['trabajado', 'teletrabajo'].includes(rec.estado)) worked++;
       if (rec.estado && !rec.firma_data && !isFuture(fecha)) unsigned++;
     }
-    return { ordinarias, extra, complementarias, vacDays, worked, unsigned };
+    return { ordinarias, extra, complementarias, vacDays, worked, unsigned, bajaDays, permisoDays, festivoDays, descansoDays };
   }, [records, numDays, year, month, today]);
+
+  // Weekly totals (current week within displayed month)
+  const weekTotals = useMemo(() => {
+    const now = new Date();
+    const dayOfWeek = now.getDay() || 7; // 1=Mon...7=Sun
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - dayOfWeek + 1);
+
+    let totalHours = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      if (d.getMonth() !== month || d.getFullYear() !== year) continue;
+      const fecha = formatDate(d.getFullYear(), d.getMonth(), d.getDate());
+      const rec = records.get(fecha);
+      if (rec) totalHours += Number(rec.horas_totales) || 0;
+    }
+    return totalHours;
+  }, [records, month, year]);
 
   // Export all employees summary for the month
   const handleExportAllEmployees = useCallback(async () => {
