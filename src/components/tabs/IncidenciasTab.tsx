@@ -127,6 +127,7 @@ export default function IncidenciasTab({ store, role }: Props) {
         huespedIds: isGeneral ? [] : form.selectedGuests,
         huespedNombres: guestNames,
         tipo: isGeneral ? 'general' : form.tipo,
+        severidad: form.severidad,
         descripcion: form.descripcion,
         fecha: form.fecha,
         resuelta: false,
@@ -137,7 +138,7 @@ export default function IncidenciasTab({ store, role }: Props) {
         adjuntoTipo: form.adjuntoTipo,
       });
       setForm({
-        selectedGuests: [], tipo: 'other', descripcion: '',
+        selectedGuests: [], tipo: 'other', severidad: 'S3', descripcion: '',
         fecha: new Date().toISOString().split('T')[0],
         visibilidad: 'todos', adjunto: '', adjuntoNombre: '', adjuntoTipo: '',
       });
