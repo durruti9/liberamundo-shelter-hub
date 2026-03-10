@@ -268,6 +268,8 @@ export const api = {
 
   // Registro Horario
   getEmpleadosHorario: (albergueId: string) => request<Any[]>(`/registro-horario/empleados/${albergueId}`),
+  getMiEmpleado: (albergueId: string) => request<Any>(`/registro-horario/mi-empleado/${albergueId}`),
+  getUsuariosDisponibles: () => request<Any[]>(`/registro-horario/usuarios-disponibles`),
   addEmpleadoHorario: (albergueId: string, data: Any) =>
     request<Any>(`/registro-horario/empleados/${albergueId}`, { method: 'POST', body: JSON.stringify(data) }),
   updateEmpleadoHorario: (id: string, data: Any) =>
