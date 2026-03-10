@@ -15,6 +15,7 @@ import NotificationBell from './NotificationBell';
 import ConnectionIndicator from './ConnectionIndicator';
 import SettingsDialog from './SettingsDialog';
 import UserManagementDialog from './UserManagementDialog';
+import HelpDialog from './HelpDialog';
 import { useAlbergueStore } from '@/hooks/useAlbergueStore';
 import { UserRole } from '@/types';
 import { useI18n } from '@/i18n/I18nContext';
@@ -188,6 +189,8 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <HelpDialog />
 
             <Badge variant="outline" className="text-xs hidden sm:flex">{roleLabel[role]}</Badge>
 
