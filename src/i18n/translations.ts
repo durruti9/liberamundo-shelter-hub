@@ -977,7 +977,7 @@ const en: Translations = {
   confirm: 'Confirm',
   close: 'Close',
   notes: 'Notes',
-  name: 'Name',
+  name: 'Full Name',
   nationality: 'Nationality',
   language: 'Language',
   email: 'Email',
