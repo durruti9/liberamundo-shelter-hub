@@ -416,6 +416,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   // Month totals
   const monthTotals = useMemo(() => {
     let ordinarias = 0, extra = 0, complementarias = 0, vacDays = 0, worked = 0, unsigned = 0;
+    let bajaDays = 0, permisoDays = 0, festivoDays = 0, descansoDays = 0;
     for (let d = 1; d <= numDays; d++) {
       const fecha = formatDate(year, month, d);
       const rec = records.get(fecha);
@@ -424,11 +425,34 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
       extra += Number(rec.horas_extra) || 0;
       complementarias += Number(rec.horas_complementarias) || 0;
       if (rec.estado === 'vacaciones') vacDays += Number(rec.horas_vacaciones) || 1;
+      if (rec.estado === 'baja') bajaDays++;
+      if (rec.estado === 'permiso') permisoDays++;
+      if (rec.estado === 'festivo') festivoDays++;
+      if (rec.estado === 'descanso') descansoDays++;
       if (['trabajado', 'teletrabajo'].includes(rec.estado)) worked++;
       if (rec.estado && !rec.firma_data && !isFuture(fecha)) unsigned++;
     }
-    return { ordinarias, extra, complementarias, vacDays, worked, unsigned };
+    return { ordinarias, extra, complementarias, vacDays, worked, unsigned, bajaDays, permisoDays, festivoDays, descansoDays };
   }, [records, numDays, year, month, today]);
+
+  // Weekly totals (current week within displayed month)
+  const weekTotals = useMemo(() => {
+    const now = new Date();
+    const dayOfWeek = now.getDay() || 7; // 1=Mon...7=Sun
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - dayOfWeek + 1);
+
+    let totalHours = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      if (d.getMonth() !== month || d.getFullYear() !== year) continue;
+      const fecha = formatDate(d.getFullYear(), d.getMonth(), d.getDate());
+      const rec = records.get(fecha);
+      if (rec) totalHours += Number(rec.horas_totales) || 0;
+    }
+    return totalHours;
+  }, [records, month, year]);
 
   // Export all employees summary for the month
   const handleExportAllEmployees = useCallback(async () => {
@@ -618,10 +642,6 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                       <TableHead className="text-xs text-center">S.Tar</TableHead>
                       <TableHead className="text-xs text-center hidden md:table-cell">E.Noc</TableHead>
                       <TableHead className="text-xs text-center hidden md:table-cell">S.Noc</TableHead>
-                      <TableHead className="text-xs text-center hidden sm:table-cell">Pausa</TableHead>
-                      <TableHead className="text-xs text-center">Ord.</TableHead>
-                      <TableHead className="text-xs text-center hidden sm:table-cell">Extra</TableHead>
-                      <TableHead className="text-xs text-center">Total</TableHead>
                       <TableHead className="text-xs text-center w-12">Firma</TableHead>
                       <TableHead className="text-xs text-center w-10">Rev.</TableHead>
                     </TableRow>
@@ -663,10 +683,6 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                           <TableCell className="text-xs text-center font-mono">{hasWork && rec.salida_tarde ? rec.salida_tarde.substring(0, 5) : ''}</TableCell>
                           <TableCell className="text-xs text-center font-mono hidden md:table-cell">{hasWork && rec.entrada_noche ? rec.entrada_noche.substring(0, 5) : ''}</TableCell>
                           <TableCell className="text-xs text-center font-mono hidden md:table-cell">{hasWork && rec.salida_noche ? rec.salida_noche.substring(0, 5) : ''}</TableCell>
-                          <TableCell className="text-xs text-center hidden sm:table-cell">{hasWork && rec.pausa_min ? `${rec.pausa_min}'` : ''}</TableCell>
-                          <TableCell className="text-xs text-center font-medium">{hasWork ? Number(rec.horas_ordinarias).toFixed(1) : ''}</TableCell>
-                          <TableCell className="text-xs text-center hidden sm:table-cell">{hasWork && Number(rec.horas_extra) > 0 ? Number(rec.horas_extra).toFixed(1) : ''}</TableCell>
-                          <TableCell className="text-xs text-center font-bold">{hasWork ? Number(rec.horas_totales).toFixed(1) : ''}</TableCell>
                           <TableCell className="text-xs text-center">
                             {rec?.firma_data ? (
                               <span title="Firmado" className="text-[hsl(var(--success))]">✅</span>
@@ -700,36 +716,43 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
 
           {/* FOOTER - Month totals */}
           <Card>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 text-center">
-                <div>
-                  <p className="text-xs text-muted-foreground">Ordinarias</p>
-                  <p className="text-lg font-bold">{hoursToHM(monthTotals.ordinarias)}</p>
+            <CardContent className="p-4 space-y-4">
+              {/* Horas */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                <div className="p-3 rounded-lg bg-primary/5">
+                  <p className="text-xs text-muted-foreground">Horas esta semana</p>
+                  <p className="text-xl font-bold text-primary">{hoursToHM(weekTotals)}</p>
+                  <p className="text-[10px] text-muted-foreground">Jornada: {currentEmpleado?.jornada_diaria_horas || 40}h/sem</p>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Extra</p>
-                  <p className="text-lg font-bold text-[hsl(38,92%,45%)]">{hoursToHM(monthTotals.extra)}</p>
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <p className="text-xs text-muted-foreground">Horas totales (mes)</p>
+                  <p className="text-xl font-bold">{hoursToHM(monthTotals.ordinarias + monthTotals.extra)}</p>
+                  <p className="text-[10px] text-muted-foreground">{hoursToHM(monthTotals.ordinarias)} ord + {hoursToHM(monthTotals.extra)} extra</p>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Complementarias</p>
-                  <p className="text-lg font-bold">{hoursToHM(monthTotals.complementarias)}</p>
-                </div>
-                <div>
+                <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground">Días trabajados</p>
-                  <p className="text-lg font-bold">{monthTotals.worked}</p>
+                  <p className="text-xl font-bold">{monthTotals.worked}</p>
+                  <p className="text-[10px] text-muted-foreground">{monthTotals.unsigned > 0 ? `${monthTotals.unsigned} sin firmar ⚠️` : 'Todo firmado ✅'}</p>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Vacaciones (mes)</p>
-                  <p className="text-lg font-bold text-primary">{monthTotals.vacDays} días</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Sin firmar</p>
-                  <p className={`text-lg font-bold ${monthTotals.unsigned > 0 ? 'text-destructive' : 'text-[hsl(var(--success))]'}`}>
-                    {monthTotals.unsigned > 0 ? `${monthTotals.unsigned} ⚠️` : '0 ✅'}
-                  </p>
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <p className="text-xs text-muted-foreground">🏖 Vacaciones (mes)</p>
+                  <p className="text-xl font-bold text-primary">{monthTotals.vacDays} días</p>
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t flex flex-col sm:flex-row items-center justify-between gap-2">
+
+              {/* Singularidades */}
+              {(monthTotals.bajaDays > 0 || monthTotals.permisoDays > 0 || monthTotals.festivoDays > 0 || monthTotals.descansoDays > 0) && (
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="text-xs text-muted-foreground font-medium">Singularidades:</span>
+                  {monthTotals.bajaDays > 0 && <Badge variant="secondary" className="text-xs">🏥 {monthTotals.bajaDays} baja</Badge>}
+                  {monthTotals.permisoDays > 0 && <Badge variant="secondary" className="text-xs">📋 {monthTotals.permisoDays} permiso</Badge>}
+                  {monthTotals.festivoDays > 0 && <Badge variant="secondary" className="text-xs">🎉 {monthTotals.festivoDays} festivo</Badge>}
+                  {monthTotals.descansoDays > 0 && <Badge variant="secondary" className="text-xs">😴 {monthTotals.descansoDays} descanso</Badge>}
+                </div>
+              )}
+
+              {/* Vacaciones anuales */}
+              <div className="pt-3 border-t flex flex-col sm:flex-row items-center justify-between gap-2">
                 <div className="flex items-center gap-2 sm:gap-4 text-sm flex-wrap justify-center sm:justify-start">
                   <span>🏖 Vacaciones {year}:</span>
                   <Badge variant="outline" className="text-xs">{vacSaldo.asignadas} asignadas</Badge>
@@ -845,21 +868,6 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                       <Input type="time" value={editingDay.salida_noche?.substring(0, 5) || ''} onChange={e => setEditingDay({ ...editingDay, salida_noche: e.target.value || null })} />
                     </div>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Pausa (minutos)</Label>
-                    <Input type="number" min={0} max={120} value={editingDay.pausa_min} onChange={e => setEditingDay({ ...editingDay, pausa_min: Number(e.target.value) })} />
-                  </div>
-                  {/* Live calculation */}
-                  {currentEmpleado && (() => {
-                    const calc = calcHours(editingDay, currentEmpleado.jornada_diaria_horas);
-                    return (
-                      <div className="flex gap-4 text-sm bg-muted/50 rounded-lg p-3">
-                        <div><span className="text-muted-foreground">Ord:</span> <b>{calc.horas_ordinarias.toFixed(1)}h</b></div>
-                        <div><span className="text-muted-foreground">Extra:</span> <b className="text-[hsl(38,92%,45%)]">{calc.horas_extra.toFixed(1)}h</b></div>
-                        <div><span className="text-muted-foreground">Total:</span> <b>{calc.horas_totales.toFixed(1)}h</b></div>
-                      </div>
-                    );
-                  })()}
                 </>
               )}
 
@@ -876,11 +884,6 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 </div>
               )}
 
-              <div className="space-y-1">
-                <Label className="text-xs">Horas complementarias (manual)</Label>
-                <Input type="number" min={0} step={0.5} value={editingDay.horas_complementarias}
-                  onChange={e => setEditingDay({ ...editingDay, horas_complementarias: Number(e.target.value) })} />
-              </div>
 
               <div className="space-y-1">
                 <Label className="text-xs">Observaciones</Label>

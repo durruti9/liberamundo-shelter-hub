@@ -12,7 +12,7 @@ interface SearchableItem {
 
 interface Props {
   huespedes: { id: string; nombre: string; habitacion: string; cama: number; activo: boolean }[];
-  incidencias: { id: string; huespedNombre: string; descripcion: string; resuelta: boolean }[];
+  incidencias: { id: string; huespedNombres?: string[]; huespedNombre?: string; descripcion: string; resuelta: boolean }[];
   llegadas: { id: string; nombre: string; fechaLlegada: string }[];
   boardMessages: { id: string; texto: string; autor: string; tipo: string }[];
   onNavigate: (type: string, id?: string) => void;
@@ -56,7 +56,7 @@ export default function GlobalSearch({ huespedes, incidencias, llegadas, boardMe
     ...incidencias.map(i => ({
       id: i.id,
       type: 'incidencia' as const,
-      title: i.huespedNombre,
+      title: (i.huespedNombres && i.huespedNombres.length > 0) ? i.huespedNombres.join(', ') : (i.huespedNombre || 'General'),
       subtitle: i.descripcion.substring(0, 60) + (i.descripcion.length > 60 ? '...' : ''),
     })),
     ...llegadas.map(l => ({

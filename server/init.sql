@@ -65,8 +65,22 @@ CREATE TABLE IF NOT EXISTS incidencias (
   descripcion TEXT NOT NULL,
   fecha TEXT NOT NULL,
   resuelta BOOLEAN NOT NULL DEFAULT false,
-  creado_por TEXT NOT NULL DEFAULT ''
+  creado_por TEXT NOT NULL DEFAULT '',
+  visibilidad TEXT NOT NULL DEFAULT 'todos',
+  adjunto TEXT DEFAULT '',
+  adjunto_nombre TEXT DEFAULT '',
+  adjunto_tipo TEXT DEFAULT ''
 );
+
+CREATE TABLE IF NOT EXISTS incidencia_comentarios (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  incidencia_id TEXT NOT NULL REFERENCES incidencias(id) ON DELETE CASCADE,
+  autor TEXT NOT NULL,
+  fecha TEXT NOT NULL,
+  texto TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_incidencia_comentarios ON incidencia_comentarios(incidencia_id);
 
 CREATE TABLE IF NOT EXISTS users (
   email TEXT PRIMARY KEY,

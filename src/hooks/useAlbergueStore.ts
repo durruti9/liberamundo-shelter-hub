@@ -231,7 +231,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
     if (useApi) {
       await api.deleteHuesped(id);
     } else {
-      setIncidencias(prev => prev.filter(i => i.huespedId !== id));
+      setIncidencias(prev => prev.filter(i => !i.huespedIds?.includes(id)));
     }
   }, [useApi]);
 
@@ -329,13 +329,13 @@ export function useAlbergueStore(albergueId: string = 'default') {
     }
   }, [useApi]);
 
-  const addIncidencia = useCallback(async (data: Omit<Incidencia, 'id'>) => {
+  const addIncidencia = useCallback(async (data: Omit<Incidencia, 'id' | 'comentarios'>) => {
     if (useApi) {
       await api.addIncidencia(albergueId, data);
       await reloadIncidencias();
       return;
     }
-    setIncidencias(prev => [...prev, { ...data, id: crypto.randomUUID() }]);
+    setIncidencias(prev => [...prev, { ...data, id: crypto.randomUUID(), comentarios: [] }]);
   }, [useApi, albergueId, reloadIncidencias]);
 
   const toggleIncidenciaResuelta = useCallback(async (id: string) => {
@@ -352,6 +352,22 @@ export function useAlbergueStore(albergueId: string = 'default') {
     if (useApi) {
       await api.deleteIncidencia(id);
     }
+  }, [useApi]);
+
+  const addIncidenciaComment = useCallback(async (incidenciaId: string, comment: { autor: string; texto: string }) => {
+    if (useApi) {
+      const result = await api.addIncidenciaComment(incidenciaId, comment);
+      // Optimistic add
+      setIncidencias(prev => prev.map(i =>
+        i.id === incidenciaId ? { ...i, comentarios: [...i.comentarios, result] } : i
+      ));
+      return result;
+    }
+    const newComment = { ...comment, id: crypto.randomUUID(), fecha: new Date().toISOString() };
+    setIncidencias(prev => prev.map(i =>
+      i.id === incidenciaId ? { ...i, comentarios: [...i.comentarios, newComment] } : i
+    ));
+    return newComment;
   }, [useApi]);
 
   const huespedActivos = useMemo(() => huespedes.filter(h => h.activo), [huespedes]);
@@ -471,7 +487,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
     checkIn, checkOut, cambiarCama, deleteHuesped, editHuesped, reincorporar,
     addLlegada, editLlegada, confirmarLlegada, deleteLlegada,
     updateComedor,
-    addIncidencia, toggleIncidenciaResuelta, deleteIncidencia,
+    addIncidencia, toggleIncidenciaResuelta, deleteIncidencia, addIncidenciaComment,
     getOccupant, getFreeBeds,
     addUser, removeUser, changePassword, authenticate,
     addAlbergue, editAlbergueName, deleteAlbergue, updateRooms, updateRoomCleaning,

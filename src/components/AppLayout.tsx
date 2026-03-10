@@ -103,7 +103,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
     personal_albergue: 'Personal laboral',
   };
 
-  const tabCount = role === 'admin' ? 12 : role === 'personal_albergue' ? 8 : 7;
+  const tabCount = role === 'admin' ? 11 : role === 'personal_albergue' ? 8 : 6;
 
   const handleAlbergueDeleted = (deletedId: string) => {
     if (deletedId === albergueId && store.albergues.length > 0) {
@@ -260,12 +260,6 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
                   <span className="hidden sm:inline">Inventario</span>
                 </TabsTrigger>
               )}
-              {(role === 'admin' || role === 'gestor') && (
-                <TabsTrigger value="informes" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
-                  <BarChart3 className="w-4 h-4 shrink-0" />
-                  <span className="hidden sm:inline">Informes</span>
-                </TabsTrigger>
-              )}
               {role === 'admin' && (
                 <TabsTrigger value="sugerencias" className="flex items-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm whitespace-nowrap">
                   <Mailbox className="w-4 h-4 shrink-0" />
@@ -307,11 +301,6 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             {(role === 'admin' || role === 'personal_albergue') && (
               <TabsContent value="tareas">
                 <TareasEmpleadosTab role={role} albergueId={albergueId} />
-              </TabsContent>
-            )}
-            {(role === 'admin' || role === 'gestor') && (
-              <TabsContent value="informes">
-                <InformesTab store={store} role={role} />
               </TabsContent>
             )}
             {role === 'admin' && (
