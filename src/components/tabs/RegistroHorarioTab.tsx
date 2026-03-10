@@ -66,6 +66,9 @@ interface RegistroDia {
   marcado_revision: boolean;
   motivo_revision: string;
   updated_at?: string;
+  pendiente_aprobacion: boolean;
+  aprobado: boolean;
+  fecha_original_fichada?: string | null;
 }
 
 interface VacacionesSaldo {
