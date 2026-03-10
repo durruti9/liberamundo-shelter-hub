@@ -1061,11 +1061,57 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                 )}
               </div>
 
+              {/* Pending approval banner */}
+              {showPendingBanner && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-[hsl(38,92%,92%)] border border-[hsl(38,92%,70%)] dark:bg-[hsl(38,92%,12%)] dark:border-[hsl(38,92%,30%)]">
+                  <Clock className="w-5 h-5 text-[hsl(38,92%,45%)] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-[hsl(38,92%,35%)] dark:text-[hsl(38,92%,70%)]">Pendiente de aprobación</p>
+                    <p className="text-xs text-muted-foreground">Esta modificación requiere la validación del administrador.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Past day warning for employees */}
+              {!isAdmin && isEditingPast && existingHasRecord && !editingDay.pendiente_aprobacion && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-[hsl(38,92%,95%)] border border-[hsl(38,92%,75%)] dark:bg-[hsl(38,92%,10%)]">
+                  <AlertTriangle className="w-4 h-4 text-[hsl(38,92%,45%)] shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground">Al modificar un día anterior, los cambios quedarán pendientes de aprobación por el administrador.</p>
+                </div>
+              )}
+
               {/* Actions */}
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={() => setShowDayModal(false)}>
                   {readOnly ? 'Cerrar' : 'Cancelar'}
                 </Button>
+                {/* Admin approval buttons */}
+                {isAdmin && editingDay.pendiente_aprobacion && (
+                  <>
+                    <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/10" onClick={async () => {
+                      try {
+                        await api.rechazarRegistro(editingDay.empleado_id, editingDay.fecha);
+                        const updated = { ...editingDay, pendiente_aprobacion: false, aprobado: false };
+                        setRecords(prev => { const next = new Map(prev); next.set(editingDay.fecha, updated); return next; });
+                        setShowDayModal(false);
+                        toast.success('Modificación rechazada');
+                      } catch (err: any) { toast.error(err.message); }
+                    }}>
+                      <XCircle className="w-4 h-4 mr-1" /> Rechazar
+                    </Button>
+                    <Button className="bg-[hsl(142,60%,40%)] hover:bg-[hsl(142,60%,35%)] text-white" onClick={async () => {
+                      try {
+                        await api.aprobarRegistro(editingDay.empleado_id, editingDay.fecha);
+                        const updated = { ...editingDay, pendiente_aprobacion: false, aprobado: true };
+                        setRecords(prev => { const next = new Map(prev); next.set(editingDay.fecha, updated); return next; });
+                        setShowDayModal(false);
+                        toast.success('Modificación aprobada');
+                      } catch (err: any) { toast.error(err.message); }
+                    }}>
+                      <CheckCircle2 className="w-4 h-4 mr-1" /> Aprobar
+                    </Button>
+                  </>
+                )}
                 {!readOnly && (
                   <Button onClick={handleSaveDay} disabled={saving}>
                     <Save className="w-4 h-4 mr-1" /> {saving ? 'Guardando...' : 'Guardar'}
