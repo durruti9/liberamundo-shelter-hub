@@ -368,7 +368,7 @@ const es: Translations = {
   diningOrganization: 'Comedor — Organización de Comidas',
   diners: 'comensales',
   noActiveGuests: 'No hay huéspedes activos',
-  fullName: 'Nombre Completo',
+  fullName: 'Nombre y Apellidos',
   roomShort: 'Hab.',
   dietType: 'Tipo de Dieta',
   foodParticularities: 'Particularidades Alimentarias',
