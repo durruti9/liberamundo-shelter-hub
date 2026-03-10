@@ -1069,7 +1069,17 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
               </div>
 
               {/* Pending approval banner */}
-              {showPendingBanner && (
+              {showPendingBanner && isAdminCreated && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-[hsl(38,92%,92%)] border border-[hsl(38,92%,70%)] dark:bg-[hsl(38,92%,12%)] dark:border-[hsl(38,92%,30%)]">
+                  <Clock className="w-5 h-5 text-[hsl(38,92%,45%)] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-[hsl(38,92%,35%)] dark:text-[hsl(38,92%,70%)]">Creado por administrador — Pendiente de confirmación</p>
+                    <p className="text-xs text-muted-foreground">Firma para confirmar este registro.</p>
+                  </div>
+                </div>
+              )}
+
+              {showPendingBanner && !isAdminCreated && (
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-[hsl(38,92%,92%)] border border-[hsl(38,92%,70%)] dark:bg-[hsl(38,92%,12%)] dark:border-[hsl(38,92%,30%)]">
                   <Clock className="w-5 h-5 text-[hsl(38,92%,45%)] shrink-0 mt-0.5" />
                   <div>
@@ -1080,10 +1090,21 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
               )}
 
               {/* Past day warning for employees */}
-              {!isAdmin && isEditingPast && existingHasRecord && !editingDay.pendiente_aprobacion && (
+              {!isAdmin && isEditingPast && existingHasRecord && !editingDay.pendiente_aprobacion && !editingDay.creado_por_admin && (
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-[hsl(38,92%,95%)] border border-[hsl(38,92%,75%)] dark:bg-[hsl(38,92%,10%)]">
                   <AlertTriangle className="w-4 h-4 text-[hsl(38,92%,45%)] shrink-0 mt-0.5" />
                   <p className="text-xs text-muted-foreground">Al modificar un día anterior, los cambios quedarán pendientes de aprobación por el administrador.</p>
+                </div>
+              )}
+
+              {/* Employee confirm signature for admin-created records */}
+              {employeeCanConfirm && (
+                <div className="space-y-2 p-3 rounded-lg border-2 border-[hsl(38,92%,60%)] bg-[hsl(38,92%,97%)] dark:bg-[hsl(38,92%,8%)]">
+                  <Label className="text-sm font-medium">Firma para confirmar</Label>
+                  <SignaturePad
+                    value={editingDay.firma_data}
+                    onChange={dataUrl => setEditingDay({ ...editingDay, firma_data: dataUrl, firmado_en: dataUrl ? new Date().toISOString() : null })}
+                  />
                 </div>
               )}
 
