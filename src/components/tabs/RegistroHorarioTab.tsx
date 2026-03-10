@@ -1050,16 +1050,42 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
 
       {/* MANAGE EMPLOYEES MODAL */}
       <Dialog open={showManageEmployees} onOpenChange={setShowManageEmployees}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" aria-describedby={undefined}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto" aria-describedby={undefined}>
           <DialogHeader><DialogTitle>Gestionar empleados</DialogTitle></DialogHeader>
           <div className="space-y-2">
             {empleados.map(emp => (
-              <div key={emp.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
+              <div key={emp.id} className="flex items-center justify-between p-3 border rounded-lg gap-2">
+                <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm">{emp.nombre_completo}</p>
                   <p className="text-xs text-muted-foreground">
                     Jornada semanal: {emp.jornada_diaria_horas}h | Vacaciones: {emp.vacaciones_anuales} días
                   </p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="text-[10px] text-muted-foreground">Usuario:</span>
+                    <Select
+                      value={emp.user_email || '__none__'}
+                      onValueChange={async (v) => {
+                        const newEmail = v === '__none__' ? '' : v;
+                        try {
+                          await api.updateEmpleadoHorario(emp.id, { user_email: newEmail });
+                          setEmpleados(prev => prev.map(e => e.id === emp.id ? { ...e, user_email: newEmail || undefined } : e));
+                          toast.success('Usuario vinculado actualizado');
+                        } catch (err: any) { toast.error(err.message); }
+                      }}
+                    >
+                      <SelectTrigger className="h-6 text-[10px] w-40">
+                        <SelectValue placeholder="Sin vincular" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">— Sin vincular —</SelectItem>
+                        {usuariosDisponibles.map(u => (
+                          <SelectItem key={u.email} value={u.email}>
+                            {u.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <Button size="icon" variant="ghost" onClick={() => setDeleteEmpTarget(emp.id)}>
                   <Trash2 className="w-4 h-4 text-destructive" />
