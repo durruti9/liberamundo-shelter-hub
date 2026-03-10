@@ -618,10 +618,6 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                       <TableHead className="text-xs text-center">S.Tar</TableHead>
                       <TableHead className="text-xs text-center hidden md:table-cell">E.Noc</TableHead>
                       <TableHead className="text-xs text-center hidden md:table-cell">S.Noc</TableHead>
-                      <TableHead className="text-xs text-center hidden sm:table-cell">Pausa</TableHead>
-                      <TableHead className="text-xs text-center">Ord.</TableHead>
-                      <TableHead className="text-xs text-center hidden sm:table-cell">Extra</TableHead>
-                      <TableHead className="text-xs text-center">Total</TableHead>
                       <TableHead className="text-xs text-center w-12">Firma</TableHead>
                       <TableHead className="text-xs text-center w-10">Rev.</TableHead>
                     </TableRow>
