@@ -158,8 +158,9 @@ function emptyRecord(empleadoId: string, fecha: string): RegistroDia {
   };
 }
 
-export default function RegistroHorarioTab({ role, albergueId }: Props) {
+export default function RegistroHorarioTab({ role, albergueId, userEmail }: Props) {
   const isAdmin = role === 'admin';
+  const isPersonal = role === 'personal_albergue';
   const [empleados, setEmpleados] = useState<Empleado[]>([]);
   const [selectedEmpleado, setSelectedEmpleado] = useState<string>('');
   const [month, setMonth] = useState(new Date().getMonth());
@@ -168,6 +169,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   const [vacSaldo, setVacSaldo] = useState<VacacionesSaldo>({ asignadas: 22, consumidas: 0 });
   const [loading, setLoading] = useState(false);
   const [showAuditLog, setShowAuditLog] = useState(false);
+  const [usuariosDisponibles, setUsuariosDisponibles] = useState<UsuarioDisponible[]>([]);
 
   // Empresa config
   const [empresaConfig, setEmpresaConfig] = useState({ razon_social: '', cif: '' });
@@ -179,7 +181,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   const [editingDay, setEditingDay] = useState<RegistroDia | null>(null);
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [showManageEmployees, setShowManageEmployees] = useState(false);
-  const [newEmp, setNewEmp] = useState({ nombre_completo: '', jornada_diaria_horas: 40, vacaciones_anuales: 22 });
+  const [newEmp, setNewEmp] = useState({ nombre_completo: '', jornada_diaria_horas: 40, vacaciones_anuales: 22, user_email: '' });
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
