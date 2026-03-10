@@ -242,6 +242,9 @@ export default function IncidenciasTab({ store, role }: Props) {
                     onClick={() => setExpandedId(isExpanded ? null : inc.id)}
                   >
                     <div className="flex items-center gap-2 flex-wrap">
+                      <Badge className={`text-[10px] ${SEVERITY_COLORS[inc.severidad || 'S3']}`}>
+                        {t.severityLabels[inc.severidad || 'S3']}
+                      </Badge>
                       <Badge className={`text-[10px] ${TYPE_COLORS[inc.tipo]}`} variant="secondary">
                         {t.incidentTypes[inc.tipo]}
                       </Badge>
