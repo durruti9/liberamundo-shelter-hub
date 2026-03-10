@@ -159,6 +159,13 @@ export interface Translations {
   incidentDescription: string;
   incidentDate: string;
   incidentGuest: string;
+  incidentSeverity: string;
+  severityLabels: {
+    S1: string;
+    S2: string;
+    S3: string;
+    S4: string;
+  };
   incidentTypes: {
     behavioral: string;
     medical: string;
