@@ -509,7 +509,7 @@ const fr: Translations = {
   confirm: 'Confirmer',
   close: 'Fermer',
   notes: 'Notes',
-  name: 'Nom',
+  name: 'Nom et Prénom',
   nationality: 'Nationalité',
   language: 'Langue',
   email: 'E-mail',
