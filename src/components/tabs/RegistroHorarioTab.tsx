@@ -912,9 +912,13 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
           </DialogHeader>
           {editingDay && (() => {
             const readOnly = isAdmin;
+            const isEditingPast = isPastDay(editingDay.fecha);
+            const existingHasRecord = !!records.get(editingDay.fecha)?.estado;
+            const lockedForEmployee = !isAdmin && isEditingPast && existingHasRecord && !editingDay.pendiente_aprobacion;
             const needsWork = ['trabajado', 'teletrabajo'].includes(editingDay.estado);
             const liveCalc = needsWork && currentEmpleado ? calcHours(editingDay, currentEmpleado.jornada_diaria_horas) : null;
             const estado = ESTADOS.find(e => e.value === editingDay.estado);
+            const showPendingBanner = editingDay.pendiente_aprobacion;
 
             return (
             <div className="space-y-4">
