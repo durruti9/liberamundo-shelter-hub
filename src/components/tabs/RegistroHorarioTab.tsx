@@ -719,6 +719,11 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                             ) : rec?.estado ? (
                               <span title="Pendiente" className="text-[hsl(38,92%,50%)]">⚠️</span>
                             ) : null}
+                            {rec?.updated_at && rec?.estado && (
+                              <span className="block text-[9px] text-muted-foreground mt-0.5" title={`Última modificación: ${new Date(rec.updated_at).toLocaleString('es-ES')}`}>
+                                {new Date(rec.updated_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} {new Date(rec.updated_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell className="text-xs text-center p-1">
                             {isAdmin && rec?.estado && !future ? (
