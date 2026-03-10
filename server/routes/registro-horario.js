@@ -154,15 +154,15 @@ router.post('/registros/:empleadoId', async (req, res) => {
             entrada_noche, salida_noche, pausa_min, horas_ordinarias, horas_extra,
             horas_complementarias, horas_vacaciones, horas_totales, observaciones,
             firma_data, firmado_en, marcado_revision, motivo_revision,
-            pendiente_aprobacion, aprobado, fecha_original_fichada } = req.body;
+            pendiente_aprobacion, aprobado, fecha_original_fichada, creado_por_admin } = req.body;
     
     const { rows } = await pool.query(
       `INSERT INTO registros_horario 
         (empleado_id, fecha, estado, entrada_manana, salida_manana, entrada_tarde, salida_tarde,
          entrada_noche, salida_noche, pausa_min, horas_ordinarias, horas_extra,
          horas_complementarias, horas_vacaciones, horas_totales, observaciones, firma_data, firmado_en,
-         marcado_revision, motivo_revision, pendiente_aprobacion, aprobado, fecha_original_fichada, updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23, NOW())
+         marcado_revision, motivo_revision, pendiente_aprobacion, aprobado, fecha_original_fichada, creado_por_admin, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24, NOW())
        ON CONFLICT (empleado_id, fecha) DO UPDATE SET
          estado = EXCLUDED.estado,
          entrada_manana = EXCLUDED.entrada_manana,
@@ -185,6 +185,7 @@ router.post('/registros/:empleadoId', async (req, res) => {
          pendiente_aprobacion = EXCLUDED.pendiente_aprobacion,
          aprobado = EXCLUDED.aprobado,
          fecha_original_fichada = EXCLUDED.fecha_original_fichada,
+         creado_por_admin = EXCLUDED.creado_por_admin,
          updated_at = NOW()
        RETURNING *`,
       [req.params.empleadoId, fecha, estado || 'trabajado',
@@ -195,7 +196,8 @@ router.post('/registros/:empleadoId', async (req, res) => {
        horas_complementarias || 0, horas_vacaciones || 0, horas_totales || 0,
        observaciones || '', firma_data || '', firmado_en || null,
        marcado_revision || false, motivo_revision || '',
-       pendiente_aprobacion || false, aprobado || false, fecha_original_fichada || null]
+       pendiente_aprobacion || false, aprobado || false, fecha_original_fichada || null,
+       creado_por_admin || false]
     );
     res.json(rows[0]);
   } catch (err) {
