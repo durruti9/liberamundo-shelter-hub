@@ -84,11 +84,15 @@ export default function IncidenciasTab({ store, role }: Props) {
     return false;
   };
 
+  const sevOrder: Record<string, number> = { S1: 0, S2: 1, S3: 2, S4: 3 };
   const sorted = [...incidencias]
     .filter(i => canSee(i.visibilidad || 'todos'))
     .filter(i => filter === 'all' ? true : i.visibilidad === filter)
     .sort((a, b) => {
       if (a.resuelta !== b.resuelta) return a.resuelta ? 1 : -1;
+      const sa = sevOrder[a.severidad || 'S3'] ?? 2;
+      const sb = sevOrder[b.severidad || 'S3'] ?? 2;
+      if (sa !== sb) return sa - sb;
       return b.fecha.localeCompare(a.fecha);
     });
 
