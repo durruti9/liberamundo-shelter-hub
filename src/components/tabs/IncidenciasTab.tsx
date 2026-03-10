@@ -14,7 +14,7 @@ import {
   Check, Trash2, FileWarning, Building2, AlertTriangle, Send, MessageCircle,
   ChevronDown, ChevronUp, Eye, Paperclip, Image as ImageIcon, X
 } from 'lucide-react';
-import { UserRole, IncidentType, IncidenciaVisibilidad } from '@/types';
+import { UserRole, IncidentType, IncidenciaVisibilidad, IncidenciaSeveridad } from '@/types';
 import { formatDateES } from '@/lib/dateFormat';
 import { useI18n } from '@/i18n/I18nContext';
 
