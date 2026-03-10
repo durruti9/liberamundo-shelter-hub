@@ -24,6 +24,7 @@ interface Props {
 }
 
 const INCIDENT_TYPES: IncidentType[] = ['behavioral', 'medical', 'administrative', 'social', 'general', 'other'];
+const SEVERITIES: IncidenciaSeveridad[] = ['S1', 'S2', 'S3', 'S4'];
 
 const TYPE_COLORS: Record<IncidentType, string> = {
   behavioral: 'bg-[hsl(38,92%,90%)] text-[hsl(38,92%,30%)]',
@@ -32,6 +33,13 @@ const TYPE_COLORS: Record<IncidentType, string> = {
   social: 'bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)]',
   general: 'bg-[hsl(270,60%,90%)] text-[hsl(270,60%,30%)]',
   other: 'bg-secondary text-secondary-foreground',
+};
+
+const SEVERITY_COLORS: Record<IncidenciaSeveridad, string> = {
+  S1: 'bg-destructive text-destructive-foreground',
+  S2: 'bg-[hsl(25,95%,53%)] text-white',
+  S3: 'bg-[hsl(38,92%,50%)] text-white',
+  S4: 'bg-[hsl(212,72%,90%)] text-[hsl(212,72%,35%)]',
 };
 
 const VIS_LABELS: Record<IncidenciaVisibilidad, string> = {
