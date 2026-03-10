@@ -231,7 +231,7 @@ export function useAlbergueStore(albergueId: string = 'default') {
     if (useApi) {
       await api.deleteHuesped(id);
     } else {
-      setIncidencias(prev => prev.filter(i => i.huespedId !== id));
+      setIncidencias(prev => prev.filter(i => !i.huespedIds?.includes(id)));
     }
   }, [useApi]);
 
