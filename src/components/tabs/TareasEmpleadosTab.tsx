@@ -665,6 +665,117 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
           </div>
         </CardContent>
       </Card>
+      {/* Monthly stats per worker - collapsible */}
+      <MonthlyTaskStats allTareasDates={allTareasDates} currentMonth={currentMonth} />
     </div>
+  );
+}
+
+function MonthlyTaskStats({ allTareasDates, currentMonth }: { allTareasDates: Record<string, TareaDia[]>; currentMonth: Date }) {
+  const [open, setOpen] = useState(false);
+
+  const stats = useMemo(() => {
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
+    const workerMap: Record<string, { realizadas: number; pendientes: number; noProcede: number }> = {};
+
+    Object.entries(allTareasDates).forEach(([dateStr, tareas]) => {
+      const d = new Date(dateStr + 'T12:00:00');
+      if (d < monthStart || d > monthEnd) return;
+      tareas.forEach(t => {
+        const worker = t.hechoPor || 'Sin asignar';
+        if (!workerMap[worker]) workerMap[worker] = { realizadas: 0, pendientes: 0, noProcede: 0 };
+        if (t.estado === 'hecha') workerMap[worker].realizadas++;
+        else if (t.estado === 'no procede') workerMap[worker].noProcede++;
+        else workerMap[worker].pendientes++;
+      });
+    });
+
+    return Object.entries(workerMap)
+      .map(([name, data]) => {
+        const total = data.realizadas + data.pendientes + data.noProcede;
+        return {
+          trabajador: name,
+          total_realizadas: data.realizadas,
+          total_pendientes: data.pendientes,
+          total_no_procede: data.noProcede,
+          porcentaje: total > 0 ? Math.round((data.realizadas / total) * 100) + '%' : '0%',
+        };
+      })
+      .sort((a, b) => b.total_realizadas - a.total_realizadas);
+  }, [allTareasDates, currentMonth]);
+
+  const handleExport = (type: 'csv' | 'pdf') => {
+    const config = EXPORT_CONFIGS.estadisticasTareas;
+    const monthLabel = format(currentMonth, 'MMMM_yyyy', { locale: es });
+    const filename = `${config.title}_${monthLabel}`;
+    if (type === 'csv') {
+      exportToCSV(stats, filename, config.columns);
+    } else {
+      exportToPDF(stats, filename, config.columns, `${config.title} — ${format(currentMonth, 'MMMM yyyy', { locale: es })}`);
+    }
+  };
+
+  if (stats.length === 0) return null;
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <Card>
+        <CollapsibleTrigger asChild>
+          <CardContent className="p-4 cursor-pointer hover:bg-muted/50 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-primary" />
+                <span className="font-semibold text-sm">Estadísticas mensuales por trabajador</span>
+                <Badge variant="secondary" className="text-xs">{stats.length} trabajadores</Badge>
+              </div>
+              <ChevronDownIcon className={`w-4 h-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
+            </div>
+          </CardContent>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="pt-0 px-4 pb-4 space-y-3">
+            <div className="flex gap-2 justify-end">
+              <Button size="sm" variant="outline" className="text-xs" onClick={() => handleExport('csv')}>
+                📊 Excel
+              </Button>
+              <Button size="sm" variant="outline" className="text-xs" onClick={() => handleExport('pdf')}>
+                📄 PDF
+              </Button>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs">Trabajador</TableHead>
+                    <TableHead className="text-xs text-center">Realizadas</TableHead>
+                    <TableHead className="text-xs text-center">Pendientes</TableHead>
+                    <TableHead className="text-xs text-center">No procede</TableHead>
+                    <TableHead className="text-xs text-center">% Completado</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {stats.map(s => (
+                    <TableRow key={s.trabajador}>
+                      <TableCell className="text-sm font-medium">{s.trabajador}</TableCell>
+                      <TableCell className="text-sm text-center">
+                        <Badge className="bg-[hsl(142,60%,90%)] text-[hsl(142,60%,30%)] dark:bg-[hsl(142,35%,18%)] dark:text-[hsl(142,50%,65%)]">{s.total_realizadas}</Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-center">
+                        <Badge className="bg-[hsl(38,92%,90%)] text-[hsl(38,92%,30%)] dark:bg-[hsl(38,50%,18%)] dark:text-[hsl(38,80%,70%)]">{s.total_pendientes}</Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-center">
+                        <Badge variant="secondary">{s.total_no_procede}</Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-center font-semibold">{s.porcentaje}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }
