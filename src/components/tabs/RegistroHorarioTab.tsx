@@ -70,6 +70,7 @@ interface RegistroDia {
   pendiente_aprobacion: boolean;
   aprobado: boolean;
   fecha_original_fichada?: string | null;
+  creado_por_admin: boolean;
 }
 
 interface VacacionesSaldo {
