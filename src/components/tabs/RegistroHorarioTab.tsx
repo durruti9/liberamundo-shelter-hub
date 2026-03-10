@@ -343,6 +343,24 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
     setShowDayModal(true);
   };
 
+  // Open today's record directly (Fichar button)
+  const handleFichar = () => {
+    if (!selectedEmpleado) return;
+    const d = new Date();
+    const todayDate = formatDate(d.getFullYear(), d.getMonth(), d.getDate());
+    // Navigate to current month if needed
+    if (d.getMonth() !== month || d.getFullYear() !== year) {
+      setMonth(d.getMonth());
+      setYear(d.getFullYear());
+    }
+    const existing = records.get(todayDate) || emptyRecord(selectedEmpleado, todayDate);
+    setEditingDay({ ...existing });
+    setShowDayModal(true);
+  };
+
+  // Check if a record is from a past day (not today)
+  const isPastDay = (fecha: string) => fecha < today;
+
   // Toggle review flag (admin only)
   const toggleRevision = async (dayNum: number, e: React.MouseEvent) => {
     e.stopPropagation();
