@@ -813,8 +813,22 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
               })()}
             </DialogTitle>
           </DialogHeader>
-          {editingDay && (
+          {editingDay && (() => {
+            const readOnly = isAdmin;
+            const needsWork = ['trabajado', 'teletrabajo'].includes(editingDay.estado);
+            const liveCalc = needsWork && currentEmpleado ? calcHours(editingDay, currentEmpleado.jornada_diaria_horas) : null;
+            const estado = ESTADOS.find(e => e.value === editingDay.estado);
+
+            return (
             <div className="space-y-4">
+              {/* Read-only banner for admin */}
+              {readOnly && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border">
+                  <Lock className="w-4 h-4 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Vista de solo lectura (administrador)</p>
+                </div>
+              )}
+
               {/* Admin review banner */}
               {editingDay.marcado_revision && (
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
@@ -827,76 +841,110 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                   </div>
                 </div>
               )}
+
+              {/* Estado */}
               <div className="space-y-2">
                 <Label>Estado</Label>
-                <Select value={editingDay.estado} onValueChange={v => setEditingDay({ ...editingDay, estado: v })}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar estado" /></SelectTrigger>
-                  <SelectContent>
-                    {ESTADOS.map(e => (
-                      <SelectItem key={e.value} value={e.value}>
-                        {e.icon} {e.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {readOnly ? (
+                  estado ? (
+                    <Badge className={`text-sm px-3 py-1 ${estado.color}`}>{estado.icon} {estado.label}</Badge>
+                  ) : <p className="text-sm text-muted-foreground">Sin estado</p>
+                ) : (
+                  <Select value={editingDay.estado} onValueChange={v => setEditingDay({ ...editingDay, estado: v })}>
+                    <SelectTrigger><SelectValue placeholder="Seleccionar estado" /></SelectTrigger>
+                    <SelectContent>
+                      {ESTADOS.map(e => (
+                        <SelectItem key={e.value} value={e.value}>
+                          {e.icon} {e.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
-              {['trabajado', 'teletrabajo'].includes(editingDay.estado) && (
+              {/* Horarios */}
+              {needsWork && (
                 <>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Entrada Mañana</Label>
-                      <Input type="time" value={editingDay.entrada_manana?.substring(0, 5) || ''} onChange={e => setEditingDay({ ...editingDay, entrada_manana: e.target.value || null })} />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Salida Mañana</Label>
-                      <Input type="time" value={editingDay.salida_manana?.substring(0, 5) || ''} onChange={e => setEditingDay({ ...editingDay, salida_manana: e.target.value || null })} />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Entrada Tarde</Label>
-                      <Input type="time" value={editingDay.entrada_tarde?.substring(0, 5) || ''} onChange={e => setEditingDay({ ...editingDay, entrada_tarde: e.target.value || null })} />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Salida Tarde</Label>
-                      <Input type="time" value={editingDay.salida_tarde?.substring(0, 5) || ''} onChange={e => setEditingDay({ ...editingDay, salida_tarde: e.target.value || null })} />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Entrada Noche</Label>
-                      <Input type="time" value={editingDay.entrada_noche?.substring(0, 5) || ''} onChange={e => setEditingDay({ ...editingDay, entrada_noche: e.target.value || null })} />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Salida Noche</Label>
-                      <Input type="time" value={editingDay.salida_noche?.substring(0, 5) || ''} onChange={e => setEditingDay({ ...editingDay, salida_noche: e.target.value || null })} />
-                    </div>
+                    {([
+                      ['Entrada Mañana', 'entrada_manana'],
+                      ['Salida Mañana', 'salida_manana'],
+                      ['Entrada Tarde', 'entrada_tarde'],
+                      ['Salida Tarde', 'salida_tarde'],
+                      ['Entrada Noche', 'entrada_noche'],
+                      ['Salida Noche', 'salida_noche'],
+                    ] as const).map(([label, field]) => (
+                      <div key={field} className="space-y-1">
+                        <Label className="text-xs">{label}</Label>
+                        {readOnly ? (
+                          <p className="text-sm font-mono h-10 flex items-center">{editingDay[field]?.substring(0, 5) || '—'}</p>
+                        ) : (
+                          <Input type="time" value={editingDay[field]?.substring(0, 5) || ''} onChange={e => setEditingDay({ ...editingDay, [field]: e.target.value || null })} />
+                        )}
+                      </div>
+                    ))}
                   </div>
+
+                  {/* Live hour calculation */}
+                  {liveCalc && (
+                    <div className="flex items-center gap-4 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                      <Clock className="w-4 h-4 text-primary" />
+                      <div className="flex gap-4 text-sm">
+                        <span><strong className="text-primary">{hoursToHM(liveCalc.horas_totales)}</strong> total</span>
+                        <span className="text-muted-foreground">{hoursToHM(liveCalc.horas_ordinarias)} ord</span>
+                        {liveCalc.horas_extra > 0 && <span className="text-destructive font-medium">+{hoursToHM(liveCalc.horas_extra)} extra</span>}
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
 
+              {/* Vacaciones */}
               {editingDay.estado === 'vacaciones' && (
                 <div className="space-y-2">
                   <Label>Tipo de vacaciones</Label>
-                  <Select value={String(editingDay.horas_vacaciones || 1)} onValueChange={v => setEditingDay({ ...editingDay, horas_vacaciones: Number(v) })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">Día completo</SelectItem>
-                      <SelectItem value="0.5">Medio día (mañana)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {readOnly ? (
+                    <p className="text-sm">{editingDay.horas_vacaciones === 0.5 ? 'Medio día (mañana)' : 'Día completo'}</p>
+                  ) : (
+                    <Select value={String(editingDay.horas_vacaciones || 1)} onValueChange={v => setEditingDay({ ...editingDay, horas_vacaciones: Number(v) })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Día completo</SelectItem>
+                        <SelectItem value="0.5">Medio día (mañana)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               )}
 
-
+              {/* Observaciones */}
               <div className="space-y-1">
                 <Label className="text-xs">Observaciones</Label>
-                <Textarea value={editingDay.observaciones} onChange={e => setEditingDay({ ...editingDay, observaciones: e.target.value })} rows={2} />
+                {readOnly ? (
+                  <p className="text-sm">{editingDay.observaciones || <span className="text-muted-foreground italic">Sin observaciones</span>}</p>
+                ) : (
+                  <Textarea value={editingDay.observaciones} onChange={e => setEditingDay({ ...editingDay, observaciones: e.target.value })} rows={2} />
+                )}
               </div>
 
+              {/* Firma */}
               <div className="space-y-2">
                 <Label>Firma</Label>
-                <SignaturePad
-                  value={editingDay.firma_data}
-                  onChange={dataUrl => setEditingDay({ ...editingDay, firma_data: dataUrl, firmado_en: dataUrl ? new Date().toISOString() : null })}
-                />
+                {readOnly ? (
+                  editingDay.firma_data && editingDay.firma_data.startsWith('data:') ? (
+                    <div className="border rounded-lg p-2 bg-background">
+                      <img src={editingDay.firma_data} alt="Firma" className="max-h-24 mx-auto" />
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">Sin firma</p>
+                  )
+                ) : (
+                  <SignaturePad
+                    value={editingDay.firma_data}
+                    onChange={dataUrl => setEditingDay({ ...editingDay, firma_data: dataUrl, firmado_en: dataUrl ? new Date().toISOString() : null })}
+                  />
+                )}
                 {editingDay.firmado_en && (
                   <p className="text-xs text-muted-foreground">
                     Firmado el {new Date(editingDay.firmado_en).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} {new Date(editingDay.firmado_en).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
@@ -904,14 +952,20 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 )}
               </div>
 
+              {/* Actions */}
               <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={() => setShowDayModal(false)}>Cancelar</Button>
-                <Button onClick={handleSaveDay} disabled={saving}>
-                  <Save className="w-4 h-4 mr-1" /> {saving ? 'Guardando...' : 'Guardar'}
+                <Button variant="outline" onClick={() => setShowDayModal(false)}>
+                  {readOnly ? 'Cerrar' : 'Cancelar'}
                 </Button>
+                {!readOnly && (
+                  <Button onClick={handleSaveDay} disabled={saving}>
+                    <Save className="w-4 h-4 mr-1" /> {saving ? 'Guardando...' : 'Guardar'}
+                  </Button>
+                )}
               </div>
             </div>
-          )}
+            );
+          })()}
         </DialogContent>
       </Dialog>
 
