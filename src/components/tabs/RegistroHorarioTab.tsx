@@ -716,36 +716,43 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
 
           {/* FOOTER - Month totals */}
           <Card>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 text-center">
-                <div>
-                  <p className="text-xs text-muted-foreground">Ordinarias</p>
-                  <p className="text-lg font-bold">{hoursToHM(monthTotals.ordinarias)}</p>
+            <CardContent className="p-4 space-y-4">
+              {/* Horas */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                <div className="p-3 rounded-lg bg-primary/5">
+                  <p className="text-xs text-muted-foreground">Horas esta semana</p>
+                  <p className="text-xl font-bold text-primary">{hoursToHM(weekTotals)}</p>
+                  <p className="text-[10px] text-muted-foreground">Jornada: {currentEmpleado?.jornada_diaria_horas || 40}h/sem</p>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Extra</p>
-                  <p className="text-lg font-bold text-[hsl(38,92%,45%)]">{hoursToHM(monthTotals.extra)}</p>
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <p className="text-xs text-muted-foreground">Horas totales (mes)</p>
+                  <p className="text-xl font-bold">{hoursToHM(monthTotals.ordinarias + monthTotals.extra)}</p>
+                  <p className="text-[10px] text-muted-foreground">{hoursToHM(monthTotals.ordinarias)} ord + {hoursToHM(monthTotals.extra)} extra</p>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Complementarias</p>
-                  <p className="text-lg font-bold">{hoursToHM(monthTotals.complementarias)}</p>
-                </div>
-                <div>
+                <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground">Días trabajados</p>
-                  <p className="text-lg font-bold">{monthTotals.worked}</p>
+                  <p className="text-xl font-bold">{monthTotals.worked}</p>
+                  <p className="text-[10px] text-muted-foreground">{monthTotals.unsigned > 0 ? `${monthTotals.unsigned} sin firmar ⚠️` : 'Todo firmado ✅'}</p>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Vacaciones (mes)</p>
-                  <p className="text-lg font-bold text-primary">{monthTotals.vacDays} días</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Sin firmar</p>
-                  <p className={`text-lg font-bold ${monthTotals.unsigned > 0 ? 'text-destructive' : 'text-[hsl(var(--success))]'}`}>
-                    {monthTotals.unsigned > 0 ? `${monthTotals.unsigned} ⚠️` : '0 ✅'}
-                  </p>
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <p className="text-xs text-muted-foreground">🏖 Vacaciones (mes)</p>
+                  <p className="text-xl font-bold text-primary">{monthTotals.vacDays} días</p>
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t flex flex-col sm:flex-row items-center justify-between gap-2">
+
+              {/* Singularidades */}
+              {(monthTotals.bajaDays > 0 || monthTotals.permisoDays > 0 || monthTotals.festivoDays > 0 || monthTotals.descansoDays > 0) && (
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="text-xs text-muted-foreground font-medium">Singularidades:</span>
+                  {monthTotals.bajaDays > 0 && <Badge variant="secondary" className="text-xs">🏥 {monthTotals.bajaDays} baja</Badge>}
+                  {monthTotals.permisoDays > 0 && <Badge variant="secondary" className="text-xs">📋 {monthTotals.permisoDays} permiso</Badge>}
+                  {monthTotals.festivoDays > 0 && <Badge variant="secondary" className="text-xs">🎉 {monthTotals.festivoDays} festivo</Badge>}
+                  {monthTotals.descansoDays > 0 && <Badge variant="secondary" className="text-xs">😴 {monthTotals.descansoDays} descanso</Badge>}
+                </div>
+              )}
+
+              {/* Vacaciones anuales */}
+              <div className="pt-3 border-t flex flex-col sm:flex-row items-center justify-between gap-2">
                 <div className="flex items-center gap-2 sm:gap-4 text-sm flex-wrap justify-center sm:justify-start">
                   <span>🏖 Vacaciones {year}:</span>
                   <Badge variant="outline" className="text-xs">{vacSaldo.asignadas} asignadas</Badge>
