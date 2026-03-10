@@ -82,10 +82,15 @@ router.put('/empleados/:id', async (req, res) => {
     const updates = [];
     const values = [];
     let idx = 1;
+    const { nombre_completo, jornada_diaria_horas, vacaciones_anuales, activo, user_email } = req.body;
+    const updates = [];
+    const values = [];
+    let idx = 1;
     if (nombre_completo !== undefined) { updates.push(`nombre_completo = $${idx++}`); values.push(nombre_completo); }
     if (jornada_diaria_horas !== undefined) { updates.push(`jornada_diaria_horas = $${idx++}`); values.push(jornada_diaria_horas); }
     if (vacaciones_anuales !== undefined) { updates.push(`vacaciones_anuales = $${idx++}`); values.push(vacaciones_anuales); }
     if (activo !== undefined) { updates.push(`activo = $${idx++}`); values.push(activo); }
+    if (user_email !== undefined) { updates.push(`user_email = $${idx++}`); values.push(user_email || null); }
     if (updates.length === 0) return res.json({ ok: true });
     values.push(req.params.id);
     await pool.query(`UPDATE empleados_horario SET ${updates.join(', ')} WHERE id = $${idx}`, values);
