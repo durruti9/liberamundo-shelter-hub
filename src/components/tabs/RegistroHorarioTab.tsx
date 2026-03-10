@@ -837,21 +837,6 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                       <Input type="time" value={editingDay.salida_noche?.substring(0, 5) || ''} onChange={e => setEditingDay({ ...editingDay, salida_noche: e.target.value || null })} />
                     </div>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Pausa (minutos)</Label>
-                    <Input type="number" min={0} max={120} value={editingDay.pausa_min} onChange={e => setEditingDay({ ...editingDay, pausa_min: Number(e.target.value) })} />
-                  </div>
-                  {/* Live calculation */}
-                  {currentEmpleado && (() => {
-                    const calc = calcHours(editingDay, currentEmpleado.jornada_diaria_horas);
-                    return (
-                      <div className="flex gap-4 text-sm bg-muted/50 rounded-lg p-3">
-                        <div><span className="text-muted-foreground">Ord:</span> <b>{calc.horas_ordinarias.toFixed(1)}h</b></div>
-                        <div><span className="text-muted-foreground">Extra:</span> <b className="text-[hsl(38,92%,45%)]">{calc.horas_extra.toFixed(1)}h</b></div>
-                        <div><span className="text-muted-foreground">Total:</span> <b>{calc.horas_totales.toFixed(1)}h</b></div>
-                      </div>
-                    );
-                  })()}
                 </>
               )}
 
