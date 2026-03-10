@@ -70,7 +70,7 @@ export default function CheckInModal({ open, onClose, onSubmit, title = 'Check-i
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t.name} *</Label>
+              <Label>{t.name || 'Nombre y Apellidos'} *</Label>
               <Input value={form.nombre} onChange={e => update('nombre', e.target.value)} required />
             </div>
             <div className="space-y-2">
