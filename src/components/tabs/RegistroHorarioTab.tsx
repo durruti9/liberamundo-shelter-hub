@@ -773,8 +773,10 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                           <TableCell className="text-xs text-center font-mono hidden md:table-cell">{hasWork && rec.entrada_noche ? rec.entrada_noche.substring(0, 5) : ''}</TableCell>
                           <TableCell className="text-xs text-center font-mono hidden md:table-cell">{hasWork && rec.salida_noche ? rec.salida_noche.substring(0, 5) : ''}</TableCell>
                           <TableCell className="text-xs text-center">
-                            {rec?.firma_data ? (
-                              <span title="Firmado" className="text-[hsl(var(--success))]">✅</span>
+                            {isPending ? (
+                              <span title="Pendiente de aprobación" className="text-[hsl(38,92%,50%)]">🟠</span>
+                            ) : rec?.firma_data ? (
+                              <span title="Firmado" className="text-[hsl(142,60%,40%)]">✅</span>
                             ) : rec?.estado ? (
                               <span title="Pendiente" className="text-[hsl(38,92%,50%)]">⚠️</span>
                             ) : null}
