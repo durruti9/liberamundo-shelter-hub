@@ -400,18 +400,20 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
     const hours = needsWork ? calcHours(editingDay, currentEmpleado.jornada_diaria_horas) : { horas_ordinarias: 0, horas_extra: 0, horas_totales: 0 };
     const isVac = editingDay.estado === 'vacaciones';
     
-    // Determine if this is a past-day edit by non-admin
     const isEditingPastDay = isPastDay(editingDay.fecha);
     const existingRecord = records.get(editingDay.fecha);
     const isPastDayModification = isEditingPastDay && !isAdmin && existingRecord?.estado;
+    
+    // Admin creating/editing a record → mark as pending employee confirmation
+    const adminCreating = isAdmin;
     
     const updated: RegistroDia = {
       ...editingDay,
       ...hours,
       horas_vacaciones: isVac ? editingDay.horas_vacaciones || 1 : 0,
-      // If non-admin edits a past day that already had a record, mark as pending approval
-      pendiente_aprobacion: isPastDayModification ? true : editingDay.pendiente_aprobacion,
-      aprobado: isPastDayModification ? false : (isEditingPastDay ? editingDay.aprobado : false),
+      pendiente_aprobacion: adminCreating ? true : (isPastDayModification ? true : editingDay.pendiente_aprobacion),
+      aprobado: adminCreating ? false : (isPastDayModification ? false : (isEditingPastDay ? editingDay.aprobado : false)),
+      creado_por_admin: adminCreating ? true : (editingDay.creado_por_admin || false),
       fecha_original_fichada: editingDay.fecha_original_fichada || (existingRecord ? null : new Date().toISOString().split('T')[0]),
     };
     await saveRecord(updated);
@@ -422,7 +424,9 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
     }
     
     setShowDayModal(false);
-    if (isPastDayModification) {
+    if (adminCreating) {
+      toast.info('Registro creado. Pendiente de confirmación del empleado.');
+    } else if (isPastDayModification) {
       toast.info('Modificación enviada. Requiere aprobación del administrador.');
     } else {
       toast.success('Registro guardado');
