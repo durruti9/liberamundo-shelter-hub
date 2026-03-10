@@ -306,4 +306,14 @@ export const EXPORT_CONFIGS = {
       { key: 'dias_sin_firmar', label: 'Sin firmar' },
     ],
   },
+  estadisticasTareas: {
+    title: 'Estadísticas de tareas mensuales',
+    columns: [
+      { key: 'trabajador', label: 'Trabajador' },
+      { key: 'total_realizadas', label: 'Tareas realizadas' },
+      { key: 'total_pendientes', label: 'Pendientes' },
+      { key: 'total_no_procede', label: 'No procede' },
+      { key: 'porcentaje', label: '% Completado' },
+    ],
+  },
 };
