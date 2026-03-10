@@ -662,7 +662,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                       return (
                         <TableRow
                           key={dayNum}
-                          className={`transition-colors ${future ? 'opacity-40 cursor-not-allowed' : isAdmin ? 'cursor-default' : 'cursor-pointer hover:bg-muted/50'} ${isToday ? 'bg-primary/5 border-l-2 border-l-primary' : ''} ${isWeekend && !rec?.estado ? 'bg-muted/30' : ''} ${hasRevision ? 'bg-destructive/5 border-l-2 border-l-destructive' : ''}`}
+                          className={`transition-colors ${future ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50'} ${isToday ? 'bg-primary/5 border-l-2 border-l-primary' : ''} ${isWeekend && !rec?.estado ? 'bg-muted/30' : ''} ${hasRevision ? 'bg-destructive/5 border-l-2 border-l-destructive' : ''}`}
                           onClick={() => openDay(dayNum)}
                         >
                           <TableCell className="text-xs font-medium sticky left-0 bg-inherit z-10">
