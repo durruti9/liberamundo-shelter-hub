@@ -25,6 +25,7 @@ import { useBeforeUnload } from '@/hooks/useBeforeUnload';
 interface Props {
   role: UserRole;
   albergueId: string;
+  userEmail?: string;
 }
 
 interface Empleado {
@@ -33,6 +34,13 @@ interface Empleado {
   jornada_diaria_horas: number;
   vacaciones_anuales: number;
   activo: boolean;
+  user_email?: string;
+}
+
+interface UsuarioDisponible {
+  email: string;
+  role: string;
+  nombre: string;
 }
 
 interface RegistroDia {
@@ -57,6 +65,7 @@ interface RegistroDia {
   firmado_en: string | null;
   marcado_revision: boolean;
   motivo_revision: string;
+  updated_at?: string;
 }
 
 interface VacacionesSaldo {
@@ -149,8 +158,9 @@ function emptyRecord(empleadoId: string, fecha: string): RegistroDia {
   };
 }
 
-export default function RegistroHorarioTab({ role, albergueId }: Props) {
+export default function RegistroHorarioTab({ role, albergueId, userEmail }: Props) {
   const isAdmin = role === 'admin';
+  const isPersonal = role === 'personal_albergue';
   const [empleados, setEmpleados] = useState<Empleado[]>([]);
   const [selectedEmpleado, setSelectedEmpleado] = useState<string>('');
   const [month, setMonth] = useState(new Date().getMonth());
@@ -159,6 +169,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   const [vacSaldo, setVacSaldo] = useState<VacacionesSaldo>({ asignadas: 22, consumidas: 0 });
   const [loading, setLoading] = useState(false);
   const [showAuditLog, setShowAuditLog] = useState(false);
+  const [usuariosDisponibles, setUsuariosDisponibles] = useState<UsuarioDisponible[]>([]);
 
   // Empresa config
   const [empresaConfig, setEmpresaConfig] = useState({ razon_social: '', cif: '' });
@@ -170,7 +181,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
   const [editingDay, setEditingDay] = useState<RegistroDia | null>(null);
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [showManageEmployees, setShowManageEmployees] = useState(false);
-  const [newEmp, setNewEmp] = useState({ nombre_completo: '', jornada_diaria_horas: 40, vacaciones_anuales: 22 });
+  const [newEmp, setNewEmp] = useState({ nombre_completo: '', jornada_diaria_horas: 40, vacaciones_anuales: 22, user_email: '' });
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
@@ -187,16 +198,34 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
     return formatDate(d.getFullYear(), d.getMonth(), d.getDate());
   }, []);
 
-  // Load employees
+  // Load employees (for personal_albergue, auto-select their linked employee)
   const loadEmpleados = useCallback(async () => {
     try {
-      const data = await api.getEmpleadosHorario(albergueId);
-      setEmpleados(data);
-      if (data.length > 0 && !selectedEmpleado) {
-        setSelectedEmpleado(data[0].id);
+      if (isPersonal) {
+        // Personal laboral: find their linked employee
+        const miEmp = await api.getMiEmpleado(albergueId);
+        if (miEmp) {
+          setEmpleados([miEmp]);
+          setSelectedEmpleado(miEmp.id);
+        } else {
+          setEmpleados([]);
+        }
+      } else {
+        const data = await api.getEmpleadosHorario(albergueId);
+        setEmpleados(data);
+        if (data.length > 0 && !selectedEmpleado) {
+          setSelectedEmpleado(data[0].id);
+        }
       }
     } catch { /* API not available */ }
-  }, [albergueId, selectedEmpleado]);
+  }, [albergueId, selectedEmpleado, isPersonal]);
+
+  // Load available users (admin only, for linking)
+  useEffect(() => {
+    if (isAdmin) {
+      api.getUsuariosDisponibles().then(setUsuariosDisponibles).catch(() => {});
+    }
+  }, [isAdmin]);
 
   // Load records for selected employee + month
   const loadRecords = useCallback(async () => {
@@ -389,7 +418,7 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
       const emp = await api.addEmpleadoHorario(albergueId, newEmp);
       setEmpleados(prev => [...prev, emp]);
       setSelectedEmpleado(emp.id);
-      setNewEmp({ nombre_completo: '', jornada_diaria_horas: 40, vacaciones_anuales: 22 });
+      setNewEmp({ nombre_completo: '', jornada_diaria_horas: 40, vacaciones_anuales: 22, user_email: '' });
       setShowAddEmployee(false);
       toast.success('Empleado añadido');
     } catch (err: any) {
@@ -549,18 +578,23 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
               <Clock className="w-5 h-5 text-primary" />
               <h2 className="text-lg font-bold">Registro Horario</h2>
             </div>
-            <div className="flex-1 w-full sm:w-auto">
-              <Select value={selectedEmpleado} onValueChange={setSelectedEmpleado}>
-                <SelectTrigger className="w-full sm:w-64">
-                  <SelectValue placeholder="Seleccionar empleado" />
-                </SelectTrigger>
-                <SelectContent>
-                  {empleados.filter(e => e.activo).map(e => (
-                    <SelectItem key={e.id} value={e.id}>{e.nombre_completo}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {!isPersonal && (
+              <div className="flex-1 w-full sm:w-auto">
+                <Select value={selectedEmpleado} onValueChange={setSelectedEmpleado}>
+                  <SelectTrigger className="w-full sm:w-64">
+                    <SelectValue placeholder="Seleccionar empleado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {empleados.filter(e => e.activo).map(e => (
+                      <SelectItem key={e.id} value={e.id}>{e.nombre_completo}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {isPersonal && currentEmpleado && (
+              <Badge variant="outline" className="text-sm px-3 py-1.5">{currentEmpleado.nombre_completo}</Badge>
+            )}
             {isAdmin && (
               <div className="flex gap-2 flex-wrap">
                 <Button size="sm" variant="outline" onClick={() => setShowAddEmployee(true)}>
@@ -690,6 +724,11 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                             ) : rec?.estado ? (
                               <span title="Pendiente" className="text-[hsl(38,92%,50%)]">⚠️</span>
                             ) : null}
+                            {rec?.updated_at && rec?.estado && (
+                              <span className="block text-[9px] text-muted-foreground mt-0.5" title={`Última modificación: ${new Date(rec.updated_at).toLocaleString('es-ES')}`}>
+                                {new Date(rec.updated_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} {new Date(rec.updated_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell className="text-xs text-center p-1">
                             {isAdmin && rec?.estado && !future ? (
@@ -784,6 +823,8 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                   </Button>
                 )}
               </div>
+            ) : isPersonal ? (
+              <p>No tienes una ficha de empleado vinculada a tu usuario. Contacta con el administrador.</p>
             ) : (
               <p>Selecciona un empleado para ver su registro</p>
             )}
@@ -928,6 +969,14 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
                 )}
               </div>
 
+              {/* Última modificación (visible para admin) */}
+              {editingDay.updated_at && (
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground bg-muted/40 rounded px-2 py-1">
+                  <HistoryIcon className="w-3 h-3" />
+                  Última modificación: {new Date(editingDay.updated_at).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </div>
+              )}
+
               {/* Firma */}
               <div className="space-y-2">
                 <Label>Firma</Label>
@@ -978,6 +1027,23 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
               <Label>Nombre completo</Label>
               <Input value={newEmp.nombre_completo} onChange={e => setNewEmp({ ...newEmp, nombre_completo: e.target.value })} placeholder="Nombre y apellidos" />
             </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Vincular a usuario (sesión)</Label>
+              <Select value={newEmp.user_email || '__none__'} onValueChange={v => setNewEmp({ ...newEmp, user_email: v === '__none__' ? '' : v })}>
+                <SelectTrigger><SelectValue placeholder="Sin vincular" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">— Sin vincular —</SelectItem>
+                  {usuariosDisponibles.map(u => (
+                    <SelectItem key={u.email} value={u.email}>
+                      {u.email} ({u.role})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground">
+                Al vincular un usuario, este verá su ficha al entrar en Registro Horario y podrá fichar su jornada.
+              </p>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs">Jornada semanal (h)</Label>
@@ -999,16 +1065,42 @@ export default function RegistroHorarioTab({ role, albergueId }: Props) {
 
       {/* MANAGE EMPLOYEES MODAL */}
       <Dialog open={showManageEmployees} onOpenChange={setShowManageEmployees}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" aria-describedby={undefined}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto" aria-describedby={undefined}>
           <DialogHeader><DialogTitle>Gestionar empleados</DialogTitle></DialogHeader>
           <div className="space-y-2">
             {empleados.map(emp => (
-              <div key={emp.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
+              <div key={emp.id} className="flex items-center justify-between p-3 border rounded-lg gap-2">
+                <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm">{emp.nombre_completo}</p>
                   <p className="text-xs text-muted-foreground">
                     Jornada semanal: {emp.jornada_diaria_horas}h | Vacaciones: {emp.vacaciones_anuales} días
                   </p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="text-[10px] text-muted-foreground">Usuario:</span>
+                    <Select
+                      value={emp.user_email || '__none__'}
+                      onValueChange={async (v) => {
+                        const newEmail = v === '__none__' ? '' : v;
+                        try {
+                          await api.updateEmpleadoHorario(emp.id, { user_email: newEmail });
+                          setEmpleados(prev => prev.map(e => e.id === emp.id ? { ...e, user_email: newEmail || undefined } : e));
+                          toast.success('Usuario vinculado actualizado');
+                        } catch (err: any) { toast.error(err.message); }
+                      }}
+                    >
+                      <SelectTrigger className="h-6 text-[10px] w-40">
+                        <SelectValue placeholder="Sin vincular" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">— Sin vincular —</SelectItem>
+                        {usuariosDisponibles.map(u => (
+                          <SelectItem key={u.email} value={u.email}>
+                            {u.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <Button size="icon" variant="ghost" onClick={() => setDeleteEmpTarget(emp.id)}>
                   <Trash2 className="w-4 h-4 text-destructive" />

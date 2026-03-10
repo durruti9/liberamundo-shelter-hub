@@ -18,13 +18,38 @@ router.get('/empleados/:albergueId', requireAlbergueAccess(), async (req, res) =
   }
 });
 
+// Get employee linked to current user
+router.get('/mi-empleado/:albergueId', requireAlbergueAccess(), async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) return res.status(401).json({ error: 'No autenticado' });
+    const { rows } = await pool.query(
+      'SELECT * FROM empleados_horario WHERE albergue_id = $1 AND user_email = $2 AND activo = true LIMIT 1',
+      [req.params.albergueId, user.email]
+    );
+    res.json(rows[0] || null);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get all users (for linking employees)
+router.get('/usuarios-disponibles', async (req, res) => {
+  try {
+    const { rows } = await pool.query("SELECT email, role, nombre FROM users ORDER BY email");
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/empleados/:albergueId', requireAlbergueAccess(), async (req, res) => {
   try {
-    const { nombre_completo, jornada_diaria_horas, vacaciones_anuales } = req.body;
+    const { nombre_completo, jornada_diaria_horas, vacaciones_anuales, user_email } = req.body;
     const { rows } = await pool.query(
-      `INSERT INTO empleados_horario (albergue_id, nombre_completo, jornada_diaria_horas, vacaciones_anuales)
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [req.params.albergueId, nombre_completo, jornada_diaria_horas || 40, vacaciones_anuales || 22]
+      `INSERT INTO empleados_horario (albergue_id, nombre_completo, jornada_diaria_horas, vacaciones_anuales, user_email)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [req.params.albergueId, nombre_completo, jornada_diaria_horas || 40, vacaciones_anuales || 22, user_email || null]
     );
     const year = new Date().getFullYear();
     await pool.query(
@@ -57,10 +82,15 @@ router.put('/empleados/:id', async (req, res) => {
     const updates = [];
     const values = [];
     let idx = 1;
+    const { nombre_completo, jornada_diaria_horas, vacaciones_anuales, activo, user_email } = req.body;
+    const updates = [];
+    const values = [];
+    let idx = 1;
     if (nombre_completo !== undefined) { updates.push(`nombre_completo = $${idx++}`); values.push(nombre_completo); }
     if (jornada_diaria_horas !== undefined) { updates.push(`jornada_diaria_horas = $${idx++}`); values.push(jornada_diaria_horas); }
     if (vacaciones_anuales !== undefined) { updates.push(`vacaciones_anuales = $${idx++}`); values.push(vacaciones_anuales); }
     if (activo !== undefined) { updates.push(`activo = $${idx++}`); values.push(activo); }
+    if (user_email !== undefined) { updates.push(`user_email = $${idx++}`); values.push(user_email || null); }
     if (updates.length === 0) return res.json({ ok: true });
     values.push(req.params.id);
     await pool.query(`UPDATE empleados_horario SET ${updates.join(', ')} WHERE id = $${idx}`, values);

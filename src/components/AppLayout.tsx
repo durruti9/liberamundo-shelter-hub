@@ -318,7 +318,7 @@ export default function AppLayout({ onLogout, role, albergueId, onSwitchAlbergue
             )}
             {(role === 'admin' || role === 'personal_albergue') && (
               <TabsContent value="registro_horario">
-                <RegistroHorarioTab role={role} albergueId={albergueId} />
+                <RegistroHorarioTab role={role} albergueId={albergueId} userEmail={localStorage.getItem('authEmail') || ''} />
               </TabsContent>
             )}
             {(role === 'admin' || role === 'personal_albergue') && (
