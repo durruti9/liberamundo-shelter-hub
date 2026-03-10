@@ -12,7 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import {
   Clock, ChevronLeft, ChevronRight, Plus, Trash2, UserPlus, Users,
-  Check, X, CalendarDays, FileDown, Lock, Pencil, Save, Building2, Settings2, AlertTriangle, History as HistoryIcon
+  Check, X, CalendarDays, FileDown, Lock, Pencil, Save, Building2, Settings2, AlertTriangle, History as HistoryIcon,
+  Fingerprint, CheckCircle2, XCircle
 } from 'lucide-react';
 import { UserRole } from '@/types';
 import { api } from '@/lib/api';
