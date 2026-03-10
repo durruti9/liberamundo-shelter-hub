@@ -1356,6 +1356,8 @@ const ru: Translations = {
   incidentDescription: 'Описание',
   incidentDate: 'Дата',
   incidentGuest: 'Гость',
+  incidentSeverity: 'Серьёзность',
+  severityLabels: { S1: 'Критическая (S1)', S2: 'Высокая (S2)', S3: 'Средняя (S3)', S4: 'Низкая (S4)' },
   incidentTypes: {
     behavioral: 'Поведенческий',
     medical: 'Медицинский',
