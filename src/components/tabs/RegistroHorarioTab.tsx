@@ -1130,7 +1130,7 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
           <DialogHeader><DialogTitle>Añadir empleado</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1">
-              <Label>Nombre completo</Label>
+              <Label>Nombre y Apellidos</Label>
               <Input value={newEmp.nombre_completo} onChange={e => setNewEmp({ ...newEmp, nombre_completo: e.target.value })} placeholder="Nombre y apellidos" />
             </div>
             <div className="space-y-1">
