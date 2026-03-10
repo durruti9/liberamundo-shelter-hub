@@ -239,6 +239,21 @@ router.put('/registros/:empleadoId/rechazar/:fecha', async (req, res) => {
   }
 });
 
+// Employee confirms an admin-created record (signs it)
+router.put('/registros/:empleadoId/confirmar/:fecha', async (req, res) => {
+  try {
+    const { firma_data } = req.body;
+    await pool.query(
+      `UPDATE registros_horario SET pendiente_aprobacion = false, aprobado = true, firma_data = $3, firmado_en = NOW(), updated_at = NOW()
+       WHERE empleado_id = $1 AND fecha = $2`,
+      [req.params.empleadoId, req.params.fecha, firma_data || '']
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ====== VACACIONES SALDO ======
 
 router.get('/vacaciones/:empleadoId/:anio', async (req, res) => {

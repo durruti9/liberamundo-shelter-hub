@@ -296,6 +296,8 @@ export const api = {
     request<OkResponse>(`/registro-horario/registros/${empleadoId}/aprobar/${fecha}`, { method: 'PUT' }),
   rechazarRegistro: (empleadoId: string, fecha: string) =>
     request<OkResponse>(`/registro-horario/registros/${empleadoId}/rechazar/${fecha}`, { method: 'PUT' }),
+  confirmarRegistro: (empleadoId: string, fecha: string, firma_data: string) =>
+    request<OkResponse>(`/registro-horario/registros/${empleadoId}/confirmar/${fecha}`, { method: 'PUT', body: JSON.stringify({ firma_data }) }),
 
   // Inventario (fully typed)
   getInventarioCategorias: (albergueId: string) => request<InventarioCategoria[]>(`/inventario/${albergueId}/categorias`),
