@@ -153,15 +153,16 @@ router.post('/registros/:empleadoId', async (req, res) => {
     const { fecha, estado, entrada_manana, salida_manana, entrada_tarde, salida_tarde,
             entrada_noche, salida_noche, pausa_min, horas_ordinarias, horas_extra,
             horas_complementarias, horas_vacaciones, horas_totales, observaciones,
-            firma_data, firmado_en, marcado_revision, motivo_revision } = req.body;
+            firma_data, firmado_en, marcado_revision, motivo_revision,
+            pendiente_aprobacion, aprobado, fecha_original_fichada } = req.body;
     
     const { rows } = await pool.query(
       `INSERT INTO registros_horario 
         (empleado_id, fecha, estado, entrada_manana, salida_manana, entrada_tarde, salida_tarde,
          entrada_noche, salida_noche, pausa_min, horas_ordinarias, horas_extra,
          horas_complementarias, horas_vacaciones, horas_totales, observaciones, firma_data, firmado_en,
-         marcado_revision, motivo_revision, updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20, NOW())
+         marcado_revision, motivo_revision, pendiente_aprobacion, aprobado, fecha_original_fichada, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23, NOW())
        ON CONFLICT (empleado_id, fecha) DO UPDATE SET
          estado = EXCLUDED.estado,
          entrada_manana = EXCLUDED.entrada_manana,
@@ -181,6 +182,9 @@ router.post('/registros/:empleadoId', async (req, res) => {
          firmado_en = EXCLUDED.firmado_en,
          marcado_revision = EXCLUDED.marcado_revision,
          motivo_revision = EXCLUDED.motivo_revision,
+         pendiente_aprobacion = EXCLUDED.pendiente_aprobacion,
+         aprobado = EXCLUDED.aprobado,
+         fecha_original_fichada = EXCLUDED.fecha_original_fichada,
          updated_at = NOW()
        RETURNING *`,
       [req.params.empleadoId, fecha, estado || 'trabajado',
@@ -190,9 +194,44 @@ router.post('/registros/:empleadoId', async (req, res) => {
        pausa_min || 0, horas_ordinarias || 0, horas_extra || 0,
        horas_complementarias || 0, horas_vacaciones || 0, horas_totales || 0,
        observaciones || '', firma_data || '', firmado_en || null,
-       marcado_revision || false, motivo_revision || '']
+       marcado_revision || false, motivo_revision || '',
+       pendiente_aprobacion || false, aprobado || false, fecha_original_fichada || null]
     );
     res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Approve a past-day edit (admin only)
+router.put('/registros/:empleadoId/aprobar/:fecha', async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user || user.role !== 'admin') return res.status(403).json({ error: 'Solo administradores' });
+    
+    await pool.query(
+      `UPDATE registros_horario SET pendiente_aprobacion = false, aprobado = true, updated_at = NOW()
+       WHERE empleado_id = $1 AND fecha = $2`,
+      [req.params.empleadoId, req.params.fecha]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Reject a past-day edit (admin only) - revert to previous values
+router.put('/registros/:empleadoId/rechazar/:fecha', async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user || user.role !== 'admin') return res.status(403).json({ error: 'Solo administradores' });
+    
+    await pool.query(
+      `UPDATE registros_horario SET pendiente_aprobacion = false, aprobado = false, updated_at = NOW()
+       WHERE empleado_id = $1 AND fecha = $2`,
+      [req.params.empleadoId, req.params.fecha]
+    );
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

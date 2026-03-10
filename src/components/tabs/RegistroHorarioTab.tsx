@@ -12,7 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import {
   Clock, ChevronLeft, ChevronRight, Plus, Trash2, UserPlus, Users,
-  Check, X, CalendarDays, FileDown, Lock, Pencil, Save, Building2, Settings2, AlertTriangle, History as HistoryIcon
+  Check, X, CalendarDays, FileDown, Lock, Pencil, Save, Building2, Settings2, AlertTriangle, History as HistoryIcon,
+  Fingerprint, CheckCircle2, XCircle
 } from 'lucide-react';
 import { UserRole } from '@/types';
 import { api } from '@/lib/api';
@@ -66,6 +67,9 @@ interface RegistroDia {
   marcado_revision: boolean;
   motivo_revision: string;
   updated_at?: string;
+  pendiente_aprobacion: boolean;
+  aprobado: boolean;
+  fecha_original_fichada?: string | null;
 }
 
 interface VacacionesSaldo {
@@ -146,7 +150,7 @@ function emptyRecord(empleadoId: string, fecha: string): RegistroDia {
   return {
     empleado_id: empleadoId,
     fecha,
-    estado: '',
+    estado: 'trabajado',
     entrada_manana: null, salida_manana: null,
     entrada_tarde: null, salida_tarde: null,
     entrada_noche: null, salida_noche: null,
@@ -155,6 +159,7 @@ function emptyRecord(empleadoId: string, fecha: string): RegistroDia {
     horas_vacaciones: 0, horas_totales: 0,
     observaciones: '', firma_data: '', firmado_en: null,
     marcado_revision: false, motivo_revision: '',
+    pendiente_aprobacion: false, aprobado: false, fecha_original_fichada: null,
   };
 }
 
@@ -338,6 +343,24 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
     setShowDayModal(true);
   };
 
+  // Open today's record directly (Fichar button)
+  const handleFichar = () => {
+    if (!selectedEmpleado) return;
+    const d = new Date();
+    const todayDate = formatDate(d.getFullYear(), d.getMonth(), d.getDate());
+    // Navigate to current month if needed
+    if (d.getMonth() !== month || d.getFullYear() !== year) {
+      setMonth(d.getMonth());
+      setYear(d.getFullYear());
+    }
+    const existing = records.get(todayDate) || emptyRecord(selectedEmpleado, todayDate);
+    setEditingDay({ ...existing });
+    setShowDayModal(true);
+  };
+
+  // Check if a record is from a past day (not today)
+  const isPastDay = (fecha: string) => fecha < today;
+
   // Toggle review flag (admin only)
   const toggleRevision = async (dayNum: number, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -375,10 +398,20 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
     const needsWork = ['trabajado', 'teletrabajo'].includes(editingDay.estado);
     const hours = needsWork ? calcHours(editingDay, currentEmpleado.jornada_diaria_horas) : { horas_ordinarias: 0, horas_extra: 0, horas_totales: 0 };
     const isVac = editingDay.estado === 'vacaciones';
+    
+    // Determine if this is a past-day edit by non-admin
+    const isEditingPastDay = isPastDay(editingDay.fecha);
+    const existingRecord = records.get(editingDay.fecha);
+    const isPastDayModification = isEditingPastDay && !isAdmin && existingRecord?.estado;
+    
     const updated: RegistroDia = {
       ...editingDay,
       ...hours,
       horas_vacaciones: isVac ? editingDay.horas_vacaciones || 1 : 0,
+      // If non-admin edits a past day that already had a record, mark as pending approval
+      pendiente_aprobacion: isPastDayModification ? true : editingDay.pendiente_aprobacion,
+      aprobado: isPastDayModification ? false : (isEditingPastDay ? editingDay.aprobado : false),
+      fecha_original_fichada: editingDay.fecha_original_fichada || (existingRecord ? null : new Date().toISOString().split('T')[0]),
     };
     await saveRecord(updated);
     
@@ -388,7 +421,11 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
     }
     
     setShowDayModal(false);
-    toast.success('Registro guardado');
+    if (isPastDayModification) {
+      toast.info('Modificación enviada. Requiere aprobación del administrador.');
+    } else {
+      toast.success('Registro guardado');
+    }
   };
 
   // Recalculate vacaciones consumed
@@ -578,6 +615,13 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
               <Clock className="w-5 h-5 text-primary" />
               <h2 className="text-lg font-bold">Registro Horario</h2>
             </div>
+            {/* Fichar button - visible for non-admin employees */}
+            {!isAdmin && selectedEmpleado && (
+              <Button onClick={handleFichar} className="bg-primary hover:bg-primary/90 gap-2">
+                <Fingerprint className="w-5 h-5" />
+                Fichar
+              </Button>
+            )}
             {!isPersonal && (
               <div className="flex-1 w-full sm:w-auto">
                 <Select value={selectedEmpleado} onValueChange={setSelectedEmpleado}>
@@ -692,11 +736,21 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                       const estado = ESTADOS.find(e => e.value === rec?.estado);
                       const hasWork = rec && ['trabajado', 'teletrabajo'].includes(rec.estado);
                       const hasRevision = rec?.marcado_revision;
+                      const isPending = rec?.pendiente_aprobacion;
+                      const isApproved = rec?.aprobado || (rec?.estado && !future && fecha === today);
+                      // Row color: orange for pending approval, green for approved/same-day
+                      const rowColor = hasRevision
+                        ? 'bg-destructive/5 border-l-2 border-l-destructive'
+                        : isPending
+                        ? 'bg-[hsl(38,92%,95%)] border-l-2 border-l-[hsl(38,92%,50%)] dark:bg-[hsl(38,92%,10%)]'
+                        : (rec?.estado && !future && (isApproved || fecha === today || (!isPastDay(fecha))))
+                        ? 'bg-[hsl(142,60%,96%)] border-l-2 border-l-[hsl(142,60%,45%)] dark:bg-[hsl(142,60%,8%)]'
+                        : isToday ? 'bg-primary/5 border-l-2 border-l-primary' : '';
 
                       return (
                         <TableRow
                           key={dayNum}
-                          className={`transition-colors ${future ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50'} ${isToday ? 'bg-primary/5 border-l-2 border-l-primary' : ''} ${isWeekend && !rec?.estado ? 'bg-muted/30' : ''} ${hasRevision ? 'bg-destructive/5 border-l-2 border-l-destructive' : ''}`}
+                          className={`transition-colors ${future ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50'} ${isWeekend && !rec?.estado ? 'bg-muted/30' : ''} ${rowColor}`}
                           onClick={() => openDay(dayNum)}
                         >
                           <TableCell className="text-xs font-medium sticky left-0 bg-inherit z-10">
@@ -719,8 +773,10 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                           <TableCell className="text-xs text-center font-mono hidden md:table-cell">{hasWork && rec.entrada_noche ? rec.entrada_noche.substring(0, 5) : ''}</TableCell>
                           <TableCell className="text-xs text-center font-mono hidden md:table-cell">{hasWork && rec.salida_noche ? rec.salida_noche.substring(0, 5) : ''}</TableCell>
                           <TableCell className="text-xs text-center">
-                            {rec?.firma_data ? (
-                              <span title="Firmado" className="text-[hsl(var(--success))]">✅</span>
+                            {isPending ? (
+                              <span title="Pendiente de aprobación" className="text-[hsl(38,92%,50%)]">🟠</span>
+                            ) : rec?.firma_data ? (
+                              <span title="Firmado" className="text-[hsl(142,60%,40%)]">✅</span>
                             ) : rec?.estado ? (
                               <span title="Pendiente" className="text-[hsl(38,92%,50%)]">⚠️</span>
                             ) : null}
@@ -856,9 +912,13 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
           </DialogHeader>
           {editingDay && (() => {
             const readOnly = isAdmin;
+            const isEditingPast = isPastDay(editingDay.fecha);
+            const existingHasRecord = !!records.get(editingDay.fecha)?.estado;
+            const lockedForEmployee = !isAdmin && isEditingPast && existingHasRecord && !editingDay.pendiente_aprobacion;
             const needsWork = ['trabajado', 'teletrabajo'].includes(editingDay.estado);
             const liveCalc = needsWork && currentEmpleado ? calcHours(editingDay, currentEmpleado.jornada_diaria_horas) : null;
             const estado = ESTADOS.find(e => e.value === editingDay.estado);
+            const showPendingBanner = editingDay.pendiente_aprobacion;
 
             return (
             <div className="space-y-4">
@@ -1001,11 +1061,57 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                 )}
               </div>
 
+              {/* Pending approval banner */}
+              {showPendingBanner && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-[hsl(38,92%,92%)] border border-[hsl(38,92%,70%)] dark:bg-[hsl(38,92%,12%)] dark:border-[hsl(38,92%,30%)]">
+                  <Clock className="w-5 h-5 text-[hsl(38,92%,45%)] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-[hsl(38,92%,35%)] dark:text-[hsl(38,92%,70%)]">Pendiente de aprobación</p>
+                    <p className="text-xs text-muted-foreground">Esta modificación requiere la validación del administrador.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Past day warning for employees */}
+              {!isAdmin && isEditingPast && existingHasRecord && !editingDay.pendiente_aprobacion && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-[hsl(38,92%,95%)] border border-[hsl(38,92%,75%)] dark:bg-[hsl(38,92%,10%)]">
+                  <AlertTriangle className="w-4 h-4 text-[hsl(38,92%,45%)] shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground">Al modificar un día anterior, los cambios quedarán pendientes de aprobación por el administrador.</p>
+                </div>
+              )}
+
               {/* Actions */}
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={() => setShowDayModal(false)}>
                   {readOnly ? 'Cerrar' : 'Cancelar'}
                 </Button>
+                {/* Admin approval buttons */}
+                {isAdmin && editingDay.pendiente_aprobacion && (
+                  <>
+                    <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/10" onClick={async () => {
+                      try {
+                        await api.rechazarRegistro(editingDay.empleado_id, editingDay.fecha);
+                        const updated = { ...editingDay, pendiente_aprobacion: false, aprobado: false };
+                        setRecords(prev => { const next = new Map(prev); next.set(editingDay.fecha, updated); return next; });
+                        setShowDayModal(false);
+                        toast.success('Modificación rechazada');
+                      } catch (err: any) { toast.error(err.message); }
+                    }}>
+                      <XCircle className="w-4 h-4 mr-1" /> Rechazar
+                    </Button>
+                    <Button className="bg-[hsl(142,60%,40%)] hover:bg-[hsl(142,60%,35%)] text-white" onClick={async () => {
+                      try {
+                        await api.aprobarRegistro(editingDay.empleado_id, editingDay.fecha);
+                        const updated = { ...editingDay, pendiente_aprobacion: false, aprobado: true };
+                        setRecords(prev => { const next = new Map(prev); next.set(editingDay.fecha, updated); return next; });
+                        setShowDayModal(false);
+                        toast.success('Modificación aprobada');
+                      } catch (err: any) { toast.error(err.message); }
+                    }}>
+                      <CheckCircle2 className="w-4 h-4 mr-1" /> Aprobar
+                    </Button>
+                  </>
+                )}
                 {!readOnly && (
                   <Button onClick={handleSaveDay} disabled={saving}>
                     <Save className="w-4 h-4 mr-1" /> {saving ? 'Guardando...' : 'Guardar'}
@@ -1024,7 +1130,7 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
           <DialogHeader><DialogTitle>Añadir empleado</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1">
-              <Label>Nombre completo</Label>
+              <Label>Nombre y Apellidos</Label>
               <Input value={newEmp.nombre_completo} onChange={e => setNewEmp({ ...newEmp, nombre_completo: e.target.value })} placeholder="Nombre y apellidos" />
             </div>
             <div className="space-y-1">
