@@ -161,6 +161,7 @@ function emptyRecord(empleadoId: string, fecha: string): RegistroDia {
     observaciones: '', firma_data: '', firmado_en: null,
     marcado_revision: false, motivo_revision: '',
     pendiente_aprobacion: false, aprobado: false, fecha_original_fichada: null,
+    creado_por_admin: false,
   };
 }
 
