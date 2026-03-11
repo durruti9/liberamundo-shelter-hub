@@ -485,14 +485,22 @@ export default function InventarioTab({ role, albergueId }: Props) {
                   </TableRow>
                 ) : filteredItems.map(item => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium">
+                    <TableCell
+                      className="font-medium cursor-pointer"
+                      title="Pulsar para editar stock"
+                      onClick={() => setStockEditItem({ ...item })}
+                    >
                       {item.nombre}
                       {item.notas && <span className="block text-xs text-muted-foreground">{item.notas}</span>}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">{item.categoria_nombre}</Badge>
                     </TableCell>
-                    <TableCell className={`text-right ${stockColor(item)}`}>
+                    <TableCell
+                      className={`text-right cursor-pointer ${stockColor(item)}`}
+                      title="Pulsar para editar stock"
+                      onClick={() => setStockEditItem({ ...item })}
+                    >
                       {item.stock_actual}
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
@@ -508,7 +516,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                           onClick={() => handleQuickMovement(item, 'salida')} disabled={item.stock_actual <= 0}>
                           <Minus className="w-5 h-5" strokeWidth={2.5} />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar"
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar artículo completo"
                           onClick={() => setEditItem({ ...item })}>
                           <Edit className="w-4 h-4" />
                         </Button>
