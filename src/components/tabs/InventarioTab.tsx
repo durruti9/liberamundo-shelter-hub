@@ -722,6 +722,33 @@ export default function InventarioTab({ role, albergueId }: Props) {
         </DialogContent>
       </Dialog>
 
+      {/* Quick stock edit dialog */}
+      <Dialog open={!!stockEditItem} onOpenChange={(open) => { if (!open) setStockEditItem(null); }}>
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
+          <DialogHeader><DialogTitle>Editar cantidad de stock</DialogTitle></DialogHeader>
+          {stockEditItem && (
+            <div className="space-y-3">
+              <div className="rounded-md border bg-muted/30 p-2 text-sm">
+                <p className="font-medium">{stockEditItem.nombre}</p>
+                {stockEditItem.notas && <p className="text-xs text-muted-foreground mt-1">{stockEditItem.notas}</p>}
+              </div>
+              <div className="space-y-1">
+                <Label>Stock actual</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={stockEditItem.stock_actual}
+                  onChange={e => setStockEditItem({ ...stockEditItem, stock_actual: parseFloat(e.target.value) || 0 })}
+                  onKeyDown={e => { if (e.key === 'Enter') handleUpdateStockOnly(); }}
+                  autoFocus
+                />
+              </div>
+              <Button onClick={handleUpdateStockOnly} className="w-full">Guardar stock</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Monthly consumption collapsible */}
       <Collapsible open={statsOpen} onOpenChange={setStatsOpen}>
         <CollapsibleTrigger asChild>
