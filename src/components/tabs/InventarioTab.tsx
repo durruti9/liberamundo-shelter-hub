@@ -614,7 +614,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
               <Input type="number" min={0} value={newItem.stock_minimo} onChange={e => setNewItem(p => ({ ...p, stock_minimo: parseFloat(e.target.value) || 0 }))} placeholder="0 = sin aviso" />
             </div>
             <div className="space-y-1">
-              <Label>Notas</Label>
+              <Label>Descripción, tamaño o tipo</Label>
               <Input value={newItem.notas} onChange={e => setNewItem(p => ({ ...p, notas: e.target.value }))} placeholder="Opcional" />
             </div>
             <Button onClick={handleAddItem} className="w-full">Añadir artículo</Button>
