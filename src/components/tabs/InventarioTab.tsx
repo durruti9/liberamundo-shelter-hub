@@ -252,15 +252,28 @@ export default function InventarioTab({ role, albergueId }: Props) {
     }
   };
 
-  const handleQuickMovement = (item: Item, tipo: 'entrada' | 'salida') => {
+  const handleQuickMovement = async (item: Item, tipo: 'entrada' | 'salida') => {
+    const previousStock = item.stock_actual;
     const delta = tipo === 'entrada' ? 1 : -1;
-    const newStock = Math.max(0, item.stock_actual + delta);
+    const newStock = Math.max(0, previousStock + delta);
+    // Optimistic update
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, stock_actual: newStock } : i));
     // Track locally for stats
     const now = new Date();
     const mes = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     setLocalMovements(prev => [...prev, { item_id: item.id, item_nombre: item.nombre, categoria_nombre: item.categoria_nombre, tipo, cantidad: 1, fecha: mes }]);
-    api.addInventarioMovimiento(item.id, { tipo, cantidad: 1, motivo: '' }).catch(() => {});
+    try {
+      const updated = await api.addInventarioMovimiento(item.id, { tipo, cantidad: 1, motivo: '' });
+      // Sync with server value
+      if (updated && typeof updated.stock_actual === 'number') {
+        setItems(prev => prev.map(i => i.id === item.id ? { ...i, stock_actual: updated.stock_actual } : i));
+      }
+    } catch {
+      // Rollback on error
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, stock_actual: previousStock } : i));
+      setLocalMovements(prev => prev.slice(0, -1));
+      toast.error('Error al actualizar stock');
+    }
   };
 
   const handleDeleteItem = async (id: string) => {
