@@ -680,9 +680,24 @@ export default function InventarioTab({ role, albergueId }: Props) {
       {/* Edit item dialog */}
       <Dialog open={!!editItem} onOpenChange={() => setEditItem(null)}>
         <DialogContent aria-describedby={undefined}>
-          <DialogHeader><DialogTitle>Editar artículo</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Editar artículo completo</DialogTitle></DialogHeader>
           {editItem && (
             <div className="space-y-3">
+              <div className="space-y-1">
+                <Label>Categoría</Label>
+                <Select
+                  value={editItem.categoria_id}
+                  onValueChange={value => {
+                    const categoriaNombre = categories.find(c => c.id === value)?.nombre || editItem.categoria_nombre;
+                    setEditItem({ ...editItem, categoria_id: value, categoria_nombre: categoriaNombre });
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                  <SelectContent>
+                    {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-1">
                 <Label>Nombre</Label>
                 <Input value={editItem.nombre} onChange={e => setEditItem({ ...editItem, nombre: e.target.value })} />
