@@ -643,7 +643,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                 </div>
               </div>
               <div className="space-y-1">
-                <Label>Notas</Label>
+                <Label>Descripción, tamaño o tipo</Label>
                 <Input value={editItem.notas} onChange={e => setEditItem({ ...editItem, notas: e.target.value })} />
               </div>
               <Button onClick={handleUpdateItem} className="w-full">Guardar cambios</Button>
