@@ -372,7 +372,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {alertItems.map(item => (
                 <Badge key={item.id} variant="outline" className="border-amber-500/50 text-amber-700 dark:text-amber-400 text-xs">
-                  {item.nombre}: {item.stock_actual}/{item.stock_minimo}
+                  {item.nombre}{item.notas ? ` (${item.notas})` : ''}: {item.stock_actual}/{item.stock_minimo}
                 </Badge>
               ))}
             </div>
