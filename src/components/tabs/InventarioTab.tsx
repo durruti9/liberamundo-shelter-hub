@@ -543,7 +543,11 @@ export default function InventarioTab({ role, albergueId }: Props) {
         ) : filteredItems.map(item => (
           <Card key={item.id}>
             <CardContent className="p-3">
-              <div className="flex items-start justify-between gap-2">
+              <div
+                className="flex items-start justify-between gap-2 cursor-pointer"
+                title="Pulsar para editar stock"
+                onClick={() => setStockEditItem({ ...item })}
+              >
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm truncate">{item.nombre}</p>
                   <div className="flex items-center gap-2 mt-1">
@@ -568,6 +572,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                   <Minus className="w-5 h-5" strokeWidth={2.5} />
                 </Button>
                 <Button variant="ghost" size="icon" className="h-7 w-7"
+                  title="Editar artículo completo"
                   onClick={() => setEditItem({ ...item })}>
                   <Edit className="w-3.5 h-3.5" />
                 </Button>
