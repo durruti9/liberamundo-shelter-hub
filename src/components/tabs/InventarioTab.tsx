@@ -372,7 +372,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {alertItems.map(item => (
                 <Badge key={item.id} variant="outline" className="border-amber-500/50 text-amber-700 dark:text-amber-400 text-xs">
-                  {item.nombre}: {item.stock_actual}/{item.stock_minimo}
+                  {item.nombre}{item.notas ? ` (${item.notas})` : ''}: {item.stock_actual}/{item.stock_minimo}
                 </Badge>
               ))}
             </div>
@@ -458,13 +458,13 @@ export default function InventarioTab({ role, albergueId }: Props) {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="+1"
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-emerald-600" title="+1"
                           onClick={() => handleQuickMovement(item, 'entrada')}>
-                          <Plus className="w-4 h-4" />
+                          <Plus className="w-5 h-5" strokeWidth={2.5} />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" title="-1"
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-red-600" title="-1"
                           onClick={() => handleQuickMovement(item, 'salida')} disabled={item.stock_actual <= 0}>
-                          <Minus className="w-4 h-4" />
+                          <Minus className="w-5 h-5" strokeWidth={2.5} />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar"
                           onClick={() => setEditItem({ ...item })}>
@@ -509,13 +509,13 @@ export default function InventarioTab({ role, albergueId }: Props) {
                 </div>
               </div>
               <div className="flex items-center justify-end gap-1 mt-2 border-t border-border pt-2">
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-600"
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600"
                   onClick={() => handleQuickMovement(item, 'entrada')}>
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-5 h-5" strokeWidth={2.5} />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-red-600"
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600"
                   onClick={() => handleQuickMovement(item, 'salida')} disabled={item.stock_actual <= 0}>
-                  <Minus className="w-3.5 h-3.5" />
+                  <Minus className="w-5 h-5" strokeWidth={2.5} />
                 </Button>
                 <Button variant="ghost" size="icon" className="h-7 w-7"
                   onClick={() => setEditItem({ ...item })}>
@@ -614,7 +614,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
               <Input type="number" min={0} value={newItem.stock_minimo} onChange={e => setNewItem(p => ({ ...p, stock_minimo: parseFloat(e.target.value) || 0 }))} placeholder="0 = sin aviso" />
             </div>
             <div className="space-y-1">
-              <Label>Notas</Label>
+              <Label>Descripción, tamaño o tipo</Label>
               <Input value={newItem.notas} onChange={e => setNewItem(p => ({ ...p, notas: e.target.value }))} placeholder="Opcional" />
             </div>
             <Button onClick={handleAddItem} className="w-full">Añadir artículo</Button>
@@ -643,7 +643,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                 </div>
               </div>
               <div className="space-y-1">
-                <Label>Notas</Label>
+                <Label>Descripción, tamaño o tipo</Label>
                 <Input value={editItem.notas} onChange={e => setEditItem({ ...editItem, notas: e.target.value })} />
               </div>
               <Button onClick={handleUpdateItem} className="w-full">Guardar cambios</Button>
