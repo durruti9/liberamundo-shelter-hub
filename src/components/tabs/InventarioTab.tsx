@@ -509,13 +509,13 @@ export default function InventarioTab({ role, albergueId }: Props) {
                 </div>
               </div>
               <div className="flex items-center justify-end gap-1 mt-2 border-t border-border pt-2">
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-600"
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600"
                   onClick={() => handleQuickMovement(item, 'entrada')}>
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-5 h-5" strokeWidth={2.5} />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-red-600"
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600"
                   onClick={() => handleQuickMovement(item, 'salida')} disabled={item.stock_actual <= 0}>
-                  <Minus className="w-3.5 h-3.5" />
+                  <Minus className="w-5 h-5" strokeWidth={2.5} />
                 </Button>
                 <Button variant="ghost" size="icon" className="h-7 w-7"
                   onClick={() => setEditItem({ ...item })}>
