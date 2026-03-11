@@ -96,6 +96,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
   const [search, setSearch] = useState('');
   const [showAddItem, setShowAddItem] = useState(false);
   const [editItem, setEditItem] = useState<Item | null>(null);
+  const [stockEditItem, setStockEditItem] = useState<Item | null>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editCategory, setEditCategory] = useState<Category | null>(null);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
