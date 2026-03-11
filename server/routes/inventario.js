@@ -159,12 +159,15 @@ router.put('/items/:id', async (req, res) => {
     if (!(await verifyItemAccess(req.user, req.params.id))) {
       return res.status(403).json({ error: 'Sin acceso a este artículo' });
     }
-    const { nombre, unidad, stock_minimo, ubicacion, notas } = req.body;
+    const { categoria_id, nombre, unidad, stock_actual, stock_minimo, ubicacion, notas } = req.body;
+    if (categoria_id && !(await verifyCategoryAccess(req.user, categoria_id))) {
+      return res.status(403).json({ error: 'Sin acceso a esta categoría' });
+    }
     const { rows } = await pool.query(
-      `UPDATE inventario_items SET nombre = COALESCE($1, nombre), unidad = COALESCE($2, unidad), 
-       stock_minimo = COALESCE($3, stock_minimo), ubicacion = COALESCE($4, ubicacion), 
-       notas = COALESCE($5, notas), updated_at = NOW() WHERE id = $6 RETURNING *`,
-      [nombre, unidad, stock_minimo, ubicacion, notas, req.params.id]
+      `UPDATE inventario_items SET categoria_id = COALESCE($1, categoria_id), nombre = COALESCE($2, nombre), unidad = COALESCE($3, unidad),
+       stock_actual = GREATEST(0, COALESCE($4, stock_actual)), stock_minimo = COALESCE($5, stock_minimo), ubicacion = COALESCE($6, ubicacion),
+       notas = COALESCE($7, notas), updated_at = NOW() WHERE id = $8 RETURNING *`,
+      [categoria_id, nombre, unidad, stock_actual, stock_minimo, ubicacion, notas, req.params.id]
     );
     res.json(rows[0]);
   } catch (err) {

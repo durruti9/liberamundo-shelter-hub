@@ -96,6 +96,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
   const [search, setSearch] = useState('');
   const [showAddItem, setShowAddItem] = useState(false);
   const [editItem, setEditItem] = useState<Item | null>(null);
+  const [stockEditItem, setStockEditItem] = useState<Item | null>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editCategory, setEditCategory] = useState<Category | null>(null);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
@@ -290,18 +291,59 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   const handleUpdateItem = async () => {
     if (!editItem) return;
+
+    const categoryName = categories.find(c => c.id === editItem.categoria_id)?.nombre || editItem.categoria_nombre;
+    const nextItem: Item = {
+      ...editItem,
+      categoria_nombre: categoryName,
+      stock_actual: Math.max(0, Number(editItem.stock_actual) || 0),
+      stock_minimo: Math.max(0, Number(editItem.stock_minimo) || 0),
+    };
+
     try {
-      await api.updateInventarioItem(editItem.id, {
-        nombre: editItem.nombre, unidad: editItem.unidad,
-        stock_minimo: editItem.stock_minimo, notas: editItem.notas,
+      const updated = await api.updateInventarioItem(editItem.id, {
+        categoria_id: nextItem.categoria_id,
+        nombre: nextItem.nombre,
+        unidad: nextItem.unidad,
+        stock_actual: nextItem.stock_actual,
+        stock_minimo: nextItem.stock_minimo,
+        ubicacion: nextItem.ubicacion,
+        notas: nextItem.notas,
       });
+
+      const normalized: Item = {
+        ...nextItem,
+        ...updated,
+        stock_actual: Math.max(0, Number(updated.stock_actual ?? nextItem.stock_actual) || 0),
+        stock_minimo: Math.max(0, Number(updated.stock_minimo ?? nextItem.stock_minimo) || 0),
+        categoria_nombre: categories.find(c => c.id === (updated.categoria_id || nextItem.categoria_id))?.nombre || nextItem.categoria_nombre,
+      };
+
+      setItems(prev => prev.map(i => i.id === editItem.id ? normalized : i));
       toast.success('Artículo actualizado');
       setEditItem(null);
-      loadData();
     } catch {
-      setItems(prev => prev.map(i => i.id === editItem.id ? { ...editItem } : i));
+      setItems(prev => prev.map(i => i.id === editItem.id ? nextItem : i));
       toast.success('Artículo actualizado');
       setEditItem(null);
+    }
+  };
+
+  const handleUpdateStockOnly = async () => {
+    if (!stockEditItem) return;
+
+    const nextStock = Math.max(0, Number(stockEditItem.stock_actual) || 0);
+
+    try {
+      const updated = await api.updateInventarioItem(stockEditItem.id, { stock_actual: nextStock });
+      const finalStock = Math.max(0, Number(updated.stock_actual ?? nextStock) || 0);
+      setItems(prev => prev.map(i => i.id === stockEditItem.id ? { ...i, stock_actual: finalStock } : i));
+      toast.success('Stock actualizado');
+      setStockEditItem(null);
+    } catch {
+      setItems(prev => prev.map(i => i.id === stockEditItem.id ? { ...i, stock_actual: nextStock } : i));
+      toast.success('Stock actualizado');
+      setStockEditItem(null);
     }
   };
 
@@ -443,14 +485,22 @@ export default function InventarioTab({ role, albergueId }: Props) {
                   </TableRow>
                 ) : filteredItems.map(item => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium">
+                    <TableCell
+                      className="font-medium cursor-pointer"
+                      title="Pulsar para editar stock"
+                      onClick={() => setStockEditItem({ ...item })}
+                    >
                       {item.nombre}
                       {item.notas && <span className="block text-xs text-muted-foreground">{item.notas}</span>}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">{item.categoria_nombre}</Badge>
                     </TableCell>
-                    <TableCell className={`text-right ${stockColor(item)}`}>
+                    <TableCell
+                      className={`text-right cursor-pointer ${stockColor(item)}`}
+                      title="Pulsar para editar stock"
+                      onClick={() => setStockEditItem({ ...item })}
+                    >
                       {item.stock_actual}
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
@@ -466,7 +516,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                           onClick={() => handleQuickMovement(item, 'salida')} disabled={item.stock_actual <= 0}>
                           <Minus className="w-5 h-5" strokeWidth={2.5} />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar"
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar artículo completo"
                           onClick={() => setEditItem({ ...item })}>
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -493,7 +543,11 @@ export default function InventarioTab({ role, albergueId }: Props) {
         ) : filteredItems.map(item => (
           <Card key={item.id}>
             <CardContent className="p-3">
-              <div className="flex items-start justify-between gap-2">
+              <div
+                className="flex items-start justify-between gap-2 cursor-pointer"
+                title="Pulsar para editar stock"
+                onClick={() => setStockEditItem({ ...item })}
+              >
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm truncate">{item.nombre}</p>
                   <div className="flex items-center gap-2 mt-1">
@@ -518,6 +572,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
                   <Minus className="w-5 h-5" strokeWidth={2.5} />
                 </Button>
                 <Button variant="ghost" size="icon" className="h-7 w-7"
+                  title="Editar artículo completo"
                   onClick={() => setEditItem({ ...item })}>
                   <Edit className="w-3.5 h-3.5" />
                 </Button>
@@ -625,9 +680,24 @@ export default function InventarioTab({ role, albergueId }: Props) {
       {/* Edit item dialog */}
       <Dialog open={!!editItem} onOpenChange={() => setEditItem(null)}>
         <DialogContent aria-describedby={undefined}>
-          <DialogHeader><DialogTitle>Editar artículo</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Editar artículo completo</DialogTitle></DialogHeader>
           {editItem && (
             <div className="space-y-3">
+              <div className="space-y-1">
+                <Label>Categoría</Label>
+                <Select
+                  value={editItem.categoria_id}
+                  onValueChange={value => {
+                    const categoriaNombre = categories.find(c => c.id === value)?.nombre || editItem.categoria_nombre;
+                    setEditItem({ ...editItem, categoria_id: value, categoria_nombre: categoriaNombre });
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                  <SelectContent>
+                    {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-1">
                 <Label>Nombre</Label>
                 <Input value={editItem.nombre} onChange={e => setEditItem({ ...editItem, nombre: e.target.value })} />
@@ -647,6 +717,33 @@ export default function InventarioTab({ role, albergueId }: Props) {
                 <Input value={editItem.notas} onChange={e => setEditItem({ ...editItem, notas: e.target.value })} />
               </div>
               <Button onClick={handleUpdateItem} className="w-full">Guardar cambios</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Quick stock edit dialog */}
+      <Dialog open={!!stockEditItem} onOpenChange={(open) => { if (!open) setStockEditItem(null); }}>
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
+          <DialogHeader><DialogTitle>Editar cantidad de stock</DialogTitle></DialogHeader>
+          {stockEditItem && (
+            <div className="space-y-3">
+              <div className="rounded-md border bg-muted/30 p-2 text-sm">
+                <p className="font-medium">{stockEditItem.nombre}</p>
+                {stockEditItem.notas && <p className="text-xs text-muted-foreground mt-1">{stockEditItem.notas}</p>}
+              </div>
+              <div className="space-y-1">
+                <Label>Stock actual</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={stockEditItem.stock_actual}
+                  onChange={e => setStockEditItem({ ...stockEditItem, stock_actual: parseFloat(e.target.value) || 0 })}
+                  onKeyDown={e => { if (e.key === 'Enter') handleUpdateStockOnly(); }}
+                  autoFocus
+                />
+              </div>
+              <Button onClick={handleUpdateStockOnly} className="w-full">Guardar stock</Button>
             </div>
           )}
         </DialogContent>
