@@ -291,18 +291,59 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   const handleUpdateItem = async () => {
     if (!editItem) return;
+
+    const categoryName = categories.find(c => c.id === editItem.categoria_id)?.nombre || editItem.categoria_nombre;
+    const nextItem: Item = {
+      ...editItem,
+      categoria_nombre: categoryName,
+      stock_actual: Math.max(0, Number(editItem.stock_actual) || 0),
+      stock_minimo: Math.max(0, Number(editItem.stock_minimo) || 0),
+    };
+
     try {
-      await api.updateInventarioItem(editItem.id, {
-        nombre: editItem.nombre, unidad: editItem.unidad,
-        stock_minimo: editItem.stock_minimo, notas: editItem.notas,
+      const updated = await api.updateInventarioItem(editItem.id, {
+        categoria_id: nextItem.categoria_id,
+        nombre: nextItem.nombre,
+        unidad: nextItem.unidad,
+        stock_actual: nextItem.stock_actual,
+        stock_minimo: nextItem.stock_minimo,
+        ubicacion: nextItem.ubicacion,
+        notas: nextItem.notas,
       });
+
+      const normalized: Item = {
+        ...nextItem,
+        ...updated,
+        stock_actual: Math.max(0, Number(updated.stock_actual ?? nextItem.stock_actual) || 0),
+        stock_minimo: Math.max(0, Number(updated.stock_minimo ?? nextItem.stock_minimo) || 0),
+        categoria_nombre: categories.find(c => c.id === (updated.categoria_id || nextItem.categoria_id))?.nombre || nextItem.categoria_nombre,
+      };
+
+      setItems(prev => prev.map(i => i.id === editItem.id ? normalized : i));
       toast.success('Artículo actualizado');
       setEditItem(null);
-      loadData();
     } catch {
-      setItems(prev => prev.map(i => i.id === editItem.id ? { ...editItem } : i));
+      setItems(prev => prev.map(i => i.id === editItem.id ? nextItem : i));
       toast.success('Artículo actualizado');
       setEditItem(null);
+    }
+  };
+
+  const handleUpdateStockOnly = async () => {
+    if (!stockEditItem) return;
+
+    const nextStock = Math.max(0, Number(stockEditItem.stock_actual) || 0);
+
+    try {
+      const updated = await api.updateInventarioItem(stockEditItem.id, { stock_actual: nextStock });
+      const finalStock = Math.max(0, Number(updated.stock_actual ?? nextStock) || 0);
+      setItems(prev => prev.map(i => i.id === stockEditItem.id ? { ...i, stock_actual: finalStock } : i));
+      toast.success('Stock actualizado');
+      setStockEditItem(null);
+    } catch {
+      setItems(prev => prev.map(i => i.id === stockEditItem.id ? { ...i, stock_actual: nextStock } : i));
+      toast.success('Stock actualizado');
+      setStockEditItem(null);
     }
   };
 
