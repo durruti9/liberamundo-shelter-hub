@@ -480,7 +480,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                       </div>
                       <div>
                         <label className="text-xs text-muted-foreground">Hecho por</label>
-                        <Select value={tarea.hechoPor || undefined} onValueChange={v => handleUpdateTarea(idx, 'hechoPor', v)} disabled={!taskEditable}>
+                        <Select value={tarea.hechoPor || ''} onValueChange={v => handleUpdateTarea(idx, 'hechoPor', v)} disabled={!taskEditable}>
                           <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
                           <SelectContent>
                             {empleadosList.map(name => (
