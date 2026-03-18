@@ -51,26 +51,35 @@ router.post('/login', async (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.socket?.remoteAddress || '';
     const ipStr = typeof ip === 'string' ? ip : String(ip);
 
-    if (!checkRateLimit(ipStr)) {
-      return res.status(429).json({ error: 'Demasiados intentos. Espera 15 minutos.' });
+    const { email, password } = req.body;
+
+    if (!checkRateLimit(ipStr, email)) {
+      return res.status(429).json({ error: 'Demasiados intentos. Espera 10 minutos.' });
     }
 
-    const { email, password } = req.body;
-    const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    let rows;
+    try {
+      const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+      rows = result.rows;
+    } catch (dbErr) {
+      console.error('[AUTH] DB error during login:', dbErr.message);
+      return res.status(503).json({ error: 'Error de conexión con la base de datos. Inténtalo de nuevo.' });
+    }
+
     if (rows.length === 0) {
-      recordFailedAttempt(ipStr);
+      recordFailedAttempt(ipStr, email);
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
     const user = rows[0];
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
-      recordFailedAttempt(ipStr);
+      recordFailedAttempt(ipStr, email);
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    // Successful login — clear any failed attempts for this IP
-    clearAttempts(ipStr);
+    // Successful login — clear any failed attempts
+    clearAttempts(ipStr, email);
 
     // Get assigned albergues
     let { rows: albergueRows } = await pool.query(
