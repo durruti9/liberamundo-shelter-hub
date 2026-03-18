@@ -5,38 +5,44 @@ import { generateToken } from '../middleware/auth.js';
 
 const router = Router();
 
-// --- Rate limiting: max 5 FAILED attempts per IP per 15 min ---
+// --- Rate limiting: max 10 FAILED attempts per IP+email per 10 min ---
 const loginAttempts = new Map();
-const RATE_LIMIT_WINDOW = 15 * 60 * 1000;
-const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW = 10 * 60 * 1000;
+const RATE_LIMIT_MAX = 10;
 
-function checkRateLimit(ip) {
+function getRateLimitKey(ip, email) {
+  return `${ip}::${(email || '').toLowerCase().trim()}`;
+}
+
+function checkRateLimit(ip, email) {
   const now = Date.now();
-  const record = loginAttempts.get(ip);
+  const key = getRateLimitKey(ip, email);
+  const record = loginAttempts.get(key);
   if (!record || now - record.firstAttempt > RATE_LIMIT_WINDOW) {
-    return true; // No record or expired
+    return true;
   }
   return record.count < RATE_LIMIT_MAX;
 }
 
-function recordFailedAttempt(ip) {
+function recordFailedAttempt(ip, email) {
   const now = Date.now();
-  const record = loginAttempts.get(ip);
+  const key = getRateLimitKey(ip, email);
+  const record = loginAttempts.get(key);
   if (!record || now - record.firstAttempt > RATE_LIMIT_WINDOW) {
-    loginAttempts.set(ip, { count: 1, firstAttempt: now });
+    loginAttempts.set(key, { count: 1, firstAttempt: now });
   } else {
     record.count++;
   }
 }
 
-function clearAttempts(ip) {
-  loginAttempts.delete(ip);
+function clearAttempts(ip, email) {
+  loginAttempts.delete(getRateLimitKey(ip, email));
 }
 
 setInterval(() => {
   const now = Date.now();
-  for (const [ip, record] of loginAttempts.entries()) {
-    if (now - record.firstAttempt > RATE_LIMIT_WINDOW) loginAttempts.delete(ip);
+  for (const [key, record] of loginAttempts.entries()) {
+    if (now - record.firstAttempt > RATE_LIMIT_WINDOW) loginAttempts.delete(key);
   }
 }, 10 * 60 * 1000);
 
@@ -45,26 +51,35 @@ router.post('/login', async (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.socket?.remoteAddress || '';
     const ipStr = typeof ip === 'string' ? ip : String(ip);
 
-    if (!checkRateLimit(ipStr)) {
-      return res.status(429).json({ error: 'Demasiados intentos. Espera 15 minutos.' });
+    const { email, password } = req.body;
+
+    if (!checkRateLimit(ipStr, email)) {
+      return res.status(429).json({ error: 'Demasiados intentos. Espera 10 minutos.' });
     }
 
-    const { email, password } = req.body;
-    const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    let rows;
+    try {
+      const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+      rows = result.rows;
+    } catch (dbErr) {
+      console.error('[AUTH] DB error during login:', dbErr.message);
+      return res.status(503).json({ error: 'Error de conexión con la base de datos. Inténtalo de nuevo.' });
+    }
+
     if (rows.length === 0) {
-      recordFailedAttempt(ipStr);
+      recordFailedAttempt(ipStr, email);
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
     const user = rows[0];
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
-      recordFailedAttempt(ipStr);
+      recordFailedAttempt(ipStr, email);
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    // Successful login — clear any failed attempts for this IP
-    clearAttempts(ipStr);
+    // Successful login — clear any failed attempts
+    clearAttempts(ipStr, email);
 
     // Get assigned albergues
     let { rows: albergueRows } = await pool.query(
