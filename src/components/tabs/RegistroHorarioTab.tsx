@@ -823,13 +823,18 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                 <div className="p-3 rounded-lg bg-primary/5">
                   <p className="text-xs text-muted-foreground">Horas esta semana</p>
-                  <p className="text-xl font-bold text-primary">{hoursToHM(weekTotals)}</p>
-                  <p className="text-[10px] text-muted-foreground">Jornada: {currentEmpleado?.jornada_diaria_horas || 40}h/sem</p>
+                  <p className="text-xl font-bold text-primary">{hoursToHM(weekTotals.totalHours)}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {hoursToHM(weekTotals.ordinarias)} ord
+                    {weekTotals.extra > 0 && <span className="text-destructive"> +{hoursToHM(weekTotals.extra)} extra</span>}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {weekTotals.restante > 0 ? `Faltan ${hoursToHM(weekTotals.restante)} de ${weekTotals.jornadaSemanal}h/sem` : `Jornada ${weekTotals.jornadaSemanal}h completada ✅`}
+                  </p>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground">Horas totales (mes)</p>
                   <p className="text-xl font-bold">{hoursToHM(monthTotals.ordinarias + monthTotals.extra)}</p>
-                  <p className="text-[10px] text-muted-foreground">{hoursToHM(monthTotals.ordinarias)} ord + {hoursToHM(monthTotals.extra)} extra</p>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground">Días trabajados</p>
