@@ -145,19 +145,21 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     setTareas(updated);
     if (!selectedDate) return;
 
-    // Immediate save for estado changes (locks the card)
+    const tarea = updated[idx];
+
+    // Immediate save for estado changes (locks the card) - single task upsert
     if (field === 'estado') {
-      api.saveTareasDia(albergueId, selectedDate, updated)
+      api.saveTareaSingle(albergueId, selectedDate, tarea.orden, tarea)
         .then(() => loadMonth())
         .then(() => toast.success('Guardado'))
         .catch(() => toast.error('Error al guardar'));
       return;
     }
 
-    // Debounced save for text/select fields (turno, hechoPor, observacion)
+    // Debounced save for text/select fields - single task upsert
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
-      api.saveTareasDia(albergueId, selectedDate, updated)
+      api.saveTareaSingle(albergueId, selectedDate, tarea.orden, tarea)
         .then(() => loadMonth())
         .catch(() => toast.error('Error al guardar'));
     }, 800);
