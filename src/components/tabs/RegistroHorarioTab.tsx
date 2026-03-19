@@ -484,15 +484,28 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
 
   // Month totals
   const monthTotals = useMemo(() => {
-    let ordinarias = 0, extra = 0, complementarias = 0, vacDays = 0, worked = 0, unsigned = 0;
+    const jornadaSemanal = currentEmpleado?.jornada_diaria_horas || 40;
+    let totalHours = 0, vacDays = 0, worked = 0, unsigned = 0;
     let bajaDays = 0, permisoDays = 0, festivoDays = 0, descansoDays = 0;
+
+    // Group hours by ISO week (Mon-Sun) for weekly extra calculation
+    const weekHoursMap = new Map<string, number>();
+
     for (let d = 1; d <= numDays; d++) {
       const fecha = formatDate(year, month, d);
       const rec = records.get(fecha);
       if (!rec) continue;
-      ordinarias += Number(rec.horas_ordinarias) || 0;
-      extra += Number(rec.horas_extra) || 0;
-      complementarias += Number(rec.horas_complementarias) || 0;
+      const dayHours = Number(rec.horas_totales) || 0;
+      totalHours += dayHours;
+
+      // Determine which week (Monday) this day belongs to
+      const dateObj = new Date(year, month, d);
+      const dow = dateObj.getDay() || 7;
+      const mondayDate = new Date(dateObj);
+      mondayDate.setDate(dateObj.getDate() - dow + 1);
+      const weekKey = `${mondayDate.getFullYear()}-${String(mondayDate.getMonth() + 1).padStart(2, '0')}-${String(mondayDate.getDate()).padStart(2, '0')}`;
+      weekHoursMap.set(weekKey, (weekHoursMap.get(weekKey) || 0) + dayHours);
+
       if (rec.estado === 'vacaciones') vacDays += Number(rec.horas_vacaciones) || 1;
       if (rec.estado === 'baja') bajaDays++;
       if (rec.estado === 'permiso') permisoDays++;
@@ -501,8 +514,16 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
       if (['trabajado', 'teletrabajo'].includes(rec.estado)) worked++;
       if (rec.estado && !rec.firma_data && !isFuture(fecha)) unsigned++;
     }
-    return { ordinarias, extra, complementarias, vacDays, worked, unsigned, bajaDays, permisoDays, festivoDays, descansoDays };
-  }, [records, numDays, year, month, today]);
+
+    // Calculate ordinarias/extra per week, then sum
+    let ordinarias = 0, extra = 0;
+    for (const [, weekTotal] of weekHoursMap) {
+      ordinarias += Math.min(weekTotal, jornadaSemanal);
+      extra += Math.max(0, weekTotal - jornadaSemanal);
+    }
+
+    return { ordinarias, extra, totalHours, vacDays, worked, unsigned, bajaDays, permisoDays, festivoDays, descansoDays };
+  }, [records, numDays, year, month, today, currentEmpleado]);
 
   // Weekly totals with ordinarias/extra based on weekly jornada
   const weekTotals = useMemo(() => {
