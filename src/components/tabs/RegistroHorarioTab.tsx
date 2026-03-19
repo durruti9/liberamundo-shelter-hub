@@ -504,8 +504,9 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
     return { ordinarias, extra, complementarias, vacDays, worked, unsigned, bajaDays, permisoDays, festivoDays, descansoDays };
   }, [records, numDays, year, month, today]);
 
-  // Weekly totals (current week within displayed month)
+  // Weekly totals with ordinarias/extra based on weekly jornada
   const weekTotals = useMemo(() => {
+    const jornadaSemanal = currentEmpleado?.jornada_diaria_horas || 40;
     const now = new Date();
     const dayOfWeek = now.getDay() || 7; // 1=Mon...7=Sun
     const monday = new Date(now);
@@ -520,8 +521,11 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
       const rec = records.get(fecha);
       if (rec) totalHours += Number(rec.horas_totales) || 0;
     }
-    return totalHours;
-  }, [records, month, year]);
+    const ordinarias = Math.min(totalHours, jornadaSemanal);
+    const extra = Math.max(0, totalHours - jornadaSemanal);
+    const restante = Math.max(0, jornadaSemanal - totalHours);
+    return { totalHours, ordinarias, extra, restante, jornadaSemanal };
+  }, [records, month, year, currentEmpleado]);
 
   // Export all employees summary for the month
   const handleExportAllEmployees = useCallback(async () => {
