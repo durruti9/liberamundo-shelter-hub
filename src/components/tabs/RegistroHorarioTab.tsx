@@ -559,16 +559,29 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
 
       for (const emp of empleados.filter(e => e.activo)) {
         const recs: any[] = await api.getRegistrosHorario(emp.id, start, end);
-        let ordinarias = 0, extra = 0, totales = 0, vacDays = 0, bajaDays = 0, permisoDays = 0, worked = 0, unsigned = 0;
+        let totales = 0, vacDays = 0, bajaDays = 0, permisoDays = 0, worked = 0, unsigned = 0;
+        const weekHoursMap = new Map<string, number>();
         for (const r of recs) {
-          ordinarias += Number(r.horas_ordinarias) || 0;
-          extra += Number(r.horas_extra) || 0;
-          totales += Number(r.horas_totales) || 0;
+          const dayHours = Number(r.horas_totales) || 0;
+          totales += dayHours;
+          // Group by week for weekly extra calc
+          const dateObj = new Date(r.fecha);
+          const dow = dateObj.getDay() || 7;
+          const mondayDate = new Date(dateObj);
+          mondayDate.setDate(dateObj.getDate() - dow + 1);
+          const weekKey = mondayDate.toISOString().split('T')[0];
+          weekHoursMap.set(weekKey, (weekHoursMap.get(weekKey) || 0) + dayHours);
+
           if (r.estado === 'vacaciones') vacDays++;
           if (r.estado === 'baja') bajaDays++;
           if (r.estado === 'permiso') permisoDays++;
           if (['trabajado', 'teletrabajo'].includes(r.estado)) worked++;
           if (r.estado && !r.firma_data) unsigned++;
+        }
+        let ordinarias = 0, extra = 0;
+        for (const [, wt] of weekHoursMap) {
+          ordinarias += Math.min(wt, emp.jornada_diaria_horas || 40);
+          extra += Math.max(0, wt - (emp.jornada_diaria_horas || 40));
         }
         rows.push({
           empleado: emp.nombre_completo,
