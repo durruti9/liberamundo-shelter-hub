@@ -1005,9 +1005,7 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                     <div className="flex items-center gap-4 p-3 rounded-lg bg-primary/5 border border-primary/10">
                       <Clock className="w-4 h-4 text-primary" />
                       <div className="flex gap-4 text-sm">
-                        <span><strong className="text-primary">{hoursToHM(liveCalc.horas_totales)}</strong> total</span>
-                        <span className="text-muted-foreground">{hoursToHM(liveCalc.horas_ordinarias)} ord</span>
-                        {liveCalc.horas_extra > 0 && <span className="text-destructive font-medium">+{hoursToHM(liveCalc.horas_extra)} extra</span>}
+                        <span><strong className="text-primary">{hoursToHM(liveCalc.horas_totales)}</strong> trabajadas hoy</span>
                       </div>
                     </div>
                   )}
