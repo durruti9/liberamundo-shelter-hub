@@ -236,6 +236,8 @@ export const api = {
     request<Any[]>(`/tareas/${albergueId}?start=${start}&end=${end}`),
   saveTareasDia: (albergueId: string, fecha: string, tareas: Any[]) =>
     request<OkResponse>(`/tareas/${albergueId}/${fecha}`, { method: 'POST', body: JSON.stringify({ tareas }) }),
+  saveTareaSingle: (albergueId: string, fecha: string, orden: number, tarea: Any) =>
+    request<OkResponse>(`/tareas/${albergueId}/${fecha}/${orden}`, { method: 'PUT', body: JSON.stringify(tarea) }),
 
   // Notas
   getNotas: (userEmail: string) => request<Any[]>(`/notas/${encodeURIComponent(userEmail)}`),
