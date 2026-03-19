@@ -30,7 +30,32 @@ router.get('/:albergueId', requireAlbergueAccess(), async (req, res) => {
   }
 });
 
-// Save tareas for a day (validates albergue access)
+// Save a single task (upsert by orden, no full-day delete)
+router.put('/:albergueId/:fecha/:orden', requireAlbergueAccess(), async (req, res) => {
+  try {
+    const { albergueId, fecha, orden } = req.params;
+    const t = req.body;
+    await pool.query(
+      `INSERT INTO tareas_dia (albergue_id, fecha, tarea_id, tarea_nombre, estado, turno, hecho_por, observacion, orden, admin_obs, respuesta_empleado)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       ON CONFLICT (albergue_id, fecha, orden) DO UPDATE SET
+         tarea_id = EXCLUDED.tarea_id,
+         tarea_nombre = EXCLUDED.tarea_nombre,
+         estado = EXCLUDED.estado,
+         turno = EXCLUDED.turno,
+         hecho_por = EXCLUDED.hecho_por,
+         observacion = EXCLUDED.observacion,
+         admin_obs = EXCLUDED.admin_obs,
+         respuesta_empleado = EXCLUDED.respuesta_empleado`,
+      [albergueId, fecha, t.tareaId, t.tareaNombre, t.estado, t.turno, t.hechoPor || '', t.observacion || '', Number(orden), t.adminObs || '', t.respuestaEmpleado || '']
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Save tareas for a day (bulk - validates albergue access)
 router.post('/:albergueId/:fecha', requireAlbergueAccess(), async (req, res) => {
   const client = await pool.connect();
   try {
@@ -38,6 +63,10 @@ router.post('/:albergueId/:fecha', requireAlbergueAccess(), async (req, res) => 
     const { tareas } = req.body;
 
     await client.query('BEGIN');
+    // Advisory lock per albergue+fecha to prevent concurrent overwrites
+    const lockKey = Buffer.from(`${albergueId}:${fecha}`).reduce((a, b) => a * 31 + b, 0) & 0x7FFFFFFF;
+    await client.query('SELECT pg_advisory_xact_lock($1)', [lockKey]);
+
     await client.query('DELETE FROM tareas_dia WHERE albergue_id = $1 AND fecha = $2', [albergueId, fecha]);
 
     for (const t of tareas) {

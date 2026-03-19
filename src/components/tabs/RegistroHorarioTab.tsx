@@ -111,7 +111,7 @@ function parseTime(t: string | null): number {
   return h * 60 + (m || 0);
 }
 
-function calcHours(record: Partial<RegistroDia>, jornadaSemanal: number) {
+function calcHours(record: Partial<RegistroDia>, _jornadaSemanal: number) {
   let totalMin = 0;
   if (record.entrada_manana && record.salida_manana) {
     totalMin += parseTime(record.salida_manana) - parseTime(record.entrada_manana);
@@ -126,13 +126,10 @@ function calcHours(record: Partial<RegistroDia>, jornadaSemanal: number) {
   totalMin = Math.max(0, totalMin);
   
   const totalHours = totalMin / 60;
-  const jornadaDiaria = jornadaSemanal / 5;
-  const ordinarias = Math.min(totalHours, jornadaDiaria);
-  const extra = Math.max(0, totalHours - jornadaDiaria);
-  
+  // No daily split — ordinarias/extra are calculated at weekly level
   return {
-    horas_ordinarias: Math.round(ordinarias * 100) / 100,
-    horas_extra: Math.round(extra * 100) / 100,
+    horas_ordinarias: Math.round(totalHours * 100) / 100,
+    horas_extra: 0,
     horas_totales: Math.round(totalHours * 100) / 100,
   };
 }
@@ -487,15 +484,28 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
 
   // Month totals
   const monthTotals = useMemo(() => {
-    let ordinarias = 0, extra = 0, complementarias = 0, vacDays = 0, worked = 0, unsigned = 0;
+    const jornadaSemanal = currentEmpleado?.jornada_diaria_horas || 40;
+    let totalHours = 0, vacDays = 0, worked = 0, unsigned = 0;
     let bajaDays = 0, permisoDays = 0, festivoDays = 0, descansoDays = 0;
+
+    // Group hours by ISO week (Mon-Sun) for weekly extra calculation
+    const weekHoursMap = new Map<string, number>();
+
     for (let d = 1; d <= numDays; d++) {
       const fecha = formatDate(year, month, d);
       const rec = records.get(fecha);
       if (!rec) continue;
-      ordinarias += Number(rec.horas_ordinarias) || 0;
-      extra += Number(rec.horas_extra) || 0;
-      complementarias += Number(rec.horas_complementarias) || 0;
+      const dayHours = Number(rec.horas_totales) || 0;
+      totalHours += dayHours;
+
+      // Determine which week (Monday) this day belongs to
+      const dateObj = new Date(year, month, d);
+      const dow = dateObj.getDay() || 7;
+      const mondayDate = new Date(dateObj);
+      mondayDate.setDate(dateObj.getDate() - dow + 1);
+      const weekKey = `${mondayDate.getFullYear()}-${String(mondayDate.getMonth() + 1).padStart(2, '0')}-${String(mondayDate.getDate()).padStart(2, '0')}`;
+      weekHoursMap.set(weekKey, (weekHoursMap.get(weekKey) || 0) + dayHours);
+
       if (rec.estado === 'vacaciones') vacDays += Number(rec.horas_vacaciones) || 1;
       if (rec.estado === 'baja') bajaDays++;
       if (rec.estado === 'permiso') permisoDays++;
@@ -504,11 +514,20 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
       if (['trabajado', 'teletrabajo'].includes(rec.estado)) worked++;
       if (rec.estado && !rec.firma_data && !isFuture(fecha)) unsigned++;
     }
-    return { ordinarias, extra, complementarias, vacDays, worked, unsigned, bajaDays, permisoDays, festivoDays, descansoDays };
-  }, [records, numDays, year, month, today]);
 
-  // Weekly totals (current week within displayed month)
+    // Calculate ordinarias/extra per week, then sum
+    let ordinarias = 0, extra = 0;
+    for (const [, weekTotal] of weekHoursMap) {
+      ordinarias += Math.min(weekTotal, jornadaSemanal);
+      extra += Math.max(0, weekTotal - jornadaSemanal);
+    }
+
+    return { ordinarias, extra, totalHours, vacDays, worked, unsigned, bajaDays, permisoDays, festivoDays, descansoDays };
+  }, [records, numDays, year, month, today, currentEmpleado]);
+
+  // Weekly totals with ordinarias/extra based on weekly jornada
   const weekTotals = useMemo(() => {
+    const jornadaSemanal = currentEmpleado?.jornada_diaria_horas || 40;
     const now = new Date();
     const dayOfWeek = now.getDay() || 7; // 1=Mon...7=Sun
     const monday = new Date(now);
@@ -523,8 +542,11 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
       const rec = records.get(fecha);
       if (rec) totalHours += Number(rec.horas_totales) || 0;
     }
-    return totalHours;
-  }, [records, month, year]);
+    const ordinarias = Math.min(totalHours, jornadaSemanal);
+    const extra = Math.max(0, totalHours - jornadaSemanal);
+    const restante = Math.max(0, jornadaSemanal - totalHours);
+    return { totalHours, ordinarias, extra, restante, jornadaSemanal };
+  }, [records, month, year, currentEmpleado]);
 
   // Export all employees summary for the month
   const handleExportAllEmployees = useCallback(async () => {
@@ -537,16 +559,29 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
 
       for (const emp of empleados.filter(e => e.activo)) {
         const recs: any[] = await api.getRegistrosHorario(emp.id, start, end);
-        let ordinarias = 0, extra = 0, totales = 0, vacDays = 0, bajaDays = 0, permisoDays = 0, worked = 0, unsigned = 0;
+        let totales = 0, vacDays = 0, bajaDays = 0, permisoDays = 0, worked = 0, unsigned = 0;
+        const weekHoursMap = new Map<string, number>();
         for (const r of recs) {
-          ordinarias += Number(r.horas_ordinarias) || 0;
-          extra += Number(r.horas_extra) || 0;
-          totales += Number(r.horas_totales) || 0;
+          const dayHours = Number(r.horas_totales) || 0;
+          totales += dayHours;
+          // Group by week for weekly extra calc
+          const dateObj = new Date(r.fecha);
+          const dow = dateObj.getDay() || 7;
+          const mondayDate = new Date(dateObj);
+          mondayDate.setDate(dateObj.getDate() - dow + 1);
+          const weekKey = mondayDate.toISOString().split('T')[0];
+          weekHoursMap.set(weekKey, (weekHoursMap.get(weekKey) || 0) + dayHours);
+
           if (r.estado === 'vacaciones') vacDays++;
           if (r.estado === 'baja') bajaDays++;
           if (r.estado === 'permiso') permisoDays++;
           if (['trabajado', 'teletrabajo'].includes(r.estado)) worked++;
           if (r.estado && !r.firma_data) unsigned++;
+        }
+        let ordinarias = 0, extra = 0;
+        for (const [, wt] of weekHoursMap) {
+          ordinarias += Math.min(wt, emp.jornada_diaria_horas || 40);
+          extra += Math.max(0, wt - (emp.jornada_diaria_horas || 40));
         }
         rows.push({
           empleado: emp.nombre_completo,
@@ -822,13 +857,18 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                 <div className="p-3 rounded-lg bg-primary/5">
                   <p className="text-xs text-muted-foreground">Horas esta semana</p>
-                  <p className="text-xl font-bold text-primary">{hoursToHM(weekTotals)}</p>
-                  <p className="text-[10px] text-muted-foreground">Jornada: {currentEmpleado?.jornada_diaria_horas || 40}h/sem</p>
+                  <p className="text-xl font-bold text-primary">{hoursToHM(weekTotals.totalHours)}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {hoursToHM(weekTotals.ordinarias)} ord
+                    {weekTotals.extra > 0 && <span className="text-destructive"> +{hoursToHM(weekTotals.extra)} extra</span>}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {weekTotals.restante > 0 ? `Faltan ${hoursToHM(weekTotals.restante)} de ${weekTotals.jornadaSemanal}h/sem` : `Jornada ${weekTotals.jornadaSemanal}h completada ✅`}
+                  </p>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground">Horas totales (mes)</p>
                   <p className="text-xl font-bold">{hoursToHM(monthTotals.ordinarias + monthTotals.extra)}</p>
-                  <p className="text-[10px] text-muted-foreground">{hoursToHM(monthTotals.ordinarias)} ord + {hoursToHM(monthTotals.extra)} extra</p>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-xs text-muted-foreground">Días trabajados</p>
@@ -999,9 +1039,7 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
                     <div className="flex items-center gap-4 p-3 rounded-lg bg-primary/5 border border-primary/10">
                       <Clock className="w-4 h-4 text-primary" />
                       <div className="flex gap-4 text-sm">
-                        <span><strong className="text-primary">{hoursToHM(liveCalc.horas_totales)}</strong> total</span>
-                        <span className="text-muted-foreground">{hoursToHM(liveCalc.horas_ordinarias)} ord</span>
-                        {liveCalc.horas_extra > 0 && <span className="text-destructive font-medium">+{hoursToHM(liveCalc.horas_extra)} extra</span>}
+                        <span><strong className="text-primary">{hoursToHM(liveCalc.horas_totales)}</strong> trabajadas hoy</span>
                       </div>
                     </div>
                   )}
