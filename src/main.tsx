@@ -15,4 +15,8 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+// Prevent browser auto-translation from mutating portal DOM (Radix Select/Dialog)
+document.documentElement.setAttribute("translate", "no");
+document.body.setAttribute("translate", "no");
+
 createRoot(document.getElementById("root")!).render(<App />);

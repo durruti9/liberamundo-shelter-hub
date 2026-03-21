@@ -87,7 +87,8 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     api.getEmpleadosHorario(albergueId)
       .then(data => {
         const names = (data || []).filter((e: any) => e.activo).map((e: any) => e.nombre_completo);
-        setEmpleadosList([...names, 'Personal externo']);
+        const uniqueNames = Array.from(new Set([...names, 'Personal externo'].filter(Boolean)));
+        setEmpleadosList(uniqueNames);
       })
       .catch(() => {});
   }, [albergueId]);
@@ -392,8 +393,10 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                 ? 'border-border bg-muted/50'
                 : 'border-[hsl(38,92%,70%)] dark:border-[hsl(38,50%,30%)] bg-[hsl(38,92%,95%)] dark:bg-[hsl(38,40%,14%)]';
 
+            const taskKey = tarea.id || `${tarea.fecha}-${tarea.orden}`;
+
             return (
-            <Card key={idx} className={`border transition-colors ${cardBg}`}>
+            <Card key={taskKey} className={`border transition-colors ${cardBg}`}>
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1">
@@ -485,8 +488,8 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                         <Select value={tarea.hechoPor || ''} onValueChange={v => handleUpdateTarea(idx, 'hechoPor', v)} disabled={!taskEditable}>
                           <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
                           <SelectContent>
-                            {empleadosList.map(name => (
-                              <SelectItem key={name} value={name}>{name}</SelectItem>
+                            {empleadosList.map((name, nameIdx) => (
+                              <SelectItem key={`${name}-${nameIdx}`} value={name}>{name}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -648,7 +651,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
 
               return (
                 <button
-                  key={i}
+                  key={dateStr}
                   disabled={future || !inMonth}
                   onClick={() => inMonth && !future && handleSelectDay(dateStr)}
                   className={`
