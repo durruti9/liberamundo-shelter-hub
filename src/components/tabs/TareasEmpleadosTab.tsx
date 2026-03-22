@@ -485,11 +485,12 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                       </div>
                       <div>
                         <label className="text-xs text-muted-foreground">Hecho por</label>
-                        <Select value={tarea.hechoPor || ''} onValueChange={v => handleUpdateTarea(idx, 'hechoPor', v)} disabled={!taskEditable}>
+                        <Select value={tarea.hechoPor && empleadosList.includes(tarea.hechoPor) ? tarea.hechoPor : '__none__'} onValueChange={v => handleUpdateTarea(idx, 'hechoPor', v === '__none__' ? '' : v)} disabled={!taskEditable}>
                           <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
                           <SelectContent>
-                            {empleadosList.map((name, nameIdx) => (
-                              <SelectItem key={`${name}-${nameIdx}`} value={name}>{name}</SelectItem>
+                            <SelectItem value="__none__">Seleccionar...</SelectItem>
+                            {empleadosList.map((name) => (
+                              <SelectItem key={name} value={name}>{name}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
