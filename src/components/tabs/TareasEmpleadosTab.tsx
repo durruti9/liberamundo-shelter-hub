@@ -393,7 +393,7 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
                 ? 'border-border bg-muted/50'
                 : 'border-[hsl(38,92%,70%)] dark:border-[hsl(38,50%,30%)] bg-[hsl(38,92%,95%)] dark:bg-[hsl(38,40%,14%)]';
 
-            const taskKey = tarea.id || `${tarea.fecha}-${tarea.orden}`;
+            const taskKey = tarea.id ? tarea.id : `${tarea.fecha}-${tarea.orden}-${idx}`;
 
             return (
             <Card key={taskKey} className={`border transition-colors ${cardBg}`}>
