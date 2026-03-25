@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { writeFileSync, readFileSync, existsSync, unlinkSync, mkdirSync, readdirSync, statSync } from 'fs';
 import { join, extname } from 'path';
-import { verifyToken } from '../middleware/auth.js';
+import { verifyToken, requireAuth as verifyTokenMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 const MENU_DIR = process.env.MENU_DIR || '/app/data/menus';
