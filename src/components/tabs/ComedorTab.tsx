@@ -117,6 +117,7 @@ export default function ComedorTab({ store, role }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [menuList, setMenuList] = useState<{ index: number; filename: string; displayName: string; uploadedAt: string; size: number }[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const albergueId = currentAlbergue?.id;
 
   const loadMenuInfo = useCallback(() => {
