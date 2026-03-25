@@ -105,7 +105,7 @@ router.get('/:albergueId/download/:menuIndex?', (req, res) => serveMenu(req, res
 router.get('/:albergueId/view/:menuIndex?', (req, res) => serveMenu(req, res, 'inline'));
 
 // Upload menu (adds a new one, doesn't replace all)
-router.post('/:albergueId', (req, res) => {
+router.post('/:albergueId', verifyTokenMiddleware, (req, res) => {
   const albergueId = req.params.albergueId;
   const contentType = req.headers['content-type'] || '';
 
