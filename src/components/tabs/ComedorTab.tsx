@@ -7,7 +7,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { UtensilsCrossed, Clock, Download, Upload, FileText, Trash2, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UtensilsCrossed, Clock, Download, Upload, FileText, Trash2, Plus, Eye } from 'lucide-react';
 import ExportButton from '@/components/ExportButton';
 import { api } from '@/lib/api';
 import { UserRole } from '@/types';
@@ -116,6 +117,7 @@ export default function ComedorTab({ store, role }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [menuList, setMenuList] = useState<{ index: number; filename: string; displayName: string; uploadedAt: string; size: number }[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const albergueId = currentAlbergue?.id;
 
   const loadMenuInfo = useCallback(() => {
@@ -328,6 +330,15 @@ export default function ComedorTab({ store, role }: Props) {
                       {t.menuUploadedAt} {menu.uploadedAt ? formatDistanceToNow(new Date(menu.uploadedAt), { addSuffix: true, locale: es }) : ''}
                     </span>
                     <div className="ml-auto flex items-center gap-1">
+                      {(menu.filename?.endsWith('.pdf') || menu.displayName?.endsWith('.pdf')) && (
+                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => {
+                          const token = localStorage.getItem('authToken');
+                          const url = api.getMenuViewUrl(albergueId!, menu.index) + (token ? `?token=${encodeURIComponent(token)}` : '');
+                          setPreviewUrl(url);
+                        }}>
+                          <Eye className="w-3 h-3" /> Ver
+                        </Button>
+                      )}
                       <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => {
                         const token = localStorage.getItem('authToken');
                         const url = api.getMenuDownloadUrl(albergueId!, menu.index) + (token ? `?token=${encodeURIComponent(token)}` : '');
@@ -470,6 +481,26 @@ export default function ComedorTab({ store, role }: Props) {
           )}
         </CardContent>
       </Card>
+
+      {/* PDF Preview Dialog */}
+      <Dialog open={!!previewUrl} onOpenChange={(open) => { if (!open) setPreviewUrl(null); }}>
+        <DialogContent className="max-w-4xl w-[95vw] h-[85vh] flex flex-col p-0">
+          <DialogHeader className="p-4 pb-2">
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-4 h-4" /> Vista previa del menú
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 min-h-0 px-4 pb-4">
+            {previewUrl && (
+              <iframe
+                src={previewUrl}
+                className="w-full h-full rounded-lg border"
+                title="Vista previa del menú"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
