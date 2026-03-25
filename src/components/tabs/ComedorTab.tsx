@@ -114,13 +114,22 @@ export default function ComedorTab({ store, role }: Props) {
   const { huespedActivos, comedor, updateComedor, currentAlbergue } = store;
   const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [menuInfo, setMenuInfo] = useState<{ exists: boolean; filename?: string; uploadedAt?: string; size?: number } | null>(null);
+  const [menuList, setMenuList] = useState<{ index: number; filename: string; displayName: string; uploadedAt: string; size: number }[]>([]);
   const [uploading, setUploading] = useState(false);
   const albergueId = currentAlbergue?.id;
 
   const loadMenuInfo = useCallback(() => {
     if (!albergueId) return;
-    api.getMenuInfo(albergueId).then(setMenuInfo).catch(() => setMenuInfo({ exists: false }));
+    api.getMenuInfo(albergueId).then((data: any) => {
+      if (data.menus && data.menus.length > 0) {
+        setMenuList(data.menus);
+      } else if (data.exists) {
+        // Legacy single-menu format
+        setMenuList([{ index: 0, filename: data.filename, displayName: data.filename, uploadedAt: data.uploadedAt, size: data.size }]);
+      } else {
+        setMenuList([]);
+      }
+    }).catch(() => setMenuList([]));
   }, [albergueId]);
 
   useEffect(() => { loadMenuInfo(); }, [loadMenuInfo]);
@@ -141,12 +150,12 @@ export default function ComedorTab({ store, role }: Props) {
     }
   };
 
-  const handleDeleteMenu = async () => {
+  const handleDeleteMenu = async (menuIndex: number) => {
     if (!albergueId) return;
     try {
-      await api.deleteMenu(albergueId);
+      await api.deleteMenu(albergueId, menuIndex);
       toast.success(t.menuDeleted);
-      setMenuInfo({ exists: false });
+      loadMenuInfo();
     } catch (err: any) {
       toast.error(err.message);
     }
