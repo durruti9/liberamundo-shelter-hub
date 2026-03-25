@@ -189,6 +189,27 @@ export const api = {
   },
   getMenuDownloadUrl: (albergueId: string, menuIndex: number = 0) => `${API_BASE}/menu/${albergueId}/download/${menuIndex}`,
   getMenuViewUrl: (albergueId: string, menuIndex: number = 0) => `${API_BASE}/menu/${albergueId}/view/${menuIndex}`,
+  fetchMenuFile: async (albergueId: string, menuIndex: number, mode: 'view' | 'download' = 'download') => {
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE}/menu/${albergueId}/${mode}/${menuIndex}`, { headers });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || res.statusText);
+    }
+
+    const blob = await res.blob();
+    const contentDisposition = res.headers.get('content-disposition') || '';
+    const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+
+    return {
+      blob,
+      filename: filenameMatch?.[1] || `menu_${menuIndex}`,
+      contentType: res.headers.get('content-type') || blob.type,
+    };
+  },
   deleteMenu: (albergueId: string, menuIndex?: number) =>
     request<OkResponse>(`/menu/${albergueId}${menuIndex !== undefined ? `/${menuIndex}` : ''}`, { method: 'DELETE' }),
 
