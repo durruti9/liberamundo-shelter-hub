@@ -186,7 +186,7 @@ router.post('/:albergueId', verifyTokenMiddleware, (req, res) => {
 });
 
 // Delete a specific menu by index
-router.delete('/:albergueId/:menuIndex?', (req, res) => {
+router.delete('/:albergueId/:menuIndex?', verifyTokenMiddleware, (req, res) => {
   try {
     if (!existsSync(MENU_DIR)) return res.json({ ok: true });
     const menuIndex = req.params.menuIndex;
