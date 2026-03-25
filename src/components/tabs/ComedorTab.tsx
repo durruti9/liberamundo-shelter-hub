@@ -330,6 +330,15 @@ export default function ComedorTab({ store, role }: Props) {
                       {t.menuUploadedAt} {menu.uploadedAt ? formatDistanceToNow(new Date(menu.uploadedAt), { addSuffix: true, locale: es }) : ''}
                     </span>
                     <div className="ml-auto flex items-center gap-1">
+                      {(menu.filename?.endsWith('.pdf') || menu.displayName?.endsWith('.pdf')) && (
+                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => {
+                          const token = localStorage.getItem('authToken');
+                          const url = api.getMenuViewUrl(albergueId!, menu.index) + (token ? `?token=${encodeURIComponent(token)}` : '');
+                          setPreviewUrl(url);
+                        }}>
+                          <Eye className="w-3 h-3" /> Ver
+                        </Button>
+                      )}
                       <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => {
                         const token = localStorage.getItem('authToken');
                         const url = api.getMenuDownloadUrl(albergueId!, menu.index) + (token ? `?token=${encodeURIComponent(token)}` : '');
