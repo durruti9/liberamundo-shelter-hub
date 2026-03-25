@@ -120,6 +120,12 @@ export default function ComedorTab({ store, role }: Props) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const albergueId = currentAlbergue?.id;
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl?.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
   const loadMenuInfo = useCallback(() => {
     if (!albergueId) return;
     api.getMenuInfo(albergueId).then((data: any) => {
@@ -160,6 +166,37 @@ export default function ComedorTab({ store, role }: Props) {
       loadMenuInfo();
     } catch (err: any) {
       toast.error(err.message);
+    }
+  };
+
+  const handlePreviewMenu = async (menuIndex: number) => {
+    if (!albergueId) return;
+    try {
+      const { blob } = await api.fetchMenuFile(albergueId, menuIndex, 'view');
+      const objectUrl = URL.createObjectURL(blob);
+      setPreviewUrl((previous) => {
+        if (previous?.startsWith('blob:')) URL.revokeObjectURL(previous);
+        return objectUrl;
+      });
+    } catch (err: any) {
+      toast.error(err.message || 'No se pudo abrir el menú');
+    }
+  };
+
+  const handleDownloadMenu = async (menuIndex: number) => {
+    if (!albergueId) return;
+    try {
+      const { blob, filename } = await api.fetchMenuFile(albergueId, menuIndex, 'download');
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (err: any) {
+      toast.error(err.message || 'No se pudo descargar el menú');
     }
   };
 
@@ -331,19 +368,11 @@ export default function ComedorTab({ store, role }: Props) {
                     </span>
                     <div className="ml-auto flex items-center gap-1">
                       {(menu.filename?.endsWith('.pdf') || menu.displayName?.endsWith('.pdf')) && (
-                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => {
-                          const token = localStorage.getItem('authToken');
-                          const url = api.getMenuViewUrl(albergueId!, menu.index) + (token ? `?token=${encodeURIComponent(token)}` : '');
-                          setPreviewUrl(url);
-                        }}>
+                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => void handlePreviewMenu(menu.index)}>
                           <Eye className="w-3 h-3" /> Ver
                         </Button>
                       )}
-                      <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => {
-                        const token = localStorage.getItem('authToken');
-                        const url = api.getMenuDownloadUrl(albergueId!, menu.index) + (token ? `?token=${encodeURIComponent(token)}` : '');
-                        window.open(url, '_blank');
-                      }}>
+                      <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => void handleDownloadMenu(menu.index)}>
                         <Download className="w-3 h-3" /> {t.downloadMenu}
                       </Button>
                       <Button variant="outline" size="sm" className="h-7 text-xs gap-1 text-destructive hover:text-destructive" onClick={() => handleDeleteMenu(menu.index)}>
@@ -483,7 +512,14 @@ export default function ComedorTab({ store, role }: Props) {
       </Card>
 
       {/* PDF Preview Dialog */}
-      <Dialog open={!!previewUrl} onOpenChange={(open) => { if (!open) setPreviewUrl(null); }}>
+      <Dialog open={!!previewUrl} onOpenChange={(open) => {
+        if (!open) {
+          setPreviewUrl((previous) => {
+            if (previous?.startsWith('blob:')) URL.revokeObjectURL(previous);
+            return null;
+          });
+        }
+      }}>
         <DialogContent className="max-w-4xl w-[95vw] h-[85vh] flex flex-col p-0">
           <DialogHeader className="p-4 pb-2">
             <DialogTitle className="flex items-center gap-2">
