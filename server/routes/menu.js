@@ -16,7 +16,7 @@ try {
 }
 
 // Get all menus for an albergue (returns array)
-router.get('/:albergueId', (req, res) => {
+router.get('/:albergueId', verifyTokenMiddleware, (req, res) => {
   try {
     if (!existsSync(MENU_DIR)) return res.json({ exists: false, menus: [] });
     const files = readdirSync(MENU_DIR)
