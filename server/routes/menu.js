@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { writeFileSync, readFileSync, existsSync, unlinkSync, mkdirSync, readdirSync, statSync } from 'fs';
 import { join, extname } from 'path';
-import { verifyToken } from '../middleware/auth.js';
+import { verifyToken, requireAuth as verifyTokenMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 const MENU_DIR = process.env.MENU_DIR || '/app/data/menus';
@@ -16,7 +16,7 @@ try {
 }
 
 // Get all menus for an albergue (returns array)
-router.get('/:albergueId', (req, res) => {
+router.get('/:albergueId', verifyTokenMiddleware, (req, res) => {
   try {
     if (!existsSync(MENU_DIR)) return res.json({ exists: false, menus: [] });
     const files = readdirSync(MENU_DIR)
@@ -105,7 +105,7 @@ router.get('/:albergueId/download/:menuIndex?', (req, res) => serveMenu(req, res
 router.get('/:albergueId/view/:menuIndex?', (req, res) => serveMenu(req, res, 'inline'));
 
 // Upload menu (adds a new one, doesn't replace all)
-router.post('/:albergueId', (req, res) => {
+router.post('/:albergueId', verifyTokenMiddleware, (req, res) => {
   const albergueId = req.params.albergueId;
   const contentType = req.headers['content-type'] || '';
 
@@ -186,7 +186,7 @@ router.post('/:albergueId', (req, res) => {
 });
 
 // Delete a specific menu by index
-router.delete('/:albergueId/:menuIndex?', (req, res) => {
+router.delete('/:albergueId/:menuIndex?', verifyTokenMiddleware, (req, res) => {
   try {
     if (!existsSync(MENU_DIR)) return res.json({ ok: true });
     const menuIndex = req.params.menuIndex;

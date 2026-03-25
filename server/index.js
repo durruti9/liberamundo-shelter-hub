@@ -64,7 +64,7 @@ app.use('/api/board', requireAuth, boardRoutes);
 app.use('/api/users', requireAuth, userRoutes);
 app.use('/api/tareas', requireAuth, tareasRoutes);
 app.use('/api/notas', requireAuth, notasRoutes);
-app.use('/api/menu', requireAuth, menuRoutes);
+app.use('/api/menu', menuRoutes);
 app.use('/api/access-logs', requireAuth, accessLogRoutes);
 app.use('/api/registro-horario', requireAuth, registroHorarioRoutes);
 app.use('/api/inventario', requireAuth, inventarioRoutes);
