@@ -141,13 +141,22 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     return dateStr === todayStr;
   };
 
-  const handleSelectDay = (dateStr: string) => {
+  const handleSelectDay = async (dateStr: string) => {
     if (dateStr > todayStr) return;
     const existing = allTareasDates[dateStr];
     if (existing && existing.length > 0) {
       setTareas(existing.map(t => ({ ...t, adminObs: t.adminObs || '', respuestaEmpleado: t.respuestaEmpleado || '' })));
     } else {
-      setTareas(createBlankDay(dateStr));
+      // First time opening this day: create from template AND persist to DB
+      const blank = createBlankDay(dateStr);
+      setTareas(blank);
+      try {
+        await api.saveTareasDia(albergueId, dateStr, blank);
+        // Update local cache so loadMonth won't overwrite
+        setAllTareasDates(prev => ({ ...prev, [dateStr]: blank }));
+      } catch {
+        // Silent - tasks still work locally
+      }
     }
     setSelectedDate(dateStr);
     setEditingIdx(new Set());
