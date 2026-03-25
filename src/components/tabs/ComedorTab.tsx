@@ -286,55 +286,63 @@ export default function ComedorTab({ store, role }: Props) {
         </div>
       </div>
 
-      {/* Menu upload section */}
       <Card>
         <CardContent className="pt-4 pb-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">{t.currentMenu}:</span>
-            </div>
-            {menuInfo?.exists ? (
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="secondary" className="text-xs">
-                  {menuInfo.filename}
-                </Badge>
-                <span className="text-xs text-muted-foreground">
-                  {t.menuUploadedAt} {menuInfo.uploadedAt ? formatDistanceToNow(new Date(menuInfo.uploadedAt), { addSuffix: true, locale: es }) : ''}
-                </span>
-                <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => {
-                  const token = localStorage.getItem('authToken');
-                  const url = api.getMenuDownloadUrl(albergueId!) + (token ? `?token=${encodeURIComponent(token)}` : '');
-                  window.open(url, '_blank');
-                }}>
-                  <Download className="w-3 h-3" /> {t.downloadMenu}
-                </Button>
-                <Button variant="outline" size="sm" className="h-7 text-xs gap-1 text-destructive hover:text-destructive" onClick={handleDeleteMenu}>
-                  <Trash2 className="w-3 h-3" /> {t.deleteMenu}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">{t.currentMenu}:</span>
+                {menuList.length === 0 && (
+                  <span className="text-xs text-muted-foreground">{t.noMenuUploaded}</span>
+                )}
+              </div>
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.docx,.doc,.xlsx,.jpg,.png"
+                  className="hidden"
+                  onChange={handleUpload}
+                />
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="gap-1"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  <Plus className="w-4 h-4" />
+                  {uploading ? t.uploadingMenu : menuList.length > 0 ? 'Añadir menú' : t.uploadMenu}
                 </Button>
               </div>
-            ) : (
-              <span className="text-xs text-muted-foreground">{t.noMenuUploaded}</span>
-            )}
-            <div className="sm:ml-auto">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,.docx,.doc,.xlsx,.jpg,.png"
-                className="hidden"
-                onChange={handleUpload}
-              />
-              <Button
-                variant="default"
-                size="sm"
-                className="gap-1"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-              >
-                <Upload className="w-4 h-4" />
-                {uploading ? t.uploadingMenu : t.uploadMenu}
-              </Button>
             </div>
+            {menuList.length > 0 && (
+              <div className="space-y-2">
+                {menuList.map((menu) => (
+                  <div key={menu.index} className="flex items-center gap-2 flex-wrap p-2 rounded-lg border bg-muted/30">
+                    <Badge variant="secondary" className="text-xs">
+                      {menu.displayName || menu.filename}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {t.menuUploadedAt} {menu.uploadedAt ? formatDistanceToNow(new Date(menu.uploadedAt), { addSuffix: true, locale: es }) : ''}
+                    </span>
+                    <div className="ml-auto flex items-center gap-1">
+                      <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => {
+                        const token = localStorage.getItem('authToken');
+                        const url = api.getMenuDownloadUrl(albergueId!, menu.index) + (token ? `?token=${encodeURIComponent(token)}` : '');
+                        window.open(url, '_blank');
+                      }}>
+                        <Download className="w-3 h-3" /> {t.downloadMenu}
+                      </Button>
+                      <Button variant="outline" size="sm" className="h-7 text-xs gap-1 text-destructive hover:text-destructive" onClick={() => handleDeleteMenu(menu.index)}>
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
