@@ -86,8 +86,10 @@ export default function BoardPanel({ title, icon, tipo, messages, role, onAdd, o
 
   const IconComponent = icon === 'instructions' ? ClipboardList : MessageSquareText;
 
+  const hasActiveMessages = pendingCount > 0;
+
   return (
-    <Card className="flex flex-col">
+    <Card className={`flex flex-col transition-all ${hasActiveMessages ? 'ring-2 ring-primary/40 shadow-lg shadow-primary/10 bg-primary/[0.03] dark:bg-primary/[0.06]' : ''}`}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

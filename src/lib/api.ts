@@ -187,9 +187,9 @@ export const api = {
     }
     return res.json();
   },
-  getMenuDownloadUrl: (albergueId: string) => `${API_BASE}/menu/${albergueId}/download`,
-  deleteMenu: (albergueId: string) =>
-    request<OkResponse>(`/menu/${albergueId}`, { method: 'DELETE' }),
+  getMenuDownloadUrl: (albergueId: string, menuIndex: number = 0) => `${API_BASE}/menu/${albergueId}/download/${menuIndex}`,
+  deleteMenu: (albergueId: string, menuIndex?: number) =>
+    request<OkResponse>(`/menu/${albergueId}${menuIndex !== undefined ? `/${menuIndex}` : ''}`, { method: 'DELETE' }),
 
   // Llegadas
   getLlegadas: (albergueId: string) => request<Any[]>(`/llegadas/${albergueId}`),

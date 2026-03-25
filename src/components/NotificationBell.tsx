@@ -57,7 +57,7 @@ export default function NotificationBell({ albergueId, role, onNavigate }: Props
         }
       });
 
-      // Check board messages
+      // Check board messages — also notify about existing unresolved ones
       const messages = await api.getBoardMessages(albergueId);
       messages.forEach((m: any) => {
         if (!knownIdsRef.current.has(`board-${m.id}`)) {
@@ -88,6 +88,31 @@ export default function NotificationBell({ albergueId, role, onNavigate }: Props
           });
         }
       });
+
+      // On first load, add persistent notifications for unresolved board messages
+      if (!initializedRef.current) {
+        const unresolvedBoard = messages.filter((m: any) => !m.resuelta);
+        if (unresolvedBoard.length > 0) {
+          const instrCount = unresolvedBoard.filter((m: any) => m.tipo === 'instrucciones').length;
+          const petCount = unresolvedBoard.filter((m: any) => m.tipo === 'peticiones').length;
+          if (instrCount > 0) {
+            newNotifs.push({
+              id: 'board-pending-instr',
+              type: 'board',
+              text: `${instrCount} instrucción${instrCount > 1 ? 'es' : ''} pendiente${instrCount > 1 ? 's' : ''}`,
+              time: new Date().toISOString(),
+            });
+          }
+          if (petCount > 0) {
+            newNotifs.push({
+              id: 'board-pending-pet',
+              type: 'board',
+              text: `${petCount} petición${petCount > 1 ? 'es' : ''} pendiente${petCount > 1 ? 's' : ''}`,
+              time: new Date().toISOString(),
+            });
+          }
+        }
+      }
 
       // Check sugerencias (admin only)
       if (role === 'admin') {

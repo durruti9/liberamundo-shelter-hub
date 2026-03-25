@@ -117,6 +117,22 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
 
   useEffect(() => { loadMonth(); }, [loadMonth]);
 
+  // Sync displayed tareas when allTareasDates updates for the selected date
+  useEffect(() => {
+    if (!selectedDate) return;
+    const updated = allTareasDates[selectedDate];
+    if (updated && updated.length > 0) {
+      setTareas(prev => {
+        // Only sync if the data actually changed (avoid infinite loops)
+        const prevIds = prev.map(t => `${t.orden}-${t.estado}-${t.hechoPor}-${t.observacion}`).join('|');
+        const newItems = updated.map(t => ({ ...t, adminObs: t.adminObs || '', respuestaEmpleado: t.respuestaEmpleado || '' }));
+        const newIds = newItems.map(t => `${t.orden}-${t.estado}-${t.hechoPor}-${t.observacion}`).join('|');
+        if (prevIds === newIds) return prev;
+        return newItems;
+      });
+    }
+  }, [allTareasDates, selectedDate]);
+
   const todayStr = format(new Date(), 'yyyy-MM-dd');
 
   const canEditDate = (dateStr: string): boolean => {
