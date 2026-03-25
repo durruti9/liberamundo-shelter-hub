@@ -188,6 +188,7 @@ export const api = {
     return res.json();
   },
   getMenuDownloadUrl: (albergueId: string, menuIndex: number = 0) => `${API_BASE}/menu/${albergueId}/download/${menuIndex}`,
+  getMenuViewUrl: (albergueId: string, menuIndex: number = 0) => `${API_BASE}/menu/${albergueId}/view/${menuIndex}`,
   deleteMenu: (albergueId: string, menuIndex?: number) =>
     request<OkResponse>(`/menu/${albergueId}${menuIndex !== undefined ? `/${menuIndex}` : ''}`, { method: 'DELETE' }),
 

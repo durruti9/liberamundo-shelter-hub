@@ -53,8 +53,8 @@ router.get('/:albergueId', (req, res) => {
   }
 });
 
-// Download a specific menu by index
-router.get('/:albergueId/download/:menuIndex?', (req, res) => {
+// Serve a specific menu by index (shared logic)
+function serveMenu(req, res, disposition) {
   try {
     const authHeader = req.headers.authorization;
     const queryToken = req.query.token;
@@ -73,9 +73,7 @@ router.get('/:albergueId/download/:menuIndex?', (req, res) => {
     const menuIndex = req.params.menuIndex || '0';
     const files = readdirSync(MENU_DIR).filter(f => f.startsWith(`${req.params.albergueId}_menu`)).sort();
     
-    // Find by index
     const targetFile = files.find(f => f.includes(`_menu_${menuIndex}`));
-    // Fallback: if no indexed file, try legacy format (first file)
     const filename = targetFile || (menuIndex === '0' ? files[0] : null);
     
     if (!filename) return res.status(404).json({ error: 'No menu found' });
@@ -93,12 +91,18 @@ router.get('/:albergueId/download/:menuIndex?', (req, res) => {
     const filePath = join(MENU_DIR, filename);
     const content = readFileSync(filePath);
     res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
-    res.setHeader('Content-Disposition', `attachment; filename="menu_${menuIndex}${ext}"`);
+    res.setHeader('Content-Disposition', `${disposition}; filename="menu_${menuIndex}${ext}"`);
     res.send(content);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+}
+
+// Download a specific menu by index
+router.get('/:albergueId/download/:menuIndex?', (req, res) => serveMenu(req, res, 'attachment'));
+
+// View a specific menu inline (for PDF preview)
+router.get('/:albergueId/view/:menuIndex?', (req, res) => serveMenu(req, res, 'inline'));
 
 // Upload menu (adds a new one, doesn't replace all)
 router.post('/:albergueId', (req, res) => {
