@@ -15,31 +15,47 @@ try {
   console.warn('⚠️ Could not create menu directory:', e.message);
 }
 
-// Get current menu info for an albergue
+// Get all menus for an albergue (returns array)
 router.get('/:albergueId', (req, res) => {
   try {
-    if (!existsSync(MENU_DIR)) return res.json({ exists: false });
-    const files = readdirSync(MENU_DIR).filter(f => f.startsWith(`${req.params.albergueId}_menu`));
-    if (files.length === 0) return res.json({ exists: false });
+    if (!existsSync(MENU_DIR)) return res.json({ exists: false, menus: [] });
+    const files = readdirSync(MENU_DIR)
+      .filter(f => f.startsWith(`${req.params.albergueId}_menu`))
+      .sort();
+    if (files.length === 0) return res.json({ exists: false, menus: [] });
 
-    const filename = files[0];
-    const ext = extname(filename);
-    const stats = statSync(join(MENU_DIR, filename));
+    const menus = files.map(filename => {
+      const ext = extname(filename);
+      const stats = statSync(join(MENU_DIR, filename));
+      // Extract index from filename: albergueId_menu_0.pdf -> 0
+      const idxMatch = filename.match(/_menu_(\d+)/);
+      const index = idxMatch ? parseInt(idxMatch[1]) : 0;
+      return {
+        index,
+        filename: filename.replace(`${req.params.albergueId}_`, ''),
+        displayName: `menu${ext}`,
+        uploadedAt: stats.mtime.toISOString(),
+        size: stats.size,
+      };
+    });
+
+    // Backward compat: also return first menu info as top-level fields
+    const first = menus[0];
     res.json({
       exists: true,
-      filename: `menu${ext}`,
-      uploadedAt: stats.mtime.toISOString(),
-      size: stats.size,
+      filename: first.displayName,
+      uploadedAt: first.uploadedAt,
+      size: first.size,
+      menus,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Download current menu — supports token via query param for direct links
-router.get('/:albergueId/download', (req, res) => {
+// Download a specific menu by index
+router.get('/:albergueId/download/:menuIndex?', (req, res) => {
   try {
-    // Verify auth: header OR query param
     const authHeader = req.headers.authorization;
     const queryToken = req.query.token;
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : queryToken;
@@ -54,10 +70,16 @@ router.get('/:albergueId/download', (req, res) => {
       return res.status(401).json({ error: 'Token inválido o expirado' });
     }
 
-    const files = readdirSync(MENU_DIR).filter(f => f.startsWith(`${req.params.albergueId}_menu`));
-    if (files.length === 0) return res.status(404).json({ error: 'No menu found' });
+    const menuIndex = req.params.menuIndex || '0';
+    const files = readdirSync(MENU_DIR).filter(f => f.startsWith(`${req.params.albergueId}_menu`)).sort();
+    
+    // Find by index
+    const targetFile = files.find(f => f.includes(`_menu_${menuIndex}`));
+    // Fallback: if no indexed file, try legacy format (first file)
+    const filename = targetFile || (menuIndex === '0' ? files[0] : null);
+    
+    if (!filename) return res.status(404).json({ error: 'No menu found' });
 
-    const filename = files[0];
     const ext = extname(filename);
     const mimeTypes = {
       '.pdf': 'application/pdf',
@@ -71,14 +93,14 @@ router.get('/:albergueId/download', (req, res) => {
     const filePath = join(MENU_DIR, filename);
     const content = readFileSync(filePath);
     res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
-    res.setHeader('Content-Disposition', `attachment; filename="menu${ext}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="menu_${menuIndex}${ext}"`);
     res.send(content);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Upload menu (replaces previous)
+// Upload menu (adds a new one, doesn't replace all)
 router.post('/:albergueId', (req, res) => {
   const albergueId = req.params.albergueId;
   const contentType = req.headers['content-type'] || '';
@@ -113,17 +135,37 @@ router.post('/:albergueId', (req, res) => {
         mkdirSync(MENU_DIR, { recursive: true });
       }
 
+      // Find next available index
       const existing = readdirSync(MENU_DIR).filter(f => f.startsWith(`${albergueId}_menu`));
-      existing.forEach(f => unlinkSync(join(MENU_DIR, f)));
+      let nextIndex = 0;
+      existing.forEach(f => {
+        const m = f.match(/_menu_(\d+)/);
+        if (m) nextIndex = Math.max(nextIndex, parseInt(m[1]) + 1);
+      });
+      // If there are legacy files without index, rename them first
+      existing.forEach(f => {
+        if (!f.match(/_menu_\d+/)) {
+          const legacyExt = extname(f);
+          const newName = `${albergueId}_menu_0${legacyExt}`;
+          const oldPath = join(MENU_DIR, f);
+          const newPath = join(MENU_DIR, newName);
+          if (!existsSync(newPath)) {
+            writeFileSync(newPath, readFileSync(oldPath));
+            unlinkSync(oldPath);
+          }
+          nextIndex = Math.max(nextIndex, 1);
+        }
+      });
 
-      const newFilename = `${albergueId}_menu${ext}`;
+      const newFilename = `${albergueId}_menu_${nextIndex}${ext}`;
       writeFileSync(join(MENU_DIR, newFilename), filePart.data);
 
       console.log(`✅ Menu uploaded: ${newFilename} (${filePart.data.length} bytes)`);
 
       res.json({
         ok: true,
-        filename: `menu${ext}`,
+        index: nextIndex,
+        filename: `menu_${nextIndex}${ext}`,
         uploadedAt: new Date().toISOString(),
         size: filePart.data.length,
       });
@@ -139,12 +181,23 @@ router.post('/:albergueId', (req, res) => {
   });
 });
 
-// Delete menu
-router.delete('/:albergueId', (req, res) => {
+// Delete a specific menu by index
+router.delete('/:albergueId/:menuIndex?', (req, res) => {
   try {
     if (!existsSync(MENU_DIR)) return res.json({ ok: true });
-    const files = readdirSync(MENU_DIR).filter(f => f.startsWith(`${req.params.albergueId}_menu`));
-    files.forEach(f => unlinkSync(join(MENU_DIR, f)));
+    const menuIndex = req.params.menuIndex;
+    
+    if (menuIndex !== undefined) {
+      // Delete specific menu
+      const files = readdirSync(MENU_DIR).filter(f => 
+        f.startsWith(`${req.params.albergueId}_menu`) && f.includes(`_menu_${menuIndex}`)
+      );
+      files.forEach(f => unlinkSync(join(MENU_DIR, f)));
+    } else {
+      // Delete all menus for this albergue
+      const files = readdirSync(MENU_DIR).filter(f => f.startsWith(`${req.params.albergueId}_menu`));
+      files.forEach(f => unlinkSync(join(MENU_DIR, f)));
+    }
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
