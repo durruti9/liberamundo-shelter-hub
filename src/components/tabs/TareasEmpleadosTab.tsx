@@ -176,8 +176,11 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     // Immediate save for estado changes (locks the card) - single task upsert
     if (field === 'estado') {
       api.saveTareaSingle(albergueId, selectedDate, tarea.orden, tarea)
-        .then(() => loadMonth())
-        .then(() => toast.success('Guardado'))
+        .then(() => {
+          // Update local cache without full reload to avoid overwriting unsaved template tasks
+          setAllTareasDates(prev => ({ ...prev, [selectedDate!]: updated }));
+          toast.success('Guardado');
+        })
         .catch(() => toast.error('Error al guardar'));
       return;
     }
@@ -186,7 +189,9 @@ export default function TareasEmpleadosTab({ role, albergueId }: Props) {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
       api.saveTareaSingle(albergueId, selectedDate, tarea.orden, tarea)
-        .then(() => loadMonth())
+        .then(() => {
+          setAllTareasDates(prev => ({ ...prev, [selectedDate!]: updated }));
+        })
         .catch(() => toast.error('Error al guardar'));
     }, 800);
   };
