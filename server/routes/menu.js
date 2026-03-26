@@ -18,6 +18,12 @@ try {
 // Get all menus for an albergue (returns array)
 router.get('/:albergueId', verifyTokenMiddleware, (req, res) => {
   try {
+    const requestedMode = typeof req.query.mode === 'string' ? req.query.mode : '';
+    const wantsFile = req.query.raw === '1' || req.query.file === '1';
+    if (wantsFile && (requestedMode === 'view' || requestedMode === 'download')) {
+      return serveMenu(req, res, requestedMode === 'download' ? 'attachment' : 'inline');
+    }
+
     if (!existsSync(MENU_DIR)) return res.json({ exists: false, menus: [] });
     const files = readdirSync(MENU_DIR)
       .filter(f => f.startsWith(`${req.params.albergueId}_menu`))
@@ -70,7 +76,7 @@ function serveMenu(req, res, disposition) {
       return res.status(401).json({ error: 'Token inválido o expirado' });
     }
 
-    const menuIndex = req.params.menuIndex || '0';
+    const menuIndex = String(req.params.menuIndex ?? req.query.menuIndex ?? '0');
     const files = readdirSync(MENU_DIR).filter(f => f.startsWith(`${req.params.albergueId}_menu`)).sort();
     
     const targetFile = files.find(f => f.includes(`_menu_${menuIndex}`));

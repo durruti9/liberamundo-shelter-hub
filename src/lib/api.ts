@@ -187,28 +187,53 @@ export const api = {
     }
     return res.json();
   },
-  getMenuDownloadUrl: (albergueId: string, menuIndex: number = 0) => `${API_BASE}/menu/${albergueId}/download/${menuIndex}`,
-  getMenuViewUrl: (albergueId: string, menuIndex: number = 0) => `${API_BASE}/menu/${albergueId}/view/${menuIndex}`,
+  getMenuDownloadUrl: (albergueId: string, menuIndex: number = 0) => `${API_BASE}/menu/${encodeURIComponent(albergueId)}?raw=1&mode=download&menuIndex=${menuIndex}`,
+  getMenuViewUrl: (albergueId: string, menuIndex: number = 0) => `${API_BASE}/menu/${encodeURIComponent(albergueId)}?raw=1&mode=view&menuIndex=${menuIndex}`,
   fetchMenuFile: async (albergueId: string, menuIndex: number, mode: 'view' | 'download' = 'download') => {
     const token = getToken();
     const headers: Record<string, string> = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await fetch(`${API_BASE}/menu/${albergueId}/${mode}/${menuIndex}`, { headers });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: res.statusText }));
-      throw new Error(err.error || res.statusText);
+    const encodedAlbergueId = encodeURIComponent(albergueId);
+    const endpoints = [
+      `${API_BASE}/menu/${encodedAlbergueId}?raw=1&mode=${mode}&menuIndex=${menuIndex}`,
+      `${API_BASE}/menu/${encodedAlbergueId}/${mode}/${menuIndex}`,
+    ];
+
+    let lastError: Error | null = null;
+
+    for (const endpoint of endpoints) {
+      const res = await fetch(endpoint, {
+        headers: {
+          ...headers,
+          Accept: 'application/pdf,application/octet-stream,*/*',
+        },
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: res.statusText }));
+        lastError = new Error(err.error || res.statusText);
+        continue;
+      }
+
+      const contentType = (res.headers.get('content-type') || '').toLowerCase();
+      if (contentType.includes('text/html')) {
+        lastError = new Error('El servidor devolvió HTML en lugar del archivo del menú. Revisa el proxy de /api en tu VPS.');
+        continue;
+      }
+
+      const blob = await res.blob();
+      const contentDisposition = res.headers.get('content-disposition') || '';
+      const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+
+      return {
+        blob,
+        filename: filenameMatch?.[1] || `menu_${menuIndex}`,
+        contentType: res.headers.get('content-type') || blob.type,
+      };
     }
 
-    const blob = await res.blob();
-    const contentDisposition = res.headers.get('content-disposition') || '';
-    const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
-
-    return {
-      blob,
-      filename: filenameMatch?.[1] || `menu_${menuIndex}`,
-      contentType: res.headers.get('content-type') || blob.type,
-    };
+    throw lastError || new Error('No se pudo obtener el archivo del menú');
   },
   deleteMenu: (albergueId: string, menuIndex?: number) =>
     request<OkResponse>(`/menu/${albergueId}${menuIndex !== undefined ? `/${menuIndex}` : ''}`, { method: 'DELETE' }),
