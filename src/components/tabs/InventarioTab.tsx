@@ -126,7 +126,12 @@ export default function InventarioTab({ role, albergueId }: Props) {
 
   const loadedRef = useRef(false);
 
+  // Track if a local operation is in-flight to avoid overwriting optimistic updates
+  const pendingOpsRef = useRef(0);
+
   const loadData = useCallback(async () => {
+    // Skip background refresh while user has pending operations
+    if (pendingOpsRef.current > 0) return;
     try {
       const [cats, itms] = await Promise.all([
         api.getInventarioCategorias(albergueId),
