@@ -144,7 +144,14 @@ export default function InventarioTab({ role, albergueId }: Props) {
     }
   }, [albergueId]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+    // Auto-refresh every 15 seconds to keep all users in sync
+    const interval = setInterval(() => {
+      loadData();
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [loadData]);
 
   const filteredItems = items.filter(i => {
     if (selectedCategory !== 'all' && i.categoria_id !== selectedCategory) return false;
