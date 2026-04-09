@@ -125,9 +125,12 @@ export default function InventarioTab({ role, albergueId }: Props) {
   const canManage = role === 'admin' || role === 'personal_albergue';
 
   const loadedRef = useRef(false);
+  const lastAlbergueRef = useRef(albergueId);
 
   // Track if a local operation is in-flight to avoid overwriting optimistic updates
   const pendingOpsRef = useRef(0);
+  // Track items currently being updated to prevent double-clicks
+  const updatingItemsRef = useRef(new Set<string>());
 
   const loadData = useCallback(async () => {
     // Skip background refresh while user has pending operations
@@ -146,6 +149,17 @@ export default function InventarioTab({ role, albergueId }: Props) {
         setCategories(MOCK_CATEGORIES);
         setItems(MOCK_ITEMS);
       }
+    }
+  }, [albergueId]);
+
+  // Reset state when switching albergue
+  useEffect(() => {
+    if (lastAlbergueRef.current !== albergueId) {
+      loadedRef.current = false;
+      lastAlbergueRef.current = albergueId;
+      setItems([]);
+      setCategories([]);
+      setLocalMovements([]);
     }
   }, [albergueId]);
 
