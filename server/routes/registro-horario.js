@@ -360,6 +360,21 @@ router.get('/auditoria/:albergueId', requireAlbergueAccess(), async (req, res) =
 
 router.post('/auditoria', async (req, res) => {
   try {
+    const user = req.user;
+    if (!user) return res.status(401).json({ error: 'No autenticado' });
+
+    // Verify access to employee's albergue
+    if (user.role !== 'admin') {
+      const { rows: empRows } = await pool.query('SELECT albergue_id FROM empleados_horario WHERE id = $1', [req.body.empleado_id]);
+      if (empRows.length > 0) {
+        const { rows: access } = await pool.query(
+          'SELECT 1 FROM user_albergues WHERE user_email = $1 AND albergue_id = $2',
+          [user.email, empRows[0].albergue_id]
+        );
+        if (access.length === 0) return res.status(403).json({ error: 'Sin acceso' });
+      }
+    }
+
     const { empleado_id, empleado_nombre, fecha_registro, campo_modificado, valor_anterior, valor_nuevo, modificado_por } = req.body;
     await pool.query(
       `INSERT INTO auditoria_registros (empleado_id, empleado_nombre, fecha_registro, campo_modificado, valor_anterior, valor_nuevo, modificado_por)

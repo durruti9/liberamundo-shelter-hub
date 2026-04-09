@@ -90,6 +90,17 @@ router.post('/:id/comment', async (req, res) => {
     const user = req.user;
     if (!user) return res.status(401).json({ error: 'No autenticado' });
 
+    // Verify user has access to the incidencia's albergue
+    const { rows: incRows } = await pool.query('SELECT albergue_id FROM incidencias WHERE id = $1', [req.params.id]);
+    if (incRows.length === 0) return res.status(404).json({ error: 'Incidencia no encontrada' });
+    if (user.role !== 'admin') {
+      const { rows: access } = await pool.query(
+        'SELECT 1 FROM user_albergues WHERE user_email = $1 AND albergue_id = $2',
+        [user.email, incRows[0].albergue_id]
+      );
+      if (access.length === 0) return res.status(403).json({ error: 'Sin acceso a este albergue' });
+    }
+
     const { autor, texto } = req.body;
     if (!texto || !texto.trim()) return res.status(400).json({ error: 'Texto requerido' });
 
