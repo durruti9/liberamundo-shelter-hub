@@ -280,6 +280,10 @@ export default function InventarioTab({ role, albergueId }: Props) {
   };
 
   const handleQuickMovement = async (item: Item, tipo: 'entrada' | 'salida') => {
+    // Prevent concurrent operations on the same item
+    if (updatingItemsRef.current.has(item.id)) return;
+    updatingItemsRef.current.add(item.id);
+
     const previousStock = item.stock_actual;
     const delta = tipo === 'entrada' ? 1 : -1;
     const newStock = Math.max(0, previousStock + delta);
@@ -303,6 +307,7 @@ export default function InventarioTab({ role, albergueId }: Props) {
       toast.error('Error al actualizar stock');
     } finally {
       pendingOpsRef.current--;
+      updatingItemsRef.current.delete(item.id);
     }
   };
 
