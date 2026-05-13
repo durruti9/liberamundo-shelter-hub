@@ -416,15 +416,18 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
     const existingRecord = records.get(editingDay.fecha);
     const isPastDayModification = isEditingPastDay && !isAdmin && existingRecord?.estado;
     
-    // Admin creating/editing a record → mark as pending employee confirmation
+    // Admin creating/editing a record → mark as pending employee confirmation,
+    // EXCEPT for vacations: per policy, when the admin marks vacation days
+    // they count immediately without needing the employee's signature.
     const adminCreating = isAdmin;
+    const skipApproval = adminCreating && isVac;
     
     const updated: RegistroDia = {
       ...editingDay,
       ...hours,
       horas_vacaciones: isVac ? editingDay.horas_vacaciones || 1 : 0,
-      pendiente_aprobacion: adminCreating ? true : (isPastDayModification ? true : editingDay.pendiente_aprobacion),
-      aprobado: adminCreating ? false : (isPastDayModification ? false : (isEditingPastDay ? editingDay.aprobado : false)),
+      pendiente_aprobacion: skipApproval ? false : (adminCreating ? true : (isPastDayModification ? true : editingDay.pendiente_aprobacion)),
+      aprobado: skipApproval ? true : (adminCreating ? false : (isPastDayModification ? false : (isEditingPastDay ? editingDay.aprobado : false))),
       creado_por_admin: adminCreating ? true : (editingDay.creado_por_admin || false),
       fecha_original_fichada: editingDay.fecha_original_fichada || (existingRecord ? null : new Date().toISOString().split('T')[0]),
     };
@@ -436,7 +439,9 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
     }
     
     setShowDayModal(false);
-    if (adminCreating) {
+    if (skipApproval) {
+      toast.success('Vacaciones registradas');
+    } else if (adminCreating) {
       toast.info('Registro creado. Pendiente de confirmación del empleado.');
     } else if (isPastDayModification) {
       toast.info('Modificación enviada. Requiere aprobación del administrador.');
