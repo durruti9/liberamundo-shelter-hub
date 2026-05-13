@@ -249,12 +249,27 @@ export default function RegistroHorarioTab({ role, albergueId, userEmail }: Prop
     setLoading(false);
   }, [selectedEmpleado, year, month]);
 
-  // Load vacation balance
+  // Load vacation balance — always recompute consumed from the actual
+  // yearly records (Jan-Dec) so the badge stays accurate even if the
+  // stored saldo is stale or another user added/removed vacations.
   const loadVacaciones = useCallback(async () => {
     if (!selectedEmpleado) return;
     try {
       const data = await api.getVacacionesSaldo(selectedEmpleado, year);
-      setVacSaldo({ asignadas: data.asignadas || 22, consumidas: Number(data.consumidas) || 0 });
+      const asignadas = Number(data.asignadas) || 22;
+      const start = `${year}-01-01`;
+      const end = `${year}-12-31`;
+      let consumed = Number(data.consumidas) || 0;
+      try {
+        const allRecs = await api.getRegistrosHorario(selectedEmpleado, start, end);
+        consumed = allRecs
+          .filter((r: any) => r.estado === 'vacaciones')
+          .reduce((sum: number, r: any) => sum + (Number(r.horas_vacaciones) || 1), 0);
+        if (consumed !== Number(data.consumidas)) {
+          api.updateVacacionesSaldo(selectedEmpleado, year, { asignadas, consumidas: consumed }).catch(() => {});
+        }
+      } catch { /* fall back to stored value */ }
+      setVacSaldo({ asignadas, consumidas: consumed });
     } catch { /* API not available */ }
   }, [selectedEmpleado, year]);
 
