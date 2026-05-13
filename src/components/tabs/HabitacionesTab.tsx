@@ -40,8 +40,20 @@ export default function HabitacionesTab({ store, role }: Props) {
 
   const canManage = role === 'admin' || role === 'gestor';
 
-  const ocupadas = huespedActivos.length;
-  const libres = totalCamas - ocupadas;
+  // Compute occupied vs free based on the actual current rooms (avoids
+  // counting guests assigned to beds that no longer exist in this albergue).
+  const { ocupadas, libres } = useMemo(() => {
+    const occupiedSet = new Set(huespedActivos.map(h => `${h.habitacion}-${h.cama}`));
+    let occ = 0;
+    let total = 0;
+    for (const room of rooms) {
+      for (let i = 1; i <= room.camas; i++) {
+        total++;
+        if (occupiedSet.has(`${room.id}-${i}`)) occ++;
+      }
+    }
+    return { ocupadas: occ, libres: Math.max(0, total - occ) };
+  }, [huespedActivos, rooms]);
   const porcentaje = totalCamas > 0 ? Math.round((ocupadas / totalCamas) * 100) : 0;
 
   const dietStats = useMemo(() => {
