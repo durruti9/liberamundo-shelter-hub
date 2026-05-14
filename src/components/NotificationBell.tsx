@@ -89,30 +89,9 @@ export default function NotificationBell({ albergueId, role, onNavigate }: Props
         }
       });
 
-      // On first load, add persistent notifications for unresolved board messages
-      if (!initializedRef.current) {
-        const unresolvedBoard = messages.filter((m: any) => !m.resuelta);
-        if (unresolvedBoard.length > 0) {
-          const instrCount = unresolvedBoard.filter((m: any) => m.tipo === 'instrucciones').length;
-          const petCount = unresolvedBoard.filter((m: any) => m.tipo === 'peticiones').length;
-          if (instrCount > 0) {
-            newNotifs.push({
-              id: 'board-pending-instr',
-              type: 'board',
-              text: `${instrCount} instrucción${instrCount > 1 ? 'es' : ''} pendiente${instrCount > 1 ? 's' : ''}`,
-              time: new Date().toISOString(),
-            });
-          }
-          if (petCount > 0) {
-            newNotifs.push({
-              id: 'board-pending-pet',
-              type: 'board',
-              text: `${petCount} petición${petCount > 1 ? 'es' : ''} pendiente${petCount > 1 ? 's' : ''}`,
-              time: new Date().toISOString(),
-            });
-          }
-        }
-      }
+      // Note: we no longer add persistent notifications for existing
+      // unresolved board messages on first load — the bell should only
+      // alert about NEW activity, not items already visible in the dashboard.
 
       // Check sugerencias (admin only)
       if (role === 'admin') {

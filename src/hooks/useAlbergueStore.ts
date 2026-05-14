@@ -370,7 +370,21 @@ export function useAlbergueStore(albergueId: string = 'default') {
     return newComment;
   }, [useApi]);
 
-  const huespedActivos = useMemo(() => huespedes.filter(h => h.activo), [huespedes]);
+  const huespedActivos = useMemo(() => {
+    const activos = huespedes.filter(h => h.activo);
+    // Dedupe: same id can appear twice if a record was duplicated; also ensure
+    // a single bed (habitacion+cama) is not occupied by two different active
+    // huéspedes at once (keep the most recent fechaEntrada).
+    const byId = new Map<string, typeof activos[number]>();
+    for (const h of activos) byId.set(h.id, h);
+    const byBed = new Map<string, typeof activos[number]>();
+    for (const h of byId.values()) {
+      const key = `${h.habitacion}-${h.cama}`;
+      const prev = byBed.get(key);
+      if (!prev || (h.fechaEntrada || '') >= (prev.fechaEntrada || '')) byBed.set(key, h);
+    }
+    return Array.from(byBed.values());
+  }, [huespedes]);
 
   const getOccupant = useCallback((habitacion: string, cama: number) => {
     return huespedActivos.find(h => h.habitacion === habitacion && h.cama === cama);

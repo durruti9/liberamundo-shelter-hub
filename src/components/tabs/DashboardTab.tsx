@@ -27,7 +27,7 @@ const COLORS = [
 
 export default function DashboardTab({ store, role = 'personal_albergue', onNavigate }: Props) {
   const nav = (tab: string) => onNavigate?.(tab);
-  const { huespedActivos, huespedes, totalCamas, incidencias, llegadas, boardMessages, addBoardMessage, addBoardReply, resolveBoardMessage, deleteBoardMessage } = store;
+  const { huespedActivos, huespedes, totalCamas, rooms, incidencias, llegadas, boardMessages, addBoardMessage, addBoardReply, resolveBoardMessage, deleteBoardMessage } = store;
   const { t } = useI18n();
   const isAdmin = role === 'admin';
 
@@ -83,7 +83,18 @@ export default function DashboardTab({ store, role = 'personal_albergue', onNavi
       .catch(() => {});
   }, [isAdmin, store.currentAlbergue?.id]);
 
-  const ocupadas = huespedActivos.length;
+  // Count occupancy against actual existing beds, ignoring active guests
+  // assigned to beds that no longer exist in this albergue (matches HabitacionesTab).
+  const ocupadas = useMemo(() => {
+    const occupiedSet = new Set(huespedActivos.map(h => `${h.habitacion}-${h.cama}`));
+    let occ = 0;
+    for (const room of rooms) {
+      for (let i = 1; i <= room.camas; i++) {
+        if (occupiedSet.has(`${room.id}-${i}`)) occ++;
+      }
+    }
+    return occ;
+  }, [huespedActivos, rooms]);
   const porcentaje = totalCamas > 0 ? Math.round((ocupadas / totalCamas) * 100) : 0;
 
   const avgStay = useMemo(() => {
