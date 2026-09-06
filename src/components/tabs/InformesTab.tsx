@@ -8,6 +8,8 @@ import { BarChart3, Users, TrendingUp, Globe, Clock, BedDouble, UtensilsCrossed,
 import { UserRole } from '@/types';
 import ExportButton from '@/components/ExportButton';
 import ChartTooltip from '@/components/ChartTooltip';
+import { groupNormalized } from '@/lib/textNormalize';
+
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
