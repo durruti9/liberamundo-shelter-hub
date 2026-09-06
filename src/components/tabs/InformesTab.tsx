@@ -54,18 +54,12 @@ export default function InformesTab({ store, role }: Props) {
     return data;
   }, [huespedes, totalCamas, period]);
 
-  // --- Nationality distribution ---
-  const nationalityData = useMemo(() => {
-    const counts: Record<string, number> = {};
-    huespedes.forEach(h => {
-      const nat = h.nacionalidad || 'Sin especificar';
-      counts[nat] = (counts[nat] || 0) + 1;
-    });
-    return Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 12)
-      .map(([name, value]) => ({ name, value }));
-  }, [huespedes]);
+  // --- Nationality distribution (current guests) ---
+  const nationalityData = useMemo(
+    () => groupNormalized(huespedActivos.map(h => h.nacionalidad)).slice(0, 12),
+    [huespedActivos]
+  );
+
 
   // --- Average stay ---
   const avgStay = useMemo(() => {
