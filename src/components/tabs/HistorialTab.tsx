@@ -163,11 +163,12 @@ export default function HistorialTab({ store, role }: Props) {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t.name}</TableHead>
-                      <TableHead>{t.room}</TableHead>
-                      <TableHead>{t.checkInDate}</TableHead>
-                      <TableHead>{t.checkOutDate}</TableHead>
-                      <TableHead>{t.diet}</TableHead>
+                      <SortHead label={t.name} k="nombre" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                      <SortHead label={t.room} k="habitacion" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                      <SortHead label={t.checkInDate} k="fechaEntrada" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                      <SortHead label={t.checkOutDate} k="fechaCheckout" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                      <SortHead label={t.diet} k="dieta" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+
                       <TableHead>{t.status}</TableHead>
                       <TableHead className="text-right">{t.actions}</TableHead>
                     </TableRow>
