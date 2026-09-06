@@ -34,8 +34,27 @@ export default function HistorialTab({ store, role }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'historic'>('all');
   const [page, setPage] = useState(0);
+  const [sortKey, setSortKey] = useState<'nombre' | 'habitacion' | 'fechaEntrada' | 'fechaCheckout' | 'dieta'>('fechaEntrada');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
-  const sorted = useMemo(() => [...huespedes].sort((a, b) => b.fechaEntrada.localeCompare(a.fechaEntrada)), [huespedes]);
+  const toggleSort = (key: typeof sortKey) => {
+    if (sortKey === key) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
+    else { setSortKey(key); setSortDir(key === 'fechaEntrada' || key === 'fechaCheckout' ? 'desc' : 'asc'); }
+    setPage(0);
+  };
+
+  const sorted = useMemo(() => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...huespedes].sort((a, b) => {
+      if (sortKey === 'habitacion') {
+        const cmp = a.habitacion.localeCompare(b.habitacion, 'es', { numeric: true }) || a.cama - b.cama;
+        return cmp * dir;
+      }
+      const av = (a[sortKey] ?? '') as string;
+      const bv = (b[sortKey] ?? '') as string;
+      return av.localeCompare(bv, 'es', { numeric: true, sensitivity: 'base' }) * dir;
+    });
+  }, [huespedes, sortKey, sortDir]);
 
   const filtered = useMemo(() => {
     let result = sorted;
@@ -52,6 +71,7 @@ export default function HistorialTab({ store, role }: Props) {
     if (statusFilter === 'historic') result = result.filter(h => !h.activo);
     return result;
   }, [sorted, searchQuery, statusFilter]);
+
 
   // Reset page when filters change
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
