@@ -8,6 +8,8 @@ import { BarChart3, Users, TrendingUp, Globe, Clock, BedDouble, UtensilsCrossed,
 import { UserRole } from '@/types';
 import ExportButton from '@/components/ExportButton';
 import ChartTooltip from '@/components/ChartTooltip';
+import { groupNormalized } from '@/lib/textNormalize';
+
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -54,18 +56,12 @@ export default function InformesTab({ store, role }: Props) {
     return data;
   }, [huespedes, totalCamas, period]);
 
-  // --- Nationality distribution ---
-  const nationalityData = useMemo(() => {
-    const counts: Record<string, number> = {};
-    huespedes.forEach(h => {
-      const nat = h.nacionalidad || 'Sin especificar';
-      counts[nat] = (counts[nat] || 0) + 1;
-    });
-    return Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 12)
-      .map(([name, value]) => ({ name, value }));
-  }, [huespedes]);
+  // --- Nationality distribution (current guests) ---
+  const nationalityData = useMemo(
+    () => groupNormalized(huespedActivos.map(h => h.nacionalidad)).slice(0, 12),
+    [huespedActivos]
+  );
+
 
   // --- Average stay ---
   const avgStay = useMemo(() => {
@@ -107,15 +103,12 @@ export default function InformesTab({ store, role }: Props) {
     });
   }, [rooms, huespedActivos]);
 
-  // --- Language distribution ---
-  const languageData = useMemo(() => {
-    const counts: Record<string, number> = {};
-    huespedes.forEach(h => {
-      const lang = h.idioma || 'Sin especificar';
-      counts[lang] = (counts[lang] || 0) + 1;
-    });
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name, value]) => ({ name, value }));
-  }, [huespedes]);
+  // --- Language distribution (grouped ignoring accents/case) ---
+  const languageData = useMemo(
+    () => groupNormalized(huespedes.map(h => h.idioma)).slice(0, 8),
+    [huespedes]
+  );
+
 
   const totalHistorico = huespedes.length;
   const totalActivos = huespedActivos.length;

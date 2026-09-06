@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { History, Pencil, Trash2, UserPlus, AlertTriangle, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { History, Pencil, Trash2, UserPlus, AlertTriangle, Search, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, ChevronsUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 import ExportButton from '@/components/ExportButton';
 import { DIETAS, Dieta, UserRole } from '@/types';
@@ -22,6 +22,27 @@ interface Props {
 
 const PAGE_SIZE = 20;
 
+type SortKey = 'nombre' | 'habitacion' | 'fechaEntrada' | 'fechaCheckout' | 'dieta';
+
+function SortHead({ label, k, sortKey, sortDir, onSort }: {
+  label: string; k: SortKey; sortKey: SortKey; sortDir: 'asc' | 'desc'; onSort: (k: SortKey) => void;
+}) {
+  const active = sortKey === k;
+  const Icon = active ? (sortDir === 'asc' ? ArrowUp : ArrowDown) : ChevronsUpDown;
+  return (
+    <TableHead>
+      <button
+        type="button"
+        onClick={() => onSort(k)}
+        className={`inline-flex items-center gap-1 hover:text-foreground transition-colors ${active ? 'text-foreground font-semibold' : ''}`}
+      >
+        {label}
+        <Icon className={`w-3.5 h-3.5 ${active ? 'opacity-100' : 'opacity-40'}`} />
+      </button>
+    </TableHead>
+  );
+}
+
 export default function HistorialTab({ store, role }: Props) {
   const { huespedes, rooms, deleteHuesped, editHuesped, reincorporar, huespedActivos } = store;
   const { t } = useI18n();
@@ -34,8 +55,27 @@ export default function HistorialTab({ store, role }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'historic'>('all');
   const [page, setPage] = useState(0);
+  const [sortKey, setSortKey] = useState<'nombre' | 'habitacion' | 'fechaEntrada' | 'fechaCheckout' | 'dieta'>('fechaEntrada');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
-  const sorted = useMemo(() => [...huespedes].sort((a, b) => b.fechaEntrada.localeCompare(a.fechaEntrada)), [huespedes]);
+  const toggleSort = (key: typeof sortKey) => {
+    if (sortKey === key) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
+    else { setSortKey(key); setSortDir(key === 'fechaEntrada' || key === 'fechaCheckout' ? 'desc' : 'asc'); }
+    setPage(0);
+  };
+
+  const sorted = useMemo(() => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...huespedes].sort((a, b) => {
+      if (sortKey === 'habitacion') {
+        const cmp = a.habitacion.localeCompare(b.habitacion, 'es', { numeric: true }) || a.cama - b.cama;
+        return cmp * dir;
+      }
+      const av = (a[sortKey] ?? '') as string;
+      const bv = (b[sortKey] ?? '') as string;
+      return av.localeCompare(bv, 'es', { numeric: true, sensitivity: 'base' }) * dir;
+    });
+  }, [huespedes, sortKey, sortDir]);
 
   const filtered = useMemo(() => {
     let result = sorted;
@@ -52,6 +92,7 @@ export default function HistorialTab({ store, role }: Props) {
     if (statusFilter === 'historic') result = result.filter(h => !h.activo);
     return result;
   }, [sorted, searchQuery, statusFilter]);
+
 
   // Reset page when filters change
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -143,11 +184,12 @@ export default function HistorialTab({ store, role }: Props) {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t.name}</TableHead>
-                      <TableHead>{t.room}</TableHead>
-                      <TableHead>{t.checkInDate}</TableHead>
-                      <TableHead>{t.checkOutDate}</TableHead>
-                      <TableHead>{t.diet}</TableHead>
+                      <SortHead label={t.name} k="nombre" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                      <SortHead label={t.room} k="habitacion" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                      <SortHead label={t.checkInDate} k="fechaEntrada" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                      <SortHead label={t.checkOutDate} k="fechaCheckout" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                      <SortHead label={t.diet} k="dieta" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+
                       <TableHead>{t.status}</TableHead>
                       <TableHead className="text-right">{t.actions}</TableHead>
                     </TableRow>
