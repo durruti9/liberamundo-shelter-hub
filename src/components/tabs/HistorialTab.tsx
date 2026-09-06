@@ -22,6 +22,27 @@ interface Props {
 
 const PAGE_SIZE = 20;
 
+type SortKey = 'nombre' | 'habitacion' | 'fechaEntrada' | 'fechaCheckout' | 'dieta';
+
+function SortHead({ label, k, sortKey, sortDir, onSort }: {
+  label: string; k: SortKey; sortKey: SortKey; sortDir: 'asc' | 'desc'; onSort: (k: SortKey) => void;
+}) {
+  const active = sortKey === k;
+  const Icon = active ? (sortDir === 'asc' ? ArrowUp : ArrowDown) : ChevronsUpDown;
+  return (
+    <TableHead>
+      <button
+        type="button"
+        onClick={() => onSort(k)}
+        className={`inline-flex items-center gap-1 hover:text-foreground transition-colors ${active ? 'text-foreground font-semibold' : ''}`}
+      >
+        {label}
+        <Icon className={`w-3.5 h-3.5 ${active ? 'opacity-100' : 'opacity-40'}`} />
+      </button>
+    </TableHead>
+  );
+}
+
 export default function HistorialTab({ store, role }: Props) {
   const { huespedes, rooms, deleteHuesped, editHuesped, reincorporar, huespedActivos } = store;
   const { t } = useI18n();
