@@ -101,15 +101,12 @@ export default function InformesTab({ store, role }: Props) {
     });
   }, [rooms, huespedActivos]);
 
-  // --- Language distribution ---
-  const languageData = useMemo(() => {
-    const counts: Record<string, number> = {};
-    huespedes.forEach(h => {
-      const lang = h.idioma || 'Sin especificar';
-      counts[lang] = (counts[lang] || 0) + 1;
-    });
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name, value]) => ({ name, value }));
-  }, [huespedes]);
+  // --- Language distribution (grouped ignoring accents/case) ---
+  const languageData = useMemo(
+    () => groupNormalized(huespedes.map(h => h.idioma)).slice(0, 8),
+    [huespedes]
+  );
+
 
   const totalHistorico = huespedes.length;
   const totalActivos = huespedActivos.length;
